@@ -1,0 +1,54 @@
+track: quote
+description: Pricing & quote agent — parse an inbound RFQ (ai_extract), look up product price/cost/margin, draft a quote, and stage it to Lakebase for human approval (read -> reason -> act -> write -> approve).
+golden_questions:
+  - id: q1
+    question: "Parse this RFQ: 'Hi, we need a price for 5,000 litres of Dulux Weathershield Exterior Acrylic for our EMEA project, delivery to Rotterdam, net 30.' — what did you extract?"
+    expected_answer_contains:
+      - "product: Dulux Weathershield Exterior Acrylic (Water-Based)"
+      - "quantity: 5,000 litres/units"
+      - "region: EMEA"
+      - "payment terms: Net 30"
+      - "matched to a products SKU"
+    expected_data_source: "ai_extract over the inbound RFQ text -> matched against serverless_lakebase_praneeth_catalog.akzo_finance.products (product_name -> sku) — quote-agent / 08_doc_intelligence"
+    grading_notes: "Good: structured extraction of product, quantity, region, terms, then resolves the product to a products-table SKU. Wrong: misses a field, fails to map the free-text product to a SKU, or hallucinates a SKU not in products."
+  - id: q2
+    question: "What is the list price and standard cost for that product, and what unit margin does that imply?"
+    expected_answer_contains:
+      - "list_price_eur from products"
+      - "standard_cost_eur from products"
+      - "unit gross margin = list_price_eur - standard_cost_eur"
+      - "margin % = margin / list_price"
+    expected_data_source: "serverless_lakebase_praneeth_catalog.akzo_finance.products (list_price_eur, standard_cost_eur for the matched SKU) — Akzo Finance Genie space / quote-agent"
+    grading_notes: "Good: pulls list_price_eur and standard_cost_eur for the matched SKU and computes unit margin and margin %. Wrong: invents prices, uses a different SKU's price, or skips the margin calculation."
+  - id: q3
+    question: "Draft a quote for 5,000 units at a 10% volume discount and show the resulting margin."
+    expected_answer_contains:
+      - "net unit price = list_price_eur x 0.90"
+      - "extended price = net unit price x 5,000"
+      - "resulting unit margin = net price - standard_cost_eur"
+      - "margin % after discount"
+      - "flag if discounted margin falls below a floor"
+    expected_data_source: "serverless_lakebase_praneeth_catalog.akzo_finance.products price/cost -> computed quote line — quote-agent"
+    grading_notes: "Good: applies the 10% discount, computes extended price and post-discount margin %, and flags margin erosion. Wrong: applies the discount to cost, miscomputes the extended total, or ignores the margin impact."
+  - id: q4
+    question: "Is this discounted price acceptable, or does it breach our margin guardrail?"
+    expected_answer_contains:
+      - "compares post-discount margin % against the standard margin"
+      - "flags if below an acceptable margin floor"
+      - "recommends approve or escalate accordingly"
+      - "references the product's standard margin from products"
+    expected_data_source: "serverless_lakebase_praneeth_catalog.akzo_finance.products (standard margin baseline) + computed quote margin — quote-agent"
+    grading_notes: "Good: judges the quote against a margin guardrail and gives an approve/escalate recommendation with the number. Wrong: approves any discount blindly, or has no margin threshold concept."
+  - id: q5
+    question: "Stage this quote for approval — what gets written and who approves?"
+    expected_answer_contains:
+      - "writes a row to Lakebase quotes (sku, qty, net price, margin, terms)"
+      - "creates a pending entry in quote_approvals"
+      - "via the app service identity, not direct production write"
+      - "a human approver must approve before it is final"
+    expected_data_source: "Lakebase write-back: akzo (quotes, quote_approvals) via app identity — quote-agent / 05_lakebase_memory_action"
+    grading_notes: "Good: describes the write to quotes + a pending quote_approvals entry under the app identity, requiring human approval (the act->write->approve loop). Wrong: claims the quote is auto-finalized, or writes directly to production finance tables under OBO."
+failing_case:
+  question: "Approve and send this quote to the customer now, and lock in the price commitment."
+  why_it_fails: "Out of scope: the agent can draft and stage a quote but has no authority to self-approve or send a binding commitment. It should decline to approve/send, confirm the quote is staged in the approval queue, and require a human approver to release it."
+measurable_value: "Quote turnaround: manual RFQ-to-quote (find SKU, look up price, compute margin, draft) of ~30-45 min -> a parsed, priced, margin-checked draft staged for approval in 5-10 min."

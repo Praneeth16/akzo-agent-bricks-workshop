@@ -1,0 +1,97 @@
+@import "@databricks/appkit-ui/styles.css";
+
+/*
+ * AkzoNobel Hackathon-in-the-Box — Databricks LIGHT theme.
+ * Forced light: identical tokens in :root and the dark media query so the app
+ * never flips to dark with the OS. Teal (#00b39f ≈ oklch(0.69 0.13 183)) is the
+ * Databricks brand accent, carried over from apps/DESIGN_BRIEF.md.
+ */
+:root {
+  color-scheme: light;
+  --radius: 0.625rem;
+
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.21 0.012 250);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.21 0.012 250);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.21 0.012 250);
+
+  --primary: oklch(0.69 0.13 183);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.968 0.004 250);
+  --secondary-foreground: oklch(0.28 0.012 250);
+  --muted: oklch(0.968 0.004 250);
+  --muted-foreground: oklch(0.52 0.018 250);
+  --accent: oklch(0.952 0.035 183);
+  --accent-foreground: oklch(0.42 0.09 183);
+
+  --destructive: oklch(0.585 0.22 27.3);
+  --destructive-foreground: oklch(0.99 0 0);
+  --success: oklch(0.6 0.135 166.9);
+  --success-foreground: oklch(1 0 0);
+  --warning: oklch(0.78 0.16 70);
+  --warning-foreground: oklch(0.28 0.03 70);
+
+  --border: oklch(0.916 0.006 250);
+  --input: oklch(0.916 0.006 250);
+  --ring: oklch(0.69 0.13 183);
+
+  --chart-1: oklch(0.69 0.13 183);
+  --chart-2: oklch(0.6 0.118 250);
+  --chart-3: oklch(0.78 0.16 70);
+  --chart-4: oklch(0.62 0.2 304);
+  --chart-5: oklch(0.64 0.2 16);
+
+  --sidebar: oklch(0.985 0.003 250);
+  --sidebar-foreground: oklch(0.21 0.012 250);
+  --sidebar-primary: oklch(0.69 0.13 183);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.952 0.035 183);
+  --sidebar-accent-foreground: oklch(0.42 0.09 183);
+  --sidebar-border: oklch(0.916 0.006 250);
+  --sidebar-ring: oklch(0.69 0.13 183);
+}
+
+/* Keep light even when the OS prefers dark. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: light;
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.21 0.012 250);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.21 0.012 250);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.21 0.012 250);
+    --primary: oklch(0.69 0.13 183);
+    --primary-foreground: oklch(0.99 0 0);
+    --secondary: oklch(0.968 0.004 250);
+    --secondary-foreground: oklch(0.28 0.012 250);
+    --muted: oklch(0.968 0.004 250);
+    --muted-foreground: oklch(0.52 0.018 250);
+    --accent: oklch(0.952 0.035 183);
+    --accent-foreground: oklch(0.42 0.09 183);
+    --destructive: oklch(0.585 0.22 27.3);
+    --destructive-foreground: oklch(0.99 0 0);
+    --success: oklch(0.6 0.135 166.9);
+    --success-foreground: oklch(1 0 0);
+    --warning: oklch(0.78 0.16 70);
+    --warning-foreground: oklch(0.28 0.03 70);
+    --border: oklch(0.916 0.006 250);
+    --input: oklch(0.916 0.006 250);
+    --ring: oklch(0.69 0.13 183);
+    --chart-1: oklch(0.69 0.13 183);
+    --chart-2: oklch(0.6 0.118 250);
+    --chart-3: oklch(0.78 0.16 70);
+    --chart-4: oklch(0.62 0.2 304);
+    --chart-5: oklch(0.64 0.2 16);
+    --sidebar: oklch(0.985 0.003 250);
+    --sidebar-foreground: oklch(0.21 0.012 250);
+    --sidebar-primary: oklch(0.69 0.13 183);
+    --sidebar-primary-foreground: oklch(0.99 0 0);
+    --sidebar-accent: oklch(0.952 0.035 183);
+    --sidebar-accent-foreground: oklch(0.42 0.09 183);
+    --sidebar-border: oklch(0.916 0.006 250);
+    --sidebar-ring: oklch(0.69 0.13 183);
+  }
+}

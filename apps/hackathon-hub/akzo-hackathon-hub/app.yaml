@@ -1,0 +1,14 @@
+command: ['npm', 'run', 'start']
+env:
+  # SQL warehouse for the analytics plugin (the live "Try it live" panels over akzo_*).
+  - name: DATABRICKS_WAREHOUSE_ID
+    value: '4d39ac2e32b72a3a'
+  # Classic Lakebase instance backing the hackathon state (hack_* tables in akzo).
+  - name: LAKEBASE_INSTANCE
+    value: 'graphrag-spike'
+  - name: LAKEBASE_DBNAME
+    value: 'databricks_postgres'
+  - name: LAKEBASE_SCHEMA
+    value: 'akzo'
+  - name: DATABRICKS_CHAT_ENDPOINT
+    value: 'databricks-claude-opus-4-7'

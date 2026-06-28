@@ -1,0 +1,29 @@
+# Dependencies
+**/node_modules/
+
+# Build outputs
+**/dist/
+**/build/
+**/client/dist/
+
+# Env / local config (no secrets committed)
+**/.env
+**/.env.local
+.databricks/
+**/.databricks/
+
+# AppKit generated per-developer types
+**/shared/appkit-types/serving.d.ts
+
+# Caches / tooling
+**/.smoke-test/
+**/test-results/
+**/playwright-report/
+**/.gstack/
+.DS_Store
+**/*.log
+
+# Python
+**/__pycache__/
+**/*.pyc
+**/.venv/

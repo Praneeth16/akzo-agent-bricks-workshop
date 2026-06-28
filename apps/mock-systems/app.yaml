@@ -1,0 +1,20 @@
+# Databricks Apps manifest for the Mock External Systems API.
+# The app service principal provides SDK auth automatically (no profile in Apps).
+# uvicorn serves the JSON action API + a minimal HTML status page on the app port.
+command:
+  - uvicorn
+  - main:app
+  - --app-dir
+  - "backend"
+  - --host
+  - "0.0.0.0"
+  - --port
+  - "$DATABRICKS_APP_PORT"
+
+env:
+  - name: LAKEBASE_INSTANCE
+    value: "graphrag-spike"
+  - name: LAKEBASE_DBNAME
+    value: "databricks_postgres"
+  - name: LAKEBASE_SCHEMA
+    value: "akzo"

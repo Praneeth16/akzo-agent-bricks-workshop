@@ -1,0 +1,26 @@
+# Databricks Apps manifest for the Finance controlling copilot.
+# The app service principal provides SDK auth automatically (no profile needed in Apps).
+# uvicorn serves both the API (/api/*) and the built React frontend (/) on the app port.
+command:
+  - uvicorn
+  - main:app
+  - --app-dir
+  - "backend"
+  - --host
+  - "0.0.0.0"
+  - --port
+  - "$DATABRICKS_APP_PORT"
+
+env:
+  - name: DATABRICKS_WAREHOUSE_ID
+    value: "4d39ac2e32b72a3a"
+  - name: DATABRICKS_CHAT_ENDPOINT
+    value: "databricks-claude-opus-4-7"
+  - name: LAKEBASE_INSTANCE
+    value: "graphrag-spike"
+  - name: LAKEBASE_DBNAME
+    value: "databricks_postgres"
+  - name: LAKEBASE_SCHEMA
+    value: "akzo"
+  # GENIE_INSTRUCTIONS_PATH defaults to the bundled backend/finance_space.md (self-contained),
+  # falling back to ../../../genie/finance_space.md relative to backend/.

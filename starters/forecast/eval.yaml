@@ -1,0 +1,52 @@
+track: forecast
+description: Forecast planner — explains MMF/Paints EMEA forecast deltas vs actuals/budget and proposes a human-reviewed forecast override written to Lakebase.
+golden_questions:
+  - id: q1
+    question: "Why is the Paints EMEA forecast off in Q2 2026 versus what actually happened?"
+    expected_answer_contains:
+      - "Decorative Paints x EMEA"
+      - "Q2 actual margin ~30.7% vs budget/plan ~39.6%"
+      - "~8.9pp miss"
+      - "plan assumed no shocks; actuals hit price erosion, FX, and a raw-material spike"
+    expected_data_source: "serverless_lakebase_praneeth_catalog.akzo_finance.margin_actuals vs serverless_lakebase_praneeth_catalog.akzo_finance.margin_budget (Decorative Paints x EMEA, Q2 2026) — Akzo Finance Genie space / forecast starter"
+    grading_notes: "Good: contrasts actual vs budget for the segment, quantifies the ~8.9pp miss, and explains the budget did not anticipate the Q2 shocks. Wrong: compares the wrong segment, ignores the budget table, or treats actuals as the forecast."
+  - id: q2
+    question: "Decompose the forecast delta into demand, price, and cost components."
+    expected_answer_contains:
+      - "volume/demand roughly on plan (flat)"
+      - "price below plan (~ -3.5% realized)"
+      - "raw-material cost above plan (TiO2/resin +15-20%)"
+      - "FX headwind ~ -2pp"
+    expected_data_source: "margin_budget vs margin_actuals + cost_drivers + fx_rates (Q2 2026, Decorative Paints x EMEA) — forecast starter"
+    grading_notes: "Good: attributes the miss to price and cost (and FX), with volume on plan. Wrong: blames a demand miss (volume was flat) or omits the cost-side driver."
+  - id: q3
+    question: "Given the Rotterdam supply disruption, what volume/demand assumption should the Q2 forecast have used?"
+    expected_answer_contains:
+      - "the May stockout and OTIF drop suppressed deliverable volume"
+      - "backorders ~2,258 units in EMEA"
+      - "fulfillment-constrained, not demand-constrained"
+      - "forecast should reflect a service/supply constraint"
+    expected_data_source: "serverless_lakebase_praneeth_catalog.akzo_scm.inventory/otif/service_levels (EMEA May 2026) cross-referenced with finance volume — Akzo SCM + Akzo Finance"
+    grading_notes: "Good: reframes the volume assumption around a supply constraint (stockout/backorders), not weak demand. Wrong: assumes a demand decline with no reference to the supply disruption."
+  - id: q4
+    question: "Propose a forecast override for Paints EMEA for the next period and quantify it."
+    expected_answer_contains:
+      - "lower the margin % forecast toward the ~30-33% range until the disruption clears"
+      - "raise raw-material cost assumption (+15-20%)"
+      - "apply the FX headwind"
+      - "stage override for human review (not auto-applied)"
+    expected_data_source: "proposed write to Lakebase forecast_overrides (segment, period, new assumption, rationale) — forecast starter / 05_lakebase_memory_action"
+    grading_notes: "Good: concrete override numbers with rationale, framed as a human-reviewed proposal staged to forecast_overrides. Wrong: invents a confident point forecast with no basis, or claims to apply the override automatically without approval."
+  - id: q5
+    question: "Once the Rotterdam lane recovers, how should the forecast adjust back?"
+    expected_answer_contains:
+      - "June OTIF recovered to ~93%, service to ~94.5%"
+      - "step the volume/service assumption back toward baseline"
+      - "keep the raw-material/FX adjustment until cost normalizes"
+      - "revisit the override as data confirms recovery"
+    expected_data_source: "serverless_lakebase_praneeth_catalog.akzo_scm.otif/service_levels (Jun 2026 recovery) + finance cost trend — forecast starter"
+    grading_notes: "Good: separates the service recovery (relax volume constraint as June improves) from the cost/FX drivers (hold until they normalize). Wrong: snaps everything back to baseline at once, or ignores the June recovery signal."
+failing_case:
+  question: "Just give me the exact, guaranteed Paints EMEA margin number for December 2026."
+  why_it_fails: "Out of scope: no data exists beyond 2026-06 and there is no statistical forecast model behind the planner — it explains deltas and proposes overrides, it does not guarantee point forecasts. It should decline the 'guaranteed exact' framing, offer a scenario range with stated assumptions, and route to a planner for approval."
+measurable_value: "Forecast variance explanation + override drafting: 30-45 min of analyst spreadsheet reconciliation -> 5-10 min copilot delta decomposition with a staged, human-reviewed override."

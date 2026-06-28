@@ -1,0 +1,56 @@
+track: finance
+description: Finance controlling copilot — gross-margin variance decomposition (price/volume/FX/cost) over governed finance data.
+golden_questions:
+  - id: q1
+    question: "What happened to Paints EMEA gross margin in Q2 2026 versus Q1 2026?"
+    expected_answer_contains:
+      - "Q1 2026 ~39.6%"
+      - "Q2 2026 ~30.7%"
+      - "drop of ~8.9 percentage points"
+      - "Decorative Paints"
+      - "EMEA"
+    expected_data_source: "serverless_lakebase_praneeth_catalog.akzo_finance.margin_actuals (filtered to Decorative Paints x EMEA, Q1 vs Q2 2026); certified metric view serverless_lakebase_praneeth_catalog.akzo_finance.mv_gross_margin — Akzo Finance Genie space"
+    grading_notes: "Good: names the line (Decorative Paints), region (EMEA), both quarter margins (~39.6% -> ~30.7%) and the ~8.9pp drop. Wrong: quotes absolute EUR only with no margin %, picks the wrong region/line, or reports a drop near the ~0.8pp baseline noise that every other segment shows."
+  - id: q2
+    question: "Decompose the Paints EMEA Q2 2026 margin drop into price, volume, FX, and cost effects."
+    expected_answer_contains:
+      - "price erosion ~ -3pp"
+      - "realized price down ~3.5%"
+      - "adverse FX ~ -2pp"
+      - "raw-material spike ~ -3pp"
+      - "volume roughly flat"
+    expected_data_source: "serverless_lakebase_praneeth_catalog.akzo_finance variance components (price/volume/FX/cost) from mv_gross_margin; margin_actuals + cost_drivers + fx_rates — Akzo Finance Genie space"
+    grading_notes: "Good: four-way bridge summing to ~ -8pp, with price ~-3pp, FX ~-2pp, raw material ~-3pp, volume ~flat. Wrong: attributes the whole drop to one cause, omits FX, or claims a volume collapse (volume is flat)."
+  - id: q3
+    question: "Which cost driver is responsible for the COGS increase in Paints EMEA in Q2 2026?"
+    expected_answer_contains:
+      - "raw material"
+      - "TiO2"
+      - "resin"
+      - "up ~15-20% in Q2"
+      - "freight/energy/overhead roughly stable"
+    expected_data_source: "serverless_lakebase_praneeth_catalog.akzo_finance.cost_drivers (raw_material_cost vs freight_cost/energy_cost/overhead) for Decorative Paints x EMEA, Q2 2026 — Akzo Finance Genie space"
+    grading_notes: "Good: isolates raw_material_cost (TiO2 + resin) up ~15-20% as the COGS culprit and notes the other three buckets are stable. Wrong: blames freight or energy, or cites total COGS without the bucket-level decomposition."
+  - id: q4
+    question: "How much did adverse FX contribute to the Paints EMEA margin miss, and which currencies drove it?"
+    expected_answer_contains:
+      - "~ -2pp FX headwind"
+      - "EUR strengthened"
+      - "USD"
+      - "CNY"
+      - "~ -2.3% EUR-translation"
+    expected_data_source: "serverless_lakebase_praneeth_catalog.akzo_finance.fx_rates (USD/CNY rate_to_eur, Q2 2026) joined to margin_actuals — Akzo Finance Genie space"
+    grading_notes: "Good: ~-2pp FX impact, names EUR strengthening vs USD/CNY (~-2.3% translation headwind on realized price). Wrong: ignores currency direction, attributes FX to GBP/EMEA-local EUR, or double-counts FX as price erosion."
+  - id: q5
+    question: "Is the Q2 2026 margin problem specific to Paints EMEA or is it company-wide?"
+    expected_answer_contains:
+      - "specific to Decorative Paints in EMEA"
+      - "all other region x line combos stable"
+      - "max other swing ~0.79pp"
+      - "not company-wide"
+    expected_data_source: "serverless_lakebase_praneeth_catalog.akzo_finance.margin_actuals across all region x product_line combos, Q1 vs Q2 2026 — Akzo Finance Genie space"
+    grading_notes: "Good: confirms it is isolated to Decorative Paints x EMEA, with every other segment moving < ~0.8pp Q1->Q2. Wrong: generalizes the drop to all regions/lines or fails to compare against the stable baseline."
+failing_case:
+  question: "What will Paints EMEA gross margin be in Q3 2026 and should we hedge TiO2 forward six months?"
+  why_it_fails: "Out of scope: the finance copilot reports historical/actual variance from margin_actuals (data ends 2026-06); it has no forecast model and no hedging/procurement-recommendation authority. It should decline to predict Q3 and route hedging strategy to procurement, while offering the historical price/FX/cost drivers that inform the decision."
+measurable_value: "Margin variance root-cause investigation: 20-30 min of manual cube slicing and bridge-building -> 5-10 min copilot answer with a cited four-way price/volume/FX/cost decomposition."
