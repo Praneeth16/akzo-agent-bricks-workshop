@@ -98,6 +98,15 @@ for action_type, route in ROUTING.items():
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC **Read the output:** if you see `Action Plane ready` plus a route per action type (e.g.
+# MAGIC `quote_send → email, crm`), the shared module imported cleanly and Lakebase is reachable. Those
+# MAGIC routes are the connector chain L3 will fire for each action type — keep them in mind for the
+# MAGIC execute step below. An `ImportError` here means `_shared` is not on `sys.path` (re-check the
+# MAGIC paths above); a connection error means the Lakebase profile/credentials are not set.
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ## L1 — Recommend: the supervisor proposes a next-best-action (no write)
 # MAGIC
 # MAGIC L1 is what we already have from `04_supervisor_agent.py`: the supervisor routes the flagship
@@ -158,6 +167,13 @@ for r in RECOMMENDATION["recommended_actions"]:
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC **Read the output:** two proposed actions print — a `quote_send` and an `scm_reorder` — each with
+# MAGIC a one-line *why*. Nothing was written or sent: this is pure text, the floor of the ladder. The
+# MAGIC rest of the notebook takes the first one (the quote) and walks it up rungs L2 → L3.
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ## L2 — Stage & approve: write a governed action record, check guardrails, approve
 # MAGIC
 # MAGIC Now the agent **acts** for the first time — but only into the governed plane, not the outside
@@ -182,6 +198,13 @@ proposed = ap.propose(
 ACTION_ID = proposed["id"]
 print(f"L2 STAGED → action id={ACTION_ID}, status={proposed['status']!r}, "
       f"type={proposed['action_type']!r}")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC **Read the output:** the action now has a real `id` and `status='proposed'`. That id is the
+# MAGIC handle every later step uses (evaluate, approve, execute, lineage). The agent has *acted* — but
+# MAGIC only into the governed plane (`akzo.actions`), not the outside world.
 
 # COMMAND ----------
 
@@ -261,6 +284,15 @@ for c in connectors:
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC **Read the output:** status flips to `executed` and you get an `external_ref`. The two connector
+# MAGIC lines (`email`, then `crm`) each carry a `ref_id` and a `via` showing the UC HTTP connection used.
+# MAGIC This is the first time the action reached *outside* Databricks — and it went through a
+# MAGIC catalog-governed connection, not an ad-hoc `requests.post`. The next cell finds the matching
+# MAGIC receipts on the mock side.
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC **The external receipt.** Each connector landed a row in `akzo.external_system_log` on the mock
 # MAGIC side, attributed to the mock app's service principal (`created_by`). This is the external-effect
 # MAGIC proof — the same `ref_id`s that came back on the action above.
@@ -333,6 +365,15 @@ show_events(BREACH_ID)
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC **Read the output:** guardrails report `passed=False` with a `spend_cap` breach (€205k > €100k),
+# MAGIC and even though the action was approved, `execute()` returns `status='escalated'` with a null
+# MAGIC `external_ref`. The lineage shows the breach reason but no connector rows — proof that the
+# MAGIC executor, not the approver, is the last line of defense. This is the answer to "what stops it
+# MAGIC doing something dumb?"
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ## L4 — Autonomous closed-loop (preview)
 # MAGIC
 # MAGIC L3 still required a human to approve. **L4** removes that step *only when policy allows it*: a
@@ -353,6 +394,14 @@ show_events(BREACH_ID)
 print("LADDER COUNTS (level × status):")
 for row in ap.ladder_counts():
     print(f"  L{row['level']}  {row['status']:12s} {row['count']}")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC **Read the output:** expect at least one `L3 executed` (the quote) and one `L3 escalated` (the
+# MAGIC over-cap reorder) from this notebook; L4 rows appear once you run NB10. This level × status
+# MAGIC grid is exactly what the Action Center app's maturity-ladder viz renders — the same query,
+# MAGIC same governed tables.
 
 # COMMAND ----------
 

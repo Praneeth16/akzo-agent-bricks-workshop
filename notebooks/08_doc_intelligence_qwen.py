@@ -105,6 +105,13 @@ print("VS index      :", VS_INDEX)
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC **Sanity check the parse.** This row-per-document view confirms all 14 PDFs landed and that
+# MAGIC `parsed_text` is non-trivial. Look for every `doc_id` present and `parsed_chars` in the
+# MAGIC thousands — a near-zero count would signal a scanned/empty PDF that OCR couldn't read.
+
+# COMMAND ----------
+
 # MAGIC %sql
 # MAGIC SELECT doc_id, doc_type_guess, length(parsed_text) AS parsed_chars
 # MAGIC FROM akzo_docs.docs_parsed
@@ -130,6 +137,13 @@ print("VS index      :", VS_INDEX)
 # MAGIC   doc_id, path, doc_type_guess, parsed_text,
 # MAGIC   ai_classify(substr(parsed_text, 1, 2000), ARRAY('SDS','contract')) AS doc_type
 # MAGIC FROM akzo_docs.docs_parsed;
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC **Read the `agrees` column.** Every row should be `true`, meaning the model's `doc_type` matches
+# MAGIC the folder the PDF came from (`doc_type_guess`). In the verified run this is 14/14 — a clean,
+# MAGIC zero-config classifier with no training data, just a candidate label set.
 
 # COMMAND ----------
 
@@ -178,6 +192,14 @@ print("VS index      :", VS_INDEX)
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC **Inspect the extracted SDS fields.** Each row is one safety data sheet collapsed into clean,
+# MAGIC typed columns. Spot-check that `product` names look real and `flash_point_c` / `voc_g_per_l`
+# MAGIC carry sensible numbers — this is unstructured PDF text turned into a queryable table by one
+# MAGIC function call.
+
+# COMMAND ----------
+
 # MAGIC %sql
 # MAGIC SELECT doc_id, product, hazard_class, flash_point_c, voc_g_per_l, storage_temp
 # MAGIC FROM akzo_docs.sds_extracted
@@ -206,6 +228,14 @@ print("VS index      :", VS_INDEX)
 # MAGIC   ( CAST(regexp_replace(j.payment_terms_days, '[^0-9]', '') AS INT) > 60
 # MAGIC     AND CAST(regexp_replace(j.annual_spend_eur, '[^0-9]', '') AS BIGINT) > 1000000 ) AS non_standard_flag
 # MAGIC FROM ex;
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC **Check the typed contract fields and the business rule.** `annual_spend_eur` and
+# MAGIC `payment_terms_days` should now be real numbers (not `"EUR 1,200,000"` / `"Net 90"`), and
+# MAGIC `non_standard_flag` should be `true` for exactly the suppliers that breach both thresholds.
+# MAGIC This is the table Step 8 queries — confirm the flag fires here first.
 
 # COMMAND ----------
 
@@ -248,6 +278,13 @@ print("VS index      :", VS_INDEX)
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC **Confirm the chunking shape.** `n_docs` should be 14 and `avg_chunk_chars` should sit near our
+# MAGIC ~2000-char window. `n_chunks` (50 in the verified run) is what feeds the embedding step — too
+# MAGIC few would mean retrieval has little to match against; wildly too many would mean over-splitting.
+
+# COMMAND ----------
+
 # MAGIC %sql
 # MAGIC SELECT count(*) AS n_chunks, count(DISTINCT doc_id) AS n_docs,
 # MAGIC        round(avg(length(chunk_text))) AS avg_chunk_chars
@@ -273,6 +310,13 @@ print("VS index      :", VS_INDEX)
 # MAGIC   chunk_id, doc_id, doc_type, chunk_text,
 # MAGIC   ai_query('databricks-qwen3-embedding-0-6b', chunk_text, returnType => 'ARRAY<FLOAT>') AS embedding
 # MAGIC FROM akzo_docs.chunks;
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC **Verify the embeddings are well-formed.** `min_dim` and `max_dim` must both equal **1024** —
+# MAGIC every chunk got a full-length Qwen vector and none came back empty or ragged. A mismatch here
+# MAGIC would break the Vector Search index, which is hard-wired to `embedding_dimension=1024` next.
 
 # COMMAND ----------
 
@@ -377,6 +421,13 @@ context = "\n\n---\n".join([f"[{r[1]}] {r[3]}" for r in rows])
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC **Read the retrieved list.** The top-ranked chunks should come from the **titanium-dioxide SDS**
+# MAGIC (highest `score`), proving the Qwen vectors put the right document nearest the query. The
+# MAGIC concatenated `context` string is exactly what we hand the model next — nothing else.
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC Ground the chat model on exactly those chunks. The prompt forbids outside knowledge and requires
 # MAGIC inline `[doc_id]` citations, so the answer is auditable back to the source SDS.
 
@@ -400,6 +451,14 @@ print(answer)
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC **What to look for in the answer.** It should describe TiO2 storage and PPE in plain language and
+# MAGIC tag each fact with a `[doc_id]` you can trace back to the SDS. If a detail isn't in the retrieved
+# MAGIC context, a well-grounded model says so rather than inventing it — that refusal is a feature, not
+# MAGIC a bug, and is what makes the answer auditable.
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ## Step 8 — Structured + unstructured fusion
 # MAGIC
 # MAGIC The structured half, over the **same documents**. The procurement question
@@ -418,6 +477,14 @@ print(answer)
 # MAGIC FROM akzo_docs.contracts_extracted
 # MAGIC WHERE payment_terms_days > 60 AND annual_spend_eur > 1000000
 # MAGIC ORDER BY annual_spend_eur DESC;
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC **The payoff result:** this query should return **exactly two rows — Tronox and Allnex**, the
+# MAGIC suppliers that breach both the payment-term and spend thresholds. No regex over raw PDF text, no
+# MAGIC manual data entry — just SQL over fields `ai_extract` lifted from contract documents. The same
+# MAGIC parsed source now answers both a semantic question (Step 7) and an analytical one (here).
 
 # COMMAND ----------
 

@@ -1,5 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@databricks/appkit-ui/react';
-import { ExternalLink, FlaskConical, BookText } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, Button } from '@databricks/appkit-ui/react';
+import { ExternalLink, FlaskConical, BookText, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router';
 import { Page, PageHeader, Section, TrackBadge } from '../components/kit';
 import { TRACKS, NOTEBOOKS, REPO_BASE } from '../content';
 
@@ -17,8 +18,16 @@ export default function ChallengesPage() {
           {TRACKS.map((t) => (
             <Card key={t.key} className="flex flex-col">
               <CardHeader className="pb-2">
-                <div className="flex items-center justify-between gap-2">
-                  <CardTitle className="text-base">{t.name}</CardTitle>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex flex-col gap-1">
+                    {t.deckNo && t.deckNo !== '—' && (
+                      <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        Use case {t.deckNo}
+                      </span>
+                    )}
+                    <CardTitle className="text-base">{t.name}</CardTitle>
+                    {t.role && <span className="text-xs text-muted-foreground">{t.role}</span>}
+                  </div>
                   <TrackBadge domain={t.domain} />
                 </div>
               </CardHeader>
@@ -30,7 +39,12 @@ export default function ChallengesPage() {
                 <div className="text-xs text-muted-foreground">
                   <span className="font-semibold text-foreground">Ship target:</span> {t.shipTarget}
                 </div>
-                <div className="mt-auto flex flex-wrap gap-3 pt-1 text-xs">
+                <div className="mt-auto flex flex-wrap items-center gap-3 pt-1 text-xs">
+                  <Button asChild size="sm">
+                    <Link to={`/guide/${t.key}`}>
+                      Open guide <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                  </Button>
                   <a
                     className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
                     href={`${REPO_BASE}/${t.starterPath}`}

@@ -109,6 +109,13 @@ with pg() as conn, conn.cursor() as cur:
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC **What to look for:** the printout should show your email as `current_user` and `databricks_postgres`
+# MAGIC as the database. That confirms the short-lived token authenticated against the right instance and
+# MAGIC that you are connected through Postgres directly — not the read-only UC mirror.
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ## BEAT 1 — SEE: create the write-back schema + tables (with audit trail)
 # MAGIC
 # MAGIC The pre-staged schema is the agent's **memory + action surface**. Every action table carries the
@@ -218,6 +225,13 @@ print("Lakebase write-back tables ready:", tables)
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC **What to look for:** the list should contain all seven tables (`agent_feedback`, `agent_sessions`,
+# MAGIC `commercial_actions`, `forecast_overrides`, `quote_approvals`, `quotes`, `scm_interventions`). Because
+# MAGIC the DDL is idempotent, re-running this cell leaves the same list — your earlier rows survive.
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ## The action layer — the agent's write helpers
 # MAGIC
 # MAGIC These are the **action definitions**: the small, audited write functions the agent calls instead
@@ -308,6 +322,13 @@ print("Wrote forecast_override  id =", oid, "(status=pending)")
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC **What to look for:** two new ids printed, each tagged `status=pending`. Nothing is "live" yet — a
+# MAGIC pending row is a *staged* action waiting on a human. Re-running after your tweak gives fresh,
+# MAGIC higher ids, so you can see your edited action land as a distinct row.
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC **See it land.** Read the pending rows straight back from Lakebase — including the audit columns.
 # MAGIC This is the same query the approval app runs to populate its pending queue.
 
@@ -327,6 +348,13 @@ for r in interv:
 print("PENDING overrides:")
 for r in overr:
     print("  ", r)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC **What to look for:** your just-written intervention and override appear at the top (highest id),
+# MAGIC every row stamped `created_by` = the service identity and `created_at` = now. This is exactly the
+# MAGIC queue a human approver sees in the app — the audit columns are present from the moment of the write.
 
 # COMMAND ----------
 
@@ -351,6 +379,14 @@ with pg() as conn, conn.cursor() as cur:
     cur.execute("""SELECT override_id, sku, override_units, status, created_by, approved_by, approved_at
                    FROM forecast_overrides WHERE override_id=%s""", (oid,))
     print("Audited override    :", cur.fetchone())
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC **What to look for:** both rows now read `status=approved` with `approved_by` (the human) and
+# MAGIC `approved_at` filled in — alongside the original `created_by` (the agent). One row, two identities:
+# MAGIC the agent that proposed it and the human that authorized it. That dual stamp *is* the audit trail.
+# MAGIC Re-running the approve calls returns `None` because the `status='pending'` guard no longer matches.
 
 # COMMAND ----------
 
@@ -385,6 +421,14 @@ print("Logged agent_session id =", sid, "uuid =", session_uuid)
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC **What to look for:** a session id and a UUID. The UUID is the join key — it links this Q&A turn,
+# MAGIC its feedback row, and (in the apps) the actions it produced. This is what turns Lakebase from a
+# MAGIC write-back table into the agent's *memory*: every answer is replayable and every action traceable
+# MAGIC back to the question that prompted it.
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ## Verify everything from one place
 # MAGIC
 # MAGIC A final read across the action tables — what the approval app surfaces.
@@ -398,6 +442,13 @@ with pg() as conn, conn.cursor() as cur:
         cur.execute(f"SELECT count(*) FROM {t}" + (" WHERE status='approved'" if t in ("scm_interventions","forecast_overrides") else ""))
         extra = f", approved={cur.fetchone()[0]}" if t in ("scm_interventions","forecast_overrides") else ""
         print(f"  {t}: rows={n}{extra}")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC **What to look for:** non-zero `rows` for all four tables, and `approved >= 1` on `scm_interventions`
+# MAGIC and `forecast_overrides`. This single roll-up is the health check the approval app runs — it proves
+# MAGIC the full read → reason → act → write → approve loop closed and persisted, not just printed.
 
 # COMMAND ----------
 

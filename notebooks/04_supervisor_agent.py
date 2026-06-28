@@ -101,6 +101,17 @@ LEG_SCHEMA = {"FINANCE": "akzo_finance", "SCM": "akzo_scm", "COMMERCIAL": "akzo_
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC ### The leg machinery: three tiny functions
+# MAGIC
+# MAGIC These are the reusable building blocks every subagent shares. `_ai_query` is the single LLM call
+# MAGIC (used by router, legs, and fuser alike). `text2sql` wraps a Genie-space instruction block to turn a
+# MAGIC question into governed SQL. `call_leg` runs that SQL on serverless **under the caller's UC identity**
+# MAGIC and catches failures so one bad leg can't sink the whole supervisor turn — that resilience is why the
+# MAGIC supervisor can route broadly without fear.
+
+# COMMAND ----------
+
 def _ai_query(prompt: str) -> str:
     """One call to the chat model on serverless."""
     return spark.sql(
@@ -255,6 +266,13 @@ display(spark.createDataFrame(trace_rows))
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC **What to look for:** one row per consulted subagent. You should see FINANCE and SCM (often
+# MAGIC COMMERCIAL too), each with a non-zero `rows_returned` and an empty `error`. If a leg shows an error,
+# MAGIC its generated SQL is right there in the table to debug — the trace is the audit trail.
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ## BEAT 2 — TWEAK: edit the routing description, watch routing change
 # MAGIC
 # MAGIC This is the hands-on moment. We **narrow the Finance description** so it only claims to know about
@@ -293,6 +311,13 @@ display(spark.createDataFrame([
     {"variant": "tweaked",  "domains_routed": ", ".join(tweaked["decision"]["domains"]),
      "reason": tweaked["decision"].get("reason", "")},
 ]))
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC **What to look for:** the `domains_routed` column should differ between the two rows. After the tweak,
+# MAGIC the margin/price story should follow the *description* into SCM (and drop out of the now-cost-only
+# MAGIC FINANCE leg). Identical question, edited descriptions, different route — proving routing is config.
 
 # COMMAND ----------
 

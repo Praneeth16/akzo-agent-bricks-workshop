@@ -145,6 +145,13 @@ print(f"\nTarget lane → {TARGET['lane']}  ({TARGET['otif_pct']}% OTIF, {TARGET
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC *What to look for:* exactly one ⚠️ lane should print — `Rotterdam-NL->EMEA-DACH` at ~88.9% for
+# MAGIC May 2026. If you see more lanes, the seed data drifted; if you see none, `akzo_scm.otif` is empty
+# MAGIC (the `assert` will catch it). `TARGET` is now the single breach the rest of the loop acts on.
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC **Why did it break?** A service dip is only actionable if we know the cause. We join the breach
 # MAGIC to `akzo_scm.inventory` for the **same month at the origin plant** to find the stocked-out SKUs —
 # MAGIC this is the evidence the decision LLM reasons over. On the seeded data, **DEC-1000 and DEC-1004**
@@ -182,6 +189,13 @@ for r in stockouts:
           f"days_of_supply={r['days_of_supply']}")
 
 STOCKOUT_SKUS = [r["sku"] for r in stockouts]
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC *What to look for:* two 📦 SKUs (DEC-1000, DEC-1004) with `days_of_supply` near 1 — the concrete
+# MAGIC cause of the OTIF dip. This is the evidence we hand the LLM next; `STOCKOUT_SKUS` becomes the
+# MAGIC default reorder list, so the proposal is grounded in real stockouts rather than a guess.
 
 # COMMAND ----------
 
@@ -272,6 +286,14 @@ print(f"  subject     : {decision['subject']}")
 print(f"  why         : {decision['why']}")
 print(f"  amount_eur  : €{decision['amount_eur']:,.0f}")
 print(f"  payload     : {json.dumps(decision['payload'])}")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC *What to look for:* `action_type` should be `scm_reorder` (the plane only routes `scm_reorder` /
+# MAGIC `scm_reroute`, and stockouts steer it to reorder) and `amount_eur` is the field the spend-cap
+# MAGIC guardrail will judge. Note the LLM is *proposing*, not deciding — nothing has run yet; the next
+# MAGIC cells gate this proposal against policy.
 
 # COMMAND ----------
 
@@ -387,6 +409,13 @@ AUTO_REF = result_a["action"]["external_ref"]
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC *What to look for:* every guardrail row shows ✅, the path is `auto_executed`, and a real
+# MAGIC `external_ref` comes back — proof a PO was raised on the mock ERP with **no human approval**. The
+# MAGIC two `assert`s are the demo's contract: in-policy must auto-execute and must produce an external ref.
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ## PATH B — the over-cap reorder that escalates (no execution)
 # MAGIC
 # MAGIC Now the bound that lets an exec trust autonomy. Same lane, same intent — but the agent proposes a
@@ -420,6 +449,13 @@ result_b = autonomous_step(overcap, region=TARGET["region"])
 assert result_b["path"] == "escalated", "expected the over-cap reorder to escalate"
 assert result_b["action"].get("external_ref") is None, "escalated action must NOT have executed"
 ESCALATED_ID = result_b["action_id"]
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC *What to look for:* the `max_spend_eur` check shows ❌ (€205k > €100k), the path is `escalated`,
+# MAGIC and `external_ref` is `None` — the guardrail stopped the action *before* any connector fired. This
+# MAGIC is the line that separates "autonomous within policy" from "uncontrolled": a breach never executes.
 
 # COMMAND ----------
 
@@ -493,6 +529,14 @@ show_events(ESCALATED_ID)
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC *What to look for:* the **same `external_ref`** appears on the executed action, in the connector
+# MAGIC list, and on the `external_system_log` receipt — both sides agree the PO was raised. In the two
+# MAGIC lineages, PATH A runs proposed→approved→executing→executed (approver `autonomous-loop`), while
+# MAGIC PATH B stops at `escalated` with the breach reason and no execute event. That contrast *is* the loop.
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ## See → Tweak → Return
 # MAGIC
 # MAGIC ### TWEAK — flip auto-execute ↔ escalate
@@ -526,6 +570,14 @@ for chk in tv["checks"]:
         print(f"  {mark} {chk['detail']}")
 if tv["breaches"]:
     print("  breaches:", tv["breaches"])
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC *What to look for:* at €120k the `max_spend_eur` check shows ❌ and the loop "would ESCALATE";
+# MAGIC drop `TWEAK_AMOUNT_EUR` to 92000 and re-run — the same line flips to ✅ / "would AUTO-EXECUTE",
+# MAGIC with no other change. That single flip is the whole L4 thesis: **policy, not code, decides whether
+# MAGIC the agent may act on its own.**
 
 # COMMAND ----------
 

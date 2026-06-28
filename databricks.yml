@@ -1,0 +1,91 @@
+# Root Databricks Asset Bundle for the AkzoNobel Agent Bricks workshop.
+#
+# Scope (per plan): the reference NOTEBOOKS as a serverless workflow job. The
+# Hackathon-in-the-Box HUB keeps its own bundle at
+# apps/hackathon-hub/akzo-hackathon-hub/databricks.yml and deploys via
+# `databricks apps deploy` (the AppKit flow). The other 4 agent apps keep their
+# per-app deploy scripts under deploy/.
+#
+# Deploy the notebooks workflow:
+#   databricks bundle validate -t dev -p fe-vm-lakebase-praneeth
+#   databricks bundle deploy   -t dev -p fe-vm-lakebase-praneeth
+# Then run it from the Workspace > Workflows UI, or:
+#   databricks bundle run akzo_workshop_notebooks -t dev -p fe-vm-lakebase-praneeth
+#
+# Note: the notebooks expect the synthetic data loaded (see data/load_to_uc.py)
+# and the akzo_* schemas + Lakebase + Genie spaces in place. The job provisions
+# the workflow; running it green end to end is the attendee's exercise.
+
+bundle:
+  name: akzo-agent-bricks-workshop
+
+# Sync only the notebooks into the bundle (keep the upload lean).
+sync:
+  include:
+    - notebooks/**
+  exclude:
+    - "**/node_modules/**"
+    - "apps/**"
+    - "data/output/**"
+
+resources:
+  jobs:
+    akzo_workshop_notebooks:
+      name: "[${bundle.target}] Akzo Agent Bricks workshop - reference notebooks"
+      tasks:
+        - task_key: l1_finance_domain_agent
+          notebook_task:
+            notebook_path: ./notebooks/01_domain_agent_finance.py
+        - task_key: l2_per_user_truth_obo
+          depends_on: [{ task_key: l1_finance_domain_agent }]
+          notebook_task:
+            notebook_path: ./notebooks/02_per_user_truth_uc_obo.py
+        - task_key: l3_scm_commercial_legs
+          depends_on: [{ task_key: l2_per_user_truth_obo }]
+          notebook_task:
+            notebook_path: ./notebooks/03_scm_commercial_legs.py
+        - task_key: l4_supervisor_agent
+          depends_on: [{ task_key: l3_scm_commercial_legs }]
+          notebook_task:
+            notebook_path: ./notebooks/04_supervisor_agent.py
+        - task_key: l5_lakebase_memory_action
+          depends_on: [{ task_key: l4_supervisor_agent }]
+          notebook_task:
+            notebook_path: ./notebooks/05_lakebase_memory_action.py
+        - task_key: l6_mlflow_eval_judge
+          depends_on: [{ task_key: l5_lakebase_memory_action }]
+          notebook_task:
+            notebook_path: ./notebooks/06_mlflow_eval_judge.py
+        - task_key: l7_ai_gateway_govern
+          depends_on: [{ task_key: l6_mlflow_eval_judge }]
+          notebook_task:
+            notebook_path: ./notebooks/07_ai_gateway_govern.py
+        - task_key: doc_intelligence_qwen
+          depends_on: [{ task_key: l7_ai_gateway_govern }]
+          notebook_task:
+            notebook_path: ./notebooks/08_doc_intelligence_qwen.py
+        - task_key: action_plane_setup
+          depends_on: [{ task_key: doc_intelligence_qwen }]
+          notebook_task:
+            notebook_path: ./notebooks/09a_action_plane_setup.py
+        - task_key: uc_http_connection
+          depends_on: [{ task_key: action_plane_setup }]
+          notebook_task:
+            notebook_path: ./notebooks/09b_uc_http_connection.py
+        - task_key: agents_that_act
+          depends_on: [{ task_key: uc_http_connection }]
+          notebook_task:
+            notebook_path: ./notebooks/09_agents_that_act.py
+        - task_key: autonomous_closed_loop
+          depends_on: [{ task_key: agents_that_act }]
+          notebook_task:
+            notebook_path: ./notebooks/10_autonomous_closed_loop.py
+      queue:
+        enabled: true
+
+targets:
+  dev:
+    default: true
+    mode: development
+    workspace:
+      host: https://fevm-serverless-lakebase-praneeth.cloud.databricks.com

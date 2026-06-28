@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@databricks/appkit-ui/react';
 import { ExternalLink } from 'lucide-react';
 import { Page, PageHeader, Section } from '../components/kit';
-import { RESOURCES } from '../content';
+import { RESOURCE_GROUPS } from '../content';
 
 const WORKSPACE = [
   ['Catalog', 'serverless_lakebase_praneeth_catalog'],
@@ -21,25 +21,27 @@ export default function ResourcesPage() {
         subtitle="The platform pieces this workshop is built on, and the shared workspace every team uses."
       />
 
-      <Section title="Learn the platform">
-        <div className="grid gap-4 sm:grid-cols-2">
-          {RESOURCES.map((r) => (
-            <a key={r.href} href={r.href} target="_blank" rel="noreferrer" className="block">
-              <Card className="transition-colors hover:border-primary/50">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-1.5 text-base">
-                    {r.label}
-                    <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">{r.blurb}</p>
-                </CardContent>
-              </Card>
-            </a>
-          ))}
-        </div>
-      </Section>
+      {RESOURCE_GROUPS.map((g) => (
+        <Section key={g.group} title={g.group}>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {g.links.map((r) => (
+              <a key={r.href} href={r.href} target="_blank" rel="noreferrer" className="block">
+                <Card className="h-full transition-colors hover:border-primary/50">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-1.5 text-base">
+                      {r.label}
+                      <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">{r.blurb}</p>
+                  </CardContent>
+                </Card>
+              </a>
+            ))}
+          </div>
+        </Section>
+      ))}
 
       <Section title="Shared workspace">
         <div className="overflow-hidden rounded-xl border border-border">

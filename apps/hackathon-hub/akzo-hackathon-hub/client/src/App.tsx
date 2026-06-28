@@ -13,12 +13,17 @@ import {
   Library,
   FileText,
   Wrench,
+  Hammer,
+  MonitorPlay,
 } from 'lucide-react';
 import { cn } from './lib/utils';
 
 import OverviewPage from './pages/Overview';
 import ChallengesPage from './pages/Challenges';
+import GuidePage from './pages/Guide';
 import HowToRunPage from './pages/HowToRun';
+import BuildSetupPage from './pages/BuildSetup';
+import DemosPage from './pages/Demos';
 import RegisterPage from './pages/Register';
 import TeamsPage from './pages/Teams';
 import SubmitPage from './pages/Submit';
@@ -46,6 +51,8 @@ const NAV: NavGroup[] = [
       { to: '/', label: 'Overview', icon: LayoutDashboard, end: true },
       { to: '/challenges', label: 'Challenges', icon: Target },
       { to: '/how-to-run', label: 'How to run it', icon: BookOpen },
+      { to: '/build-setup', label: 'Build setup', icon: Hammer },
+      { to: '/demos', label: 'Demos', icon: MonitorPlay },
     ],
   },
   {
@@ -143,7 +150,10 @@ const router = createBrowserRouter([
     children: [
       { path: '/', element: <OverviewPage /> },
       { path: '/challenges', element: <ChallengesPage /> },
+      { path: '/guide/:track', element: <GuidePage /> },
       { path: '/how-to-run', element: <HowToRunPage /> },
+      { path: '/build-setup', element: <BuildSetupPage /> },
+      { path: '/demos', element: <DemosPage /> },
       { path: '/register', element: <RegisterPage /> },
       { path: '/teams', element: <TeamsPage /> },
       { path: '/submit', element: <SubmitPage /> },

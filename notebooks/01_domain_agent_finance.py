@@ -128,6 +128,14 @@ display(df_see)
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC **What to look for:** two rows, Q1 and Q2. `gross_margin_pct` should fall from ~39.6% to ~30.7%
+# MAGIC (the ~8.9pp drop the controller flagged), and `price_per_unit_eur` should slide from ~34.5 to
+# MAGIC ~32.7 while `units` stays roughly flat. That flat volume is the first clue: the margin damage is
+# MAGIC price- and cost-driven, not a demand collapse — which the next cell decomposes precisely.
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ## The full variance decomposition (price / volume / FX / cost)
 # MAGIC
 # MAGIC The reasoning the copilot does is a **four-way bridge** that explains the ~8.9pp drop:
@@ -263,6 +271,15 @@ display(df)
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC **What to look for:** first the **Generated SQL** printout — confirm the model honored the
+# MAGIC certified rule (`SUM(gross_margin_eur)/SUM(revenue_eur)`, not an average of row-level pct) and the
+# MAGIC `Decorative Paints` + `EMEA` filter. Then the result: the same ~39.6% → ~30.7% you saw in Beat 1,
+# MAGIC now produced from plain English. If the SQL ignored a rule, that's exactly the behavior you'll
+# MAGIC fix by editing the instructions below.
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC **Your turn — the one tweak.** Pick *one* of these and re-run the cell above (or the next one):
 # MAGIC
 # MAGIC 1. **Edit an instruction.** In `FINANCE_INSTRUCTIONS`, change the rounding rule from
@@ -333,6 +350,15 @@ reasoning = spark.sql(
     args={"endpoint": LLM_ENDPOINT, "prompt": REASONING_PROMPT},
 ).first()["answer"]
 print(reasoning)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC **What to look for:** a controller-ready bridge where **price + volume + FX + cost roughly sum to
+# MAGIC the ~−8.9pp** total, plus one concrete recommended action. Every figure should trace back to the
+# MAGIC `df_decomp` JSON we passed in — if you see a number that wasn't in the evidence, that's a
+# MAGIC hallucination and a signal to tighten the prompt. This is the step that turns governed data into a
+# MAGIC decision, which is what makes it a copilot rather than a query tool.
 
 # COMMAND ----------
 

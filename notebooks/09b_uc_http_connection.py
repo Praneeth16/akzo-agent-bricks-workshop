@@ -16,6 +16,16 @@
 # MAGIC 3. reads the receipt back from `akzo.external_system_log`,
 # MAGIC 4. documents the auth constraint + the graceful fallback.
 # MAGIC
+# MAGIC **What you'll learn:** why routing external side effects through a UC HTTP connection
+# MAGIC (instead of a raw `requests.post`) is the difference between an ungoverned script and an
+# MAGIC auditable Action Plane — and how `http_request` turns a SQL statement into a governed,
+# MAGIC logged external action.
+# MAGIC
+# MAGIC **Prerequisites:** the mock app must already be deployed (`deploy/deploy_mock_systems.sh`)
+# MAGIC and you need permission to `CREATE CONNECTION` in this catalog. **How to run:** top to
+# MAGIC bottom, ~2 min. Set `MOCK_APP_URL` in cell 0 to your deployment first; everything else
+# MAGIC flows from there.
+# MAGIC
 # MAGIC **Verified live** on workspace `fevm-serverless-lakebase-praneeth` (2026-06-27):
 # MAGIC the connection was created, `http_request` POSTs to `/email` and `/erp/po`
 # MAGIC returned ref ids `EMAIL-0003` / `PO-0004`, and both rows were read back from
@@ -59,6 +69,14 @@ CONNECTION_NAME = "akzo_external_systems"
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC The next cell mints the bearer token. We reuse the notebook's own API token via
+# MAGIC `dbutils` so the workshop needs no extra setup — this is the credential UC will attach
+# MAGIC to every request through the connection. In production you would swap this for a
+# MAGIC service-principal M2M token (see the caveat above); the rest of the notebook is unchanged.
+
+# COMMAND ----------
+
 # Mint a bearer token for the connection. In the workshop this is your interactive
 # OAuth token; in production use an SP OAuth (M2M) token and rotate.
 #   databricks auth token -p fe-vm-lakebase-praneeth   ->  .access_token
@@ -92,6 +110,13 @@ spark.sql(f"""
   )
 """)
 display(spark.sql(f"DESCRIBE CONNECTION {CONNECTION_NAME}"))
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC **What to look for:** the `DESCRIBE` output shows `connection_type = HTTP` and the `host`
+# MAGIC pointing at your mock app. The bearer token is **not** echoed (UC redacts secrets) — that
+# MAGIC is expected and correct.
 
 # COMMAND ----------
 
@@ -130,7 +155,18 @@ print(email_resp)   # -> {"ref_id":"EMAIL-000N","status":"accepted","echo":{...}
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC **What to look for:** a JSON body with `"status":"accepted"` and a fresh `ref_id` such as
+# MAGIC `EMAIL-0003`. That `ref_id` is your handle into the audit log (§5). A `401` here means the
+# MAGIC bearer token expired — re-run the mint cell and `CREATE OR REPLACE` the connection.
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ## 4. Governed call — POST /erp/po through the connection
+# MAGIC
+# MAGIC Same pattern, different action route. The point is that **every** external side effect
+# MAGIC the Action Plane needs (email, purchase order, ...) flows through this one governed
+# MAGIC connection, so there is no ungoverned escape hatch.
 
 # COMMAND ----------
 
@@ -152,6 +188,12 @@ print(po_resp)      # -> {"ref_id":"PO-000N","status":"accepted","echo":{...}}
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC **What to look for:** another `"accepted"` response with a `PO-000N` ref id and your
+# MAGIC supplier/sku/qty echoed back. Two governed actions are now on record.
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ## 5. Read the receipts back — the audit trail in Lakebase
 # MAGIC
 # MAGIC The mock app logs each call to `akzo.external_system_log` (managed Postgres /
@@ -169,6 +211,13 @@ log_resp = spark.sql(f"""
   ).text AS response
 """).collect()[0]["response"]
 print(log_resp)     # recent external_system_log rows, including the two calls above
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC **What to look for:** the two `ref_id`s you just created (`EMAIL-000N`, `PO-000N`) appear
+# MAGIC in the returned rows, each attributed to the mock app's service principal. This is the
+# MAGIC closed loop: action issued → receipt logged → audit read, all through one governed path.
 
 # COMMAND ----------
 
@@ -200,3 +249,9 @@ print(log_resp)     # recent external_system_log rows, including the two calls a
 # MAGIC | `http_request` POST `/erp/po` | `PO-0004` accepted |
 # MAGIC | Receipts in `akzo.external_system_log` | both rows present, `created_by` = mock-app SP |
 # MAGIC | OAuth (`auth_type 'OAuth'`) | **not usable** — workspace OIDC lacks DCR `registration_endpoint` |
+# MAGIC
+# MAGIC **What you built & where it goes next:** you now have a catalog-governed, audited path for
+# MAGIC external side effects — the foundation the Action Plane connectors
+# MAGIC (`apps/_shared/action_plane/connectors/`) sit on. The next layer wires these governed calls
+# MAGIC into the agent itself, so when the supervisor decides to send an email or cut a PO, it does
+# MAGIC so through exactly this connection — governed, logged, and attributable end to end.

@@ -197,6 +197,14 @@ for q in QUESTIONS:
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC **What to look for above:** five blocks, one per golden question. Each shows the agent's
+# MAGIC controller-ready answer (first 500 chars). Skim for the named figures — the Q1/Q2 margins, the
+# MAGIC ~8.9pp drop, the price/FX/cost drivers. These are *unscored* right now; the judge in the next
+# MAGIC cell is what turns "looks plausible" into a graded verdict.
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ### The LLM judge (correctness + groundedness)
 # MAGIC
 # MAGIC The judge is given the question, the **expected facts** (`expected_answer_contains`), the
@@ -255,6 +263,15 @@ for q in QUESTIONS:
 
 pass_rate = sum(1 for v in verdicts.values() if v["pass"]) / len(verdicts)
 print(f"\nPASS RATE: {pass_rate*100:.0f}%  ({sum(1 for v in verdicts.values() if v['pass'])}/{len(verdicts)})")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC **What to look for above:** one line per question with `pass`, `correctness`, and `groundedness`
+# MAGIC in `[0,1]`, plus the **PASS RATE** at the bottom. A `pass=False` with high groundedness but low
+# MAGIC correctness means the agent answered honestly from the data but missed an expected fact — exactly
+# MAGIC the kind of gap the eval set exists to catch. The pass rate is the single number a controller cares
+# MAGIC about: it is the agent's report card.
 
 # COMMAND ----------
 
@@ -327,6 +344,14 @@ display(spark.sql(f"SELECT question_id, ROUND(correctness,2) correctness, ROUND(
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC **What to look for above:** the `display` renders this run's per-question verdicts straight from
+# MAGIC `eval_results` — proof the scores are now durable rows in Unity Catalog, not just notebook stdout.
+# MAGIC The `run_id` ties the header in `eval_runs` to its detail rows; that join is what makes any future
+# MAGIC regression diff a plain `SELECT`.
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ## BEAT 2 — TWEAK: swap in one golden question, re-run the judge
 # MAGIC
 # MAGIC **This is the live moment.** In the room you change *one* thing in the eval set and re-run the
@@ -365,6 +390,14 @@ print(f"\nAnswer was:\n{re_answer[:600]}")
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC **What to look for above:** compare `re_verdict` against this question's original verdict from
+# MAGIC BEAT 1. If the same agent answer now scores lower (or flips to `pass=False`), you have shown the
+# MAGIC eval is the lever — you raised the bar, not the model, and the gate tightened. That is the live
+# MAGIC "aha" for the room.
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ## BEAT 3 — RETURN: the agent is now measurable (eval as a gate)
 # MAGIC
 # MAGIC The eval set is no longer a one-off — it is a **regression gate** the supervisor's Finance leg
@@ -383,6 +416,14 @@ FROM {OPS}.eval_runs
 ORDER BY created_at DESC
 LIMIT 10
 """))
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC **What to look for above:** the eval leaderboard — one row per run, newest first, with
+# MAGIC `pass_pct`, `avg_correctness`, and `avg_groundedness`. After the BEAT-1 run plus the BEAT-2 re-run
+# MAGIC you should see at least two rows; this is the run-over-run history a release process queries to
+# MAGIC decide whether a change improved or regressed the Finance leg.
 
 # COMMAND ----------
 

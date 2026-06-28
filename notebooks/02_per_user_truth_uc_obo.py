@@ -22,11 +22,27 @@
 # MAGIC subagent access. It does **not** automatically govern every **write**. Lakebase writes use
 # MAGIC Postgres roles independently; UC-registered Lakebase is read-only. Writes are governed separately
 # MAGIC (Layer 5) by app/service identity + approval + audit. We state this plainly here.
+# MAGIC
+# MAGIC **What you'll learn:** how a Unity Catalog row filter (a BOOLEAN SQL UDF) + an ABAC persona table
+# MAGIC turn one physical table into per-caller views, and why this is the load-bearing mechanism behind
+# MAGIC "same question, different rows" under OBO.
+# MAGIC
+# MAGIC **Prerequisites:** run `01_*` first — it creates the `akzo_finance.margin_actuals` table this
+# MAGIC notebook governs. You need a serverless SQL warehouse / cluster and permission to `CREATE SCHEMA`,
+# MAGIC `CREATE FUNCTION`, and `ALTER TABLE ... SET ROW FILTER` in the catalog below.
+# MAGIC
+# MAGIC **How to run (~10 min):** execute top-to-bottom. The notebook seeds **you** as the controller so
+# MAGIC every cell runs end-to-end on your own identity; persona rows for planner/rep are illustrative.
+# MAGIC Follow the **SEE → TWEAK → RETURN** beats in order — each builds on the filter applied earlier.
 
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC ## Setup
+# MAGIC
+# MAGIC Pin the catalog and schema names, ensure the `akzo_ops` schema exists (it holds the persona table
+# MAGIC and RLS function), and print **who you are**. That `current_user()` value is the identity every
+# MAGIC filter check below resolves against, so confirm it's really you before proceeding.
 
 # COMMAND ----------
 
@@ -77,6 +93,13 @@ INSERT OVERWRITE {OPS}.personas VALUES
   ('rep.arch@akzo.example',     'rep',     'EMEA', 'Architectural')
 """)
 display(spark.sql(f"SELECT * FROM {OPS}.personas ORDER BY role"))
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC **Look for:** three rows. Your email shows `controller / ALL`; the planner is scoped to `EMEA`;
+# MAGIC the rep is scoped to one segment. These three rows are the entire access policy — everything
+# MAGIC downstream is derived from them.
 
 # COMMAND ----------
 
@@ -144,6 +167,12 @@ FROM {FIN}.margin_actuals
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC **Look for:** `regions_visible = 4` and all four regions in the set. You're the controller, so the
+# MAGIC filter passes every row. Keep this number in mind — the planner check below should collapse it to 1.
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC **What the EMEA planner would see.** We cannot fully impersonate another user from this notebook
 # MAGIC (that's exactly OBO's job at the Genie/agent layer), so we demonstrate the filter's logic two
 # MAGIC honest ways:
@@ -168,6 +197,13 @@ WHERE region = (SELECT region_scope FROM {OPS}.personas WHERE user_email='planne
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC **Look for:** `regions_visible = 1`, set `[EMEA]`. The same table that gave you 4 regions yields 1
+# MAGIC for the planner — that delta is the entire point of this notebook, reproduced without leaving your
+# MAGIC own session.
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC **The cold-open moment, explained.** The controller's Finance leg answered the margin question
 # MAGIC over **all four regions**; the planner's identical question was answered over **EMEA only**.
 # MAGIC Same Genie space, same SQL — different governed truth, because OBO carried a different identity
@@ -183,6 +219,13 @@ FROM {FIN}.margin_actuals
 WHERE month BETWEEN DATE'2026-04-01' AND DATE'2026-06-01'
 GROUP BY region ORDER BY q2_gross_margin_pct
 """))
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC **Look for:** one Q2 gross-margin row **per region** (4 rows for you, the controller). This is the
+# MAGIC actual business answer the Finance leg returns — and it's already row-filtered, so a planner running
+# MAGIC the identical SQL would get only the EMEA row.
 
 # COMMAND ----------
 
@@ -216,6 +259,13 @@ print("planner after  tweak:", regions_visible_for("planner.emea@akzo.example"),
 # revert so the demo stays in its canonical state
 spark.sql(f"UPDATE {OPS}.personas SET region_scope='EMEA' WHERE user_email='planner.emea@akzo.example'")
 print("planner reverted    :", regions_visible_for("planner.emea@akzo.example"), "region(s)")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC **Look for:** the printed sequence `1 → 4 → 1`. One `UPDATE` to a single persona row instantly
+# MAGIC widened then re-narrowed what that user can see — no table reload, no agent change. That live
+# MAGIC re-scope is the governance story Akzo cares about for a 2,000-user rollout.
 
 # COMMAND ----------
 

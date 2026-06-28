@@ -38,6 +38,10 @@
 # MAGIC | sslmode | `require` |
 # MAGIC
 # MAGIC psycopg (psycopg3) is preinstalled on serverless.
+# MAGIC
+# MAGIC **Why a token, not a stored password?** Lakebase issues a short-lived (~1h) credential via the
+# MAGIC SDK, so nothing long-lived sits in the notebook. The `pg()` context manager mints a fresh token
+# MAGIC per connection and pins `search_path` to the `akzo` schema — every later cell reuses it cleanly.
 
 # COMMAND ----------
 
@@ -94,6 +98,11 @@ with pg() as conn, conn.cursor() as cur:
 # MAGIC `action_events(id, action_id fk, ts, event, actor, detail)`;
 # MAGIC `action_policies(action_type pk, max_discount_pct, max_spend_eur, allowed_regions text[],
 # MAGIC requires_approval bool)`. All idempotent.
+# MAGIC
+# MAGIC > **Look for:** `Connected as: ('your.email', 'databricks_postgres')` above confirms the write
+# MAGIC > identity and database are correct before any DDL runs. Note the design: `action_events` carries
+# MAGIC > a foreign key back to `actions`, and the `idx_*` indexes keep the Action Center's status/agent
+# MAGIC > queries fast as the audit log grows.
 
 # COMMAND ----------
 
@@ -146,6 +155,11 @@ print("DDL applied — actions / action_events / action_policies ready.")
 # MAGIC One row per action type the agents can take. Caps are deliberately realistic for the AkzoNobel
 # MAGIC Paints/Coatings story so the demo shows both an in-policy execute and a breach→escalate.
 # MAGIC `ON CONFLICT` makes the seed idempotent and re-tunable.
+# MAGIC
+# MAGIC Read each row as a contract the guardrail engine enforces: a `quote_send` over 15% discount or
+# MAGIC EUR 250k breaches and must escalate; `crm_task` and `escalation` skip the approval gate
+# MAGIC (`requires_approval = False`) because they are low-risk. `allowed_regions` scopes where an action
+# MAGIC may run, and `escalation` uses `None` (no region restriction).
 
 # COMMAND ----------
 
@@ -191,6 +205,9 @@ print("Seeded", len(POLICIES), "policies.")
 # MAGIC The action plane is now live. From here, `apps/_shared/action_plane` (`ActionPlane`, `evaluate`)
 # MAGIC drives the state machine and guardrails — U3 (executor), U6 (Action Center), U7 (the three apps)
 # MAGIC all consume this same plane.
+# MAGIC
+# MAGIC > **Look for:** `action_policies rows = 7` (one per seeded action type), with `actions` and
+# MAGIC > `action_events` at `0` — empty on a fresh setup since no agent has proposed an action yet.
 
 # COMMAND ----------
 
@@ -198,3 +215,15 @@ with pg() as conn, conn.cursor() as cur:
     for tbl in ("actions", "action_events", "action_policies"):
         cur.execute(f"SELECT count(*) FROM {tbl}")
         print(f"{tbl:18s} rows = {cur.fetchone()[0]}")
+# COMMAND ----------
+# MAGIC %md
+# MAGIC ## What you built — and where it goes next
+# MAGIC
+# MAGIC You stood up the **Action Plane**: three Lakebase tables (`actions`, `action_events`,
+# MAGIC `action_policies`), the idempotent DDL behind them, and seven seeded guardrail policies. This is
+# MAGIC the single governed surface every "agent that acts" writes through — propose, gate, execute, audit.
+# MAGIC
+# MAGIC **Next:** the reusable module in `apps/_shared/action_plane/` (`model.py` state machine,
+# MAGIC `guardrails.py` policy engine) reads these tables. U3 wires the executor, U6 builds the Action
+# MAGIC Center review UI, and U7's three apps all act through this same plane — so the governance you just
+# MAGIC seeded applies everywhere, with no per-app re-implementation.

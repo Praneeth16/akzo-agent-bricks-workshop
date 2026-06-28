@@ -41,6 +41,11 @@
 # MAGIC reference pattern — it already has multiple routes, per-user + per-endpoint rate limits,
 # MAGIC PII/safety guardrails, usage tracking, and inference-table logging to UC. You may instead create
 # MAGIC your own `akzo-ai-gateway` (cell at the end) if you have endpoint-create permission.
+# MAGIC
+# MAGIC The next cell just sets two names — the **catalog/schema** where the payload logs live and the
+# MAGIC **endpoint** we govern — and runs `USE CATALOG`. Everything downstream reads these two constants,
+# MAGIC so this is the only place you edit if you point at your own gateway. Expect it to print the schema
+# MAGIC and endpoint names back; no model is called yet.
 
 # COMMAND ----------
 
@@ -62,6 +67,12 @@ print("Gateway endpoint:", GATEWAY_ENDPOINT)
 # MAGIC One endpoint is the front door for many models. Its `ai_gateway` block is where every control
 # MAGIC lives. This is what a governance owner reads to answer *"what governs our model traffic?"* — in
 # MAGIC one place, not scattered across app configs.
+# MAGIC
+# MAGIC **What to look for in the output:** the printed **Routes** map served-model names (`chat-quality`,
+# MAGIC `chat-fast`, `chat-cheap`) to the actual underlying models, the **traffic split** shows what % of
+# MAGIC calls each route gets, and the **Rate limits / Usage track / Payload log / Guardrails** lines are
+# MAGIC the exact controls you will tweak and audit in the next beats. If a line prints `None`, that
+# MAGIC control is not configured on this endpoint.
 
 # COMMAND ----------
 
@@ -101,6 +112,10 @@ if ag:
 # MAGIC (`databricks_request_id`, `request_time`, `request`, `response`, `requester`, token usage),
 # MAGIC plus a few enrichment columns (`user_group`, token counts, `cost_usd`, `model`) so the
 # MAGIC cost/usage-by-group view works without parsing JSON live.
+# MAGIC
+# MAGIC The next cell only **creates the empty Delta table** (idempotent — `IF NOT EXISTS`). The rows are
+# MAGIC loaded in the following cell. Read the column list as the contract: the first block mirrors the
+# MAGIC real gateway payload schema, the rest are our enrichment columns for the chargeback view.
 
 # COMMAND ----------
 
@@ -201,6 +216,14 @@ display(spark.sql(f"SELECT request_time, user_group, served_model, total_tokens,
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC **Read the output:** you should see ~30-50 rows preseeded across four user-groups, and the sample
+# MAGIC table shows the most recent 8 calls with their group, served model, token count, and cost. This is
+# MAGIC the raw material the BEAT-3 chargeback queries roll up. If the count is 0, the reseed `DELETE`
+# MAGIC succeeded but the append did not — re-run the cell.
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ## BEAT 2 — TWEAK: change ONE control live, confirm it took effect
 # MAGIC
 # MAGIC **This is the live moment.** We change exactly **one** gateway control on the running endpoint —
@@ -211,6 +234,12 @@ display(spark.sql(f"SELECT request_time, user_group, served_model, total_tokens,
 # MAGIC > a **spend cap** (`UsageTrackingConfig` / budget per route), or a **model route** (shift
 # MAGIC > `traffic_config` percentages). We demo the rate limit because it is reversible and instantly
 # MAGIC > observable. The spend-cap and route variants are shown as commented alternatives.
+# MAGIC
+# MAGIC **In the room:** edit `NEW_USER_LIMIT` (default `60`) and re-run the next cell. Note that
+# MAGIC `put_ai_gateway` **replaces** the whole gateway block, which is why the cell re-passes the
+# MAGIC endpoint-level limit, usage tracking, and inference-table config alongside the one value you
+# MAGIC changed — omitting them would clear them. Watch the BEFORE vs AFTER print to confirm the live
+# MAGIC endpoint accepted the change with no redeploy.
 
 # COMMAND ----------
 
@@ -305,6 +334,14 @@ ORDER BY cost_usd DESC
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC **Read the output:** one row per user-group, sorted by spend. This is the chargeback view — scan
+# MAGIC `cost_usd` for the group driving the bill and `cost_per_call` for who is using the expensive
+# MAGIC quality tier. A group whose cost is climbing toward its budget is exactly who you would target
+# MAGIC with the rate limit or route shift from BEAT 2.
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC **Cost by model tier** — shows the route mix and why the spend-cap / route control matters: the
 # MAGIC `chat-quality` (Opus) tier dominates cost per call, so shifting low-stakes traffic to `chat-fast`
 # MAGIC is the lever.
@@ -323,6 +360,13 @@ ORDER BY cost_usd DESC
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC **Read the output:** `chat-quality` (Opus) should top the table on `cost_usd` despite often having
+# MAGIC fewer calls than the cheaper tiers — that gap is the entire argument for the route/spend-cap
+# MAGIC lever. Moving low-stakes traffic off the quality tier is where the savings come from.
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ## Confirm a real governed call goes through the gateway
 # MAGIC
 # MAGIC Prove the front door actually serves traffic: call the gateway endpoint through `ai_query`. In
@@ -337,6 +381,13 @@ govern_call = spark.sql(
           "prompt": "In one sentence, what does the AI Gateway govern for an agent platform?"},
 ).first()["answer"]
 print("Gateway-served answer:\n", govern_call)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC **Read the output:** a one-sentence answer means the front door is live and routing traffic. In
+# MAGIC production this exact call would land in the real inference-table payload log after the ~1h lag —
+# MAGIC here we proved the call path works; the preseeded rows stand in for the logged history.
 
 # COMMAND ----------
 

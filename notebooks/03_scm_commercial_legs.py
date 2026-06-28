@@ -18,11 +18,26 @@
 # MAGIC
 # MAGIC **3-beat rhythm (per domain):** See the leg → Tweak one example/instruction and run one query →
 # MAGIC Return it to the supervisor.
+# MAGIC
+# MAGIC **What you'll learn:** how a single text2SQL + reasoning recipe generalizes across domains, how a
+# MAGIC Genie space's *Instructions* block steers the model, and how editing one rule/example visibly
+# MAGIC changes the agent's behavior.
+# MAGIC
+# MAGIC **Prerequisites:** Layer 1 (`01_finance_leg.py`) run once so the catalog and `akzo_*` schemas exist;
+# MAGIC a serverless cluster; access to the `LLM_ENDPOINT` model serving endpoint.
+# MAGIC
+# MAGIC **How to run:** top-to-bottom, cell by cell. Watch the printed *Generated SQL* and compare each
+# MAGIC result to the `# Expect ...` comment beside it. The two `>>> THIS IS A LAYER YOU TWEAK <<<` markers
+# MAGIC are where you'll edit and re-run. ~10-15 min.
 
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC ## Setup
+# MAGIC
+# MAGIC Point at the catalog and the two new schemas (`akzo_scm`, `akzo_commercial`), pick the LLM serving
+# MAGIC endpoint, and set the active catalog. The printout confirms you're wired to the right governed data
+# MAGIC before any agent call runs.
 
 # COMMAND ----------
 
@@ -110,6 +125,10 @@ GROUP BY month ORDER BY month;"""
 
 # MAGIC %md
 # MAGIC ## BEAT 1 — SEE: the Rotterdam OTIF dip the SCM leg explains
+# MAGIC
+# MAGIC One NL question, one governed query. Read the *Generated SQL* and notice it applies the certified
+# MAGIC rule (orders-weighted OTIF, not a flat average) on its own — that rule came from the instructions
+# MAGIC block, not the question. **Look for:** the OTIF curve dipping mid-year on the disrupted EMEA lane.
 
 # COMMAND ----------
 
@@ -169,6 +188,10 @@ display(df)
 # MAGIC Gather the structured evidence (lane OTIF trend, stockouts, service/backorders), hand it to the
 # MAGIC LLM, and ask for a root-cause read plus **one concrete intervention** — the SCM analogue of the
 # MAGIC finance recommended action.
+# MAGIC
+# MAGIC **Why this shape matters:** the model only reasons over the verified JSON we collected, never raw
+# MAGIC table access. That keeps the answer grounded and auditable, and the prompt deliberately tells it to
+# MAGIC *recommend, not execute* — the actual reroute is a governed write, not something the copilot does.
 
 # COMMAND ----------
 
@@ -212,6 +235,10 @@ print(scm_answer)
 
 # MAGIC %md
 # MAGIC ## BEAT 3 (SCM) — RETURN
+# MAGIC
+# MAGIC In the reasoning output above, look for a Root cause / Evidence / Recommended-intervention answer
+# MAGIC that ties lead time + stockout to the OTIF and backorder numbers — and stops at *recommending*.
+# MAGIC
 # MAGIC The SCM leg now answers the supply half of the cross-domain question. **Verified:** Rotterdam
 # MAGIC lane OTIF **96% → 88.9% (May) → 93.0% (Jun)**, two EMEA Decorative SKUs stocked out, EMEA service
 # MAGIC **90.6%** with **~2,258** backorders in May.
@@ -254,6 +281,10 @@ WHERE c.month=DATE'2026-06-01' AND c.churn_score>0.7 ORDER BY c.churn_score DESC
 
 # MAGIC %md
 # MAGIC ## BEAT 1 — SEE: the three at-risk EMEA accounts
+# MAGIC
+# MAGIC Same recipe, third domain. The instructions encode "at churn risk" as `churn_score > 0.7` and tell
+# MAGIC the agent to return the *why* columns. **Look for:** three EMEA Architectural (Decorative) accounts
+# MAGIC surfacing above the threshold, with the signals that explain each.
 
 # COMMAND ----------
 
@@ -297,6 +328,10 @@ display(df)
 # MAGIC The Commercial analogue of the recommended action: read the at-risk signals + revenue trend, tie
 # MAGIC the churn to the **upstream service problem** (not pricing), and propose a concrete save play that
 # MAGIC would be staged as a `commercial_action` for human approval.
+# MAGIC
+# MAGIC This is the cross-domain link made explicit: the evidence JSON carries the SCM service shock as
+# MAGIC `upstream_context`, so the model can attribute churn to a supply cause rather than price — the same
+# MAGIC fusion the Supervisor will do across all three legs in the next notebook.
 
 # COMMAND ----------
 
@@ -332,6 +367,10 @@ print(com_answer)
 
 # MAGIC %md
 # MAGIC ## BEAT 3 — RETURN: three legs, one supervisor, one connected story
+# MAGIC
+# MAGIC In the reasoning output above, look for the three accounts confirmed by churn_score, the explicit
+# MAGIC "downstream of the service shock, not pricing" attribution, and one save play for ACC0001 staged as
+# MAGIC a `commercial_action` for human approval.
 # MAGIC
 # MAGIC The recipe repeated cleanly across three domains:
 # MAGIC
