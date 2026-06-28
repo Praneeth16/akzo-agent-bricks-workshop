@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Button } from '@databricks/appkit-ui/react';
 import { Check, Copy, ExternalLink } from 'lucide-react';
 import { Page, PageHeader, Section } from '../components/kit';
@@ -6,11 +6,17 @@ import { SETUP_STEPS, SKILLS } from '../content';
 
 function CopyableCommand({ command }: { command: string }) {
   const [copied, setCopied] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  function copy() {
-    void navigator.clipboard.writeText(command);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(command);
+      setCopied(true);
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // clipboard unavailable; leave state unchanged
+    }
   }
 
   return (
