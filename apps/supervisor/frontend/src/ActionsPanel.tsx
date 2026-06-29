@@ -1,83 +1,20 @@
-// Shared Actions panel — the "this agent can ACT" surface.
+// The "this agent can ACT" surface — first-class in the supervisor demo.
 //
-// Copied verbatim into each app's frontend/src/ so the panel is consistent across
-// supervisor / finance-copilot / quote-agent (per DESIGN_BRIEF). It drives the full
-// Act → Approve → Execute → Confirm loop against the governed Action Plane:
-//   1. the parent wires a sensible default action (ActBody) from its domain output;
-//   2. "Stage action" proposes it (POST /api/act) → shows the staged action + GuardrailChips;
-//   3. a 2-step Approve → Execute affordance (guardrail verdict shown before execute);
-//   4. on execute, the resulting external_ref + Confirm state + event Timeline.
-//
-// Styling uses the shared `.ap-*` classes added to each app's styles.css.
+// Drives the full Act → Approve → Execute → Confirm loop against the governed
+// Action Plane, with the signature exec visuals from apps/DESIGN_BRIEF.md:
+//   - LadderMeter (L1 Recommend → L4 Autonomous) tracking the action's level;
+//   - "Stage action" proposes it (POST /api/act) → GuardrailChips verdict;
+//   - a 2-step Approve → Execute affordance (verdict shown before execute);
+//   - StatusBadge transitioning proposed → approved → executing → executed
+//     (or escalated on a guardrail breach);
+//   - the action_events Timeline (audit lineage) + the external_ref on success.
 
 import { useState } from "react";
-import {
-  Action,
-  ActBody,
-  ActResult,
-  actionsApi,
-  Guardrail,
-  ActionEvent,
-} from "./actions";
-
-const STATUS_LABEL: Record<string, string> = {
-  proposed: "Proposed",
-  approved: "Approved",
-  executing: "Executing",
-  executed: "Executed",
-  rejected: "Rejected",
-  failed: "Failed",
-  escalated: "Escalated",
-};
-
-function StatusBadge({ status }: { status: string }) {
-  return (
-    <span className={`ap-badge ap-status-${status}`}>
-      <span className="ap-dot" />
-      {STATUS_LABEL[status] ?? status}
-    </span>
-  );
-}
-
-function GuardrailChips({ guardrail }: { guardrail: Guardrail }) {
-  const checks = guardrail.checks.filter((c) => c.applicable);
-  if (checks.length === 0) return null;
-  return (
-    <div className="ap-chips">
-      {checks.map((c) => (
-        <span
-          key={c.rule}
-          className={`ap-chip ${c.passed ? "ap-chip-ok" : "ap-chip-bad"}`}
-          title={c.detail}
-        >
-          {c.passed ? "✓" : "✕"} {c.detail}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function Timeline({ events }: { events: ActionEvent[] }) {
-  if (!events || events.length === 0) return null;
-  return (
-    <ol className="ap-timeline">
-      {events.map((e) => (
-        <li key={e.id} className={`ap-tl-item ap-tl-${e.event}`}>
-          <span className="ap-tl-dot" />
-          <div className="ap-tl-body">
-            <div className="ap-tl-head">
-              <span className="ap-tl-event">{e.event}</span>
-              <span className="ap-tl-actor">{e.actor}</span>
-            </div>
-            <div className="ap-tl-ts">
-              {String(e.ts).slice(0, 19).replace("T", " ")}
-            </div>
-          </div>
-        </li>
-      ))}
-    </ol>
-  );
-}
+import { Button, Card, CardContent, CardHeader } from "@databricks/appkit-ui/react";
+import { ArrowRight, CheckCircle2, ExternalLink, ShieldAlert } from "lucide-react";
+import { Action, ActBody, ActResult, actionsApi, Guardrail } from "@/actions";
+import { GuardrailChips, LadderMeter, StatusBadge, Timeline } from "@/components/action-ui";
+import { SectionTitle } from "@/components/kit";
 
 const ACTION_TYPE_LABEL: Record<string, string> = {
   crm_task: "CRM task",
@@ -91,11 +28,9 @@ const ACTION_TYPE_LABEL: Record<string, string> = {
 
 export function ActionsPanel({
   defaultAction,
-  title = "Actions",
   hint,
 }: {
   defaultAction: ActBody | null;
-  title?: string;
   hint?: string;
 }) {
   const [staged, setStaged] = useState<ActResult | null>(null);
@@ -104,8 +39,9 @@ export function ActionsPanel({
   const [error, setError] = useState<string | null>(null);
 
   const current = action ?? staged?.action ?? null;
-  const guardrail = staged?.guardrail ?? null;
+  const guardrail: Guardrail | null = staged?.guardrail ?? null;
   const status = current?.status;
+  const level = current?.level ?? defaultAction?.level ?? 2;
 
   function reset() {
     setStaged(null);
@@ -113,165 +49,163 @@ export function ActionsPanel({
     setError(null);
   }
 
-  function onStage() {
-    if (!defaultAction) return;
-    setBusy("stage");
+  function run(kind: "stage" | "approve" | "execute") {
+    setBusy(kind);
     setError(null);
-    actionsApi
-      .act(defaultAction)
-      .then((r) => {
-        setStaged(r);
-        setAction(r.action);
-      })
-      .catch((e) => setError(e.message))
-      .finally(() => setBusy(null));
-  }
-
-  function onApprove() {
-    if (!current) return;
-    setBusy("approve");
-    setError(null);
-    actionsApi
-      .approve(current.id)
-      .then((r) => setAction(r.action))
-      .catch((e) => setError(e.message))
-      .finally(() => setBusy(null));
-  }
-
-  function onExecute() {
-    if (!current) return;
-    setBusy("execute");
-    setError(null);
-    actionsApi
-      .execute(current.id)
-      .then((r) => setAction(r.action))
-      .catch((e) => setError(e.message))
-      .finally(() => setBusy(null));
+    const p =
+      kind === "stage"
+        ? actionsApi.act(defaultAction!).then((r) => {
+            setStaged(r);
+            setAction(r.action);
+          })
+        : kind === "approve"
+          ? actionsApi.approve(current!.id).then((r) => setAction(r.action))
+          : actionsApi.execute(current!.id).then((r) => setAction(r.action));
+    p.catch((e) => setError(e.message)).finally(() => setBusy(null));
   }
 
   return (
-    <section className="card ap-panel">
-      <div className="ap-panel-head">
-        <h2>{title}</h2>
+    <Card className="border-border bg-card">
+      <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
+        <SectionTitle>Governed action</SectionTitle>
         {current && <StatusBadge status={current.status} />}
-      </div>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-5">
+        <div className="flex flex-col gap-2">
+          <span className="text-xs font-medium text-muted-foreground">
+            Action Maturity Ladder
+          </span>
+          <LadderMeter current={current ? level : null} />
+        </div>
 
-      {error && <div className="ap-error">⚠ {error}</div>}
+        {error && (
+          <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {error}
+          </div>
+        )}
 
-      {!current && (
-        <div className="ap-empty">
-          {defaultAction ? (
-            <>
-              <p className="ap-empty-text">
-                {hint ??
-                  "Turn this answer into a governed action — staged for approval, then executed into the connected systems."}
-              </p>
-              <div className="ap-stage-preview">
-                <span className="ap-type">
-                  {ACTION_TYPE_LABEL[defaultAction.action_type] ??
-                    defaultAction.action_type}
-                </span>
-                <span className="ap-subject">{defaultAction.subject}</span>
-              </div>
-              <button
-                className="ap-btn ap-btn-primary"
-                onClick={onStage}
-                disabled={busy === "stage"}
-              >
-                {busy === "stage" ? "Staging…" : "Stage action"}
-              </button>
-            </>
-          ) : (
-            <p className="ap-empty-text">
-              No action yet — run the agent above, then stage the recommended
-              action here.
+        {!current && (
+          <div className="flex flex-col gap-3">
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              {hint ??
+                "Turn this recommendation into a governed action — staged for approval, then executed into the connected systems."}
             </p>
-          )}
-        </div>
-      )}
-
-      {current && (
-        <div className="ap-detail">
-          <div className="ap-detail-row">
-            <span className="ap-type">
-              {ACTION_TYPE_LABEL[current.action_type] ?? current.action_type}
-            </span>
-            <span className="ap-id">#{current.id}</span>
-            <span className="ap-region">{current.region || "—"}</span>
+            {defaultAction ? (
+              <>
+                <div className="flex flex-col gap-1 rounded-lg border border-border bg-secondary px-3 py-2.5">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-primary">
+                    {ACTION_TYPE_LABEL[defaultAction.action_type] ?? defaultAction.action_type}
+                  </span>
+                  <span className="text-sm text-foreground">{defaultAction.subject}</span>
+                </div>
+                <div>
+                  <Button onClick={() => run("stage")} disabled={busy === "stage"}>
+                    {busy === "stage" ? "Staging…" : "Stage action"}
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No action yet — ask the supervisor above, then stage the recommended action here.
+              </p>
+            )}
           </div>
-          <p className="ap-subject-lg">{current.subject}</p>
+        )}
 
-          {guardrail && (
-            <div className="ap-guardrails">
-              <div className="ap-guardrails-head">
-                Guardrails{" "}
-                <span
-                  className={
-                    guardrail.passed ? "ap-verdict-ok" : "ap-verdict-bad"
-                  }
-                >
-                  {guardrail.passed ? "all pass" : "breach"}
+        {current && (
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-primary">
+                  {ACTION_TYPE_LABEL[current.action_type] ?? current.action_type}
+                </span>
+                <span className="text-xs text-muted-foreground">#{current.id}</span>
+                <span className="ml-auto text-xs text-muted-foreground">
+                  {current.region || "—"} · L{current.level}
                 </span>
               </div>
-              <GuardrailChips guardrail={guardrail} />
+              <p className="text-sm leading-relaxed text-foreground">{current.subject}</p>
             </div>
-          )}
 
-          {/* 2-step Approve → Execute affordance */}
-          <div className="ap-actions">
-            {status === "proposed" && (
-              <button
-                className="ap-btn ap-btn-primary"
-                onClick={onApprove}
-                disabled={busy === "approve"}
+            {guardrail && (
+              <div className="rounded-lg border border-border bg-secondary p-3">
+                <div className="mb-2 flex items-center gap-2 text-xs text-muted-foreground">
+                  Guardrails
+                  <span
+                    className="font-bold"
+                    style={{
+                      color: guardrail.passed
+                        ? "var(--status-executed)"
+                        : "var(--status-rejected)",
+                    }}
+                  >
+                    {guardrail.passed ? "all pass" : "breach"}
+                  </span>
+                </div>
+                <GuardrailChips guardrail={guardrail} />
+              </div>
+            )}
+
+            {/* 2-step Approve → Execute affordance */}
+            <div className="flex flex-wrap items-center gap-3">
+              {status === "proposed" && (
+                <Button onClick={() => run("approve")} disabled={busy === "approve"}>
+                  {busy === "approve" ? "Approving…" : "Approve"}
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              )}
+              {status === "approved" && (
+                <Button onClick={() => run("execute")} disabled={busy === "execute"}>
+                  {busy === "execute" ? "Executing…" : "Execute"}
+                </Button>
+              )}
+              {status === "escalated" && (
+                <span className="inline-flex items-center gap-2 text-sm" style={{ color: "var(--status-escalated)" }}>
+                  <ShieldAlert className="h-4 w-4" />
+                  Escalated to a human gate — a guardrail breach blocked auto-execute.
+                </span>
+              )}
+              {(status === "executed" || status === "failed" || status === "rejected") && (
+                <Button variant="outline" onClick={reset}>
+                  Stage another
+                </Button>
+              )}
+            </div>
+
+            {/* Confirm / external effect */}
+            {status === "executed" && current.external_ref && (
+              <div
+                className="flex flex-wrap items-center gap-2 rounded-lg border px-3 py-2.5 text-sm"
+                style={{
+                  color: "var(--status-executed)",
+                  borderColor: "color-mix(in oklab, var(--status-executed) 40%, transparent)",
+                  background: "color-mix(in oklab, var(--status-executed) 10%, transparent)",
+                }}
               >
-                {busy === "approve" ? "Approving…" : "Approve →"}
-              </button>
+                <CheckCircle2 className="h-4 w-4" />
+                Executed — external ref
+                <code className="inline-flex items-center gap-1 rounded border border-border bg-[var(--akzo-input-bg)] px-1.5 py-0.5 font-mono text-xs text-[var(--akzo-link)]">
+                  <ExternalLink className="h-3 w-3" />
+                  {current.external_ref}
+                </code>
+              </div>
             )}
-            {status === "approved" && (
-              <button
-                className="ap-btn ap-btn-primary"
-                onClick={onExecute}
-                disabled={busy === "execute"}
-              >
-                {busy === "execute" ? "Executing…" : "Execute"}
-              </button>
+            {status === "failed" && (
+              <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
+                Execution failed — see the timeline below.
+              </div>
             )}
-            {status === "escalated" && (
-              <span className="ap-note ap-note-warn">
-                Escalated to a human gate — guardrail breach blocked auto-execute.
-              </span>
-            )}
-            {(status === "executed" || status === "failed" || status === "rejected") && (
-              <button className="ap-btn ap-btn-ghost" onClick={reset}>
-                Stage another
-              </button>
+
+            {/* Audit lineage */}
+            {current.events && current.events.length > 0 && (
+              <div>
+                <div className="mb-2 text-xs text-muted-foreground">Audit lineage</div>
+                <Timeline events={current.events} />
+              </div>
             )}
           </div>
-
-          {/* Confirm / external effect */}
-          {status === "executed" && current.external_ref && (
-            <div className="ap-confirm">
-              <span className="ap-confirm-tick">✓</span>
-              Executed — external ref{" "}
-              <code className="ap-ref">{current.external_ref}</code>
-            </div>
-          )}
-          {status === "failed" && (
-            <div className="ap-confirm ap-confirm-fail">
-              Execution failed — see the timeline below.
-            </div>
-          )}
-
-          {/* Audit lineage */}
-          {current.events && current.events.length > 0 && (
-            <div className="ap-lineage">
-              <div className="ap-lineage-head">Audit lineage</div>
-              <Timeline events={current.events} />
-            </div>
-          )}
-        </div>
-      )}
-    </section>
+        )}
+      </CardContent>
+    </Card>
   );
 }

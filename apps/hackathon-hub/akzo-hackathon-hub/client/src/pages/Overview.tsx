@@ -6,7 +6,7 @@ import { DAY1_AGENDA } from '../content';
 
 function Hero() {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-[oklch(0.97_0.03_183)] via-card to-card p-8">
+    <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-[oklch(0.96_0.04_240)] via-card to-card p-8">
       <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
         Hackathon-in-the-Box
       </div>

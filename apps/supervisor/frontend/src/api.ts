@@ -31,6 +31,12 @@ export interface FeedbackResult {
   created_at: string;
 }
 
+export interface HealthResult {
+  status: string;
+  identity: string;
+  personas: string[];
+}
+
 async function post<T>(url: string, body: unknown): Promise<T> {
   const res = await fetch(url, {
     method: "POST",
@@ -45,6 +51,11 @@ async function post<T>(url: string, body: unknown): Promise<T> {
 }
 
 export const api = {
+  health: async (): Promise<HealthResult> => {
+    const res = await fetch("/api/health");
+    if (!res.ok) throw new Error("Failed to load health");
+    return res.json();
+  },
   ask: (question: string, persona: string) =>
     post<AskResult>("/api/ask", { question, persona }),
   feedback: (session_uuid: string, rating: number, note?: string) =>

@@ -32,54 +32,47 @@ resources:
   jobs:
     akzo_workshop_notebooks:
       name: "[${bundle.target}] Akzo Agent Bricks workshop - reference notebooks"
+      # Five consolidated chapters, run in order on serverless. Chapters 2 and 3 make governed external
+      # calls to the Mock Systems app (behind App SSO); they run green INTERACTIVELY under the user's
+      # identity. In a headless job, set the `bearer_token` notebook parameter to an authorized token
+      # (or run them interactively). Provisioning the workflow is the deploy step; running each chapter
+      # green is the attendee's hands-on exercise.
       tasks:
-        - task_key: l1_finance_domain_agent
+        - task_key: ch1_governed_supervisor
           notebook_task:
-            notebook_path: ./notebooks/01_domain_agent_finance.py
-        - task_key: l2_per_user_truth_obo
-          depends_on: [{ task_key: l1_finance_domain_agent }]
+            notebook_path: ./notebooks/01_governed_supervisor.py
+        - task_key: ch2_agents_that_act
+          depends_on: [{ task_key: ch1_governed_supervisor }]
           notebook_task:
-            notebook_path: ./notebooks/02_per_user_truth_uc_obo.py
-        - task_key: l3_scm_commercial_legs
-          depends_on: [{ task_key: l2_per_user_truth_obo }]
+            notebook_path: ./notebooks/02_agents_that_act.py
+        - task_key: ch3_autonomous_loop
+          depends_on: [{ task_key: ch2_agents_that_act }]
           notebook_task:
-            notebook_path: ./notebooks/03_scm_commercial_legs.py
-        - task_key: l4_supervisor_agent
-          depends_on: [{ task_key: l3_scm_commercial_legs }]
+            notebook_path: ./notebooks/03_autonomous_loop.py
+        - task_key: ch4_trust_and_governance
+          depends_on: [{ task_key: ch3_autonomous_loop }]
           notebook_task:
-            notebook_path: ./notebooks/04_supervisor_agent.py
-        - task_key: l5_lakebase_memory_action
-          depends_on: [{ task_key: l4_supervisor_agent }]
+            notebook_path: ./notebooks/04_trust_and_governance.py
+        - task_key: ch5_document_intelligence
+          depends_on: [{ task_key: ch4_trust_and_governance }]
           notebook_task:
-            notebook_path: ./notebooks/05_lakebase_memory_action.py
-        - task_key: l6_mlflow_eval_judge
-          depends_on: [{ task_key: l5_lakebase_memory_action }]
+            notebook_path: ./notebooks/05_document_intelligence.py
+      queue:
+        enabled: true
+
+    # Advanced / optional chapters. Not in the CH1-CH5 dependency chain: they build + log + register
+    # always, but the serving/deploy + managed-MCP steps are flag-gated (off by default), so they run
+    # green without provisioning serving compute. Run them on their own from the Workflows UI.
+    akzo_workshop_advanced:
+      name: "[${bundle.target}] Akzo Agent Bricks workshop - advanced (agents + serving)"
+      tasks:
+        - task_key: ch6_custom_agents_and_mcp
           notebook_task:
-            notebook_path: ./notebooks/06_mlflow_eval_judge.py
-        - task_key: l7_ai_gateway_govern
-          depends_on: [{ task_key: l6_mlflow_eval_judge }]
+            notebook_path: ./notebooks/06_custom_agents_and_mcp.py
+        - task_key: ch7_custom_model_serving
+          depends_on: [{ task_key: ch6_custom_agents_and_mcp }]
           notebook_task:
-            notebook_path: ./notebooks/07_ai_gateway_govern.py
-        - task_key: doc_intelligence_qwen
-          depends_on: [{ task_key: l7_ai_gateway_govern }]
-          notebook_task:
-            notebook_path: ./notebooks/08_doc_intelligence_qwen.py
-        - task_key: action_plane_setup
-          depends_on: [{ task_key: doc_intelligence_qwen }]
-          notebook_task:
-            notebook_path: ./notebooks/09a_action_plane_setup.py
-        - task_key: uc_http_connection
-          depends_on: [{ task_key: action_plane_setup }]
-          notebook_task:
-            notebook_path: ./notebooks/09b_uc_http_connection.py
-        - task_key: agents_that_act
-          depends_on: [{ task_key: uc_http_connection }]
-          notebook_task:
-            notebook_path: ./notebooks/09_agents_that_act.py
-        - task_key: autonomous_closed_loop
-          depends_on: [{ task_key: agents_that_act }]
-          notebook_task:
-            notebook_path: ./notebooks/10_autonomous_closed_loop.py
+            notebook_path: ./notebooks/07_custom_model_serving.py
       queue:
         enabled: true
 

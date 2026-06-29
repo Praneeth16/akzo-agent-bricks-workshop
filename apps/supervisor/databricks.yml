@@ -1,0 +1,40 @@
+# Databricks Asset Bundle for the Multi-domain Supervisor app (akzo-supervisor-v2).
+#
+# Why a bundle (vs `databricks apps deploy`): it declares `user_api_scopes` on the app so the
+# On-Behalf-Of token forwarded to the app carries the **Genie** + **SQL** scopes. Without these the
+# forwarded user token cannot call the Genie Conversation API, and the supervisor legs fall back to
+# the in-code text2sql reproduction. With them (after the user re-consents in-browser on next open),
+# the legs call the REAL Genie spaces created by genie/create_genie_spaces.py.
+#
+# command/env come from app.yaml (the app manifest in source). sync.include force-uploads the
+# prebuilt React frontend (frontend/dist is gitignored, but the Python backend serves it statically).
+#
+# Deploy:
+#   databricks bundle deployment bind supervisor_v2 akzo-supervisor-v2 --auto-approve -p fe-vm-lakebase-praneeth
+#   databricks bundle deploy -p fe-vm-lakebase-praneeth
+#   databricks bundle run   supervisor_v2 -p fe-vm-lakebase-praneeth
+
+bundle:
+  name: akzo-supervisor-v2
+
+sync:
+  include:
+    - frontend/dist/**
+
+resources:
+  apps:
+    supervisor_v2:
+      name: "akzo-supervisor-v2"
+      description: "AkzoNobel Multi-domain Supervisor — routes Finance/SCM/Commercial Genie spaces, fuses one governed answer, and acts (Action Plane). OBO reads under the signed-in user."
+      source_code_path: ./
+      # OBO scopes: the forwarded user token can call the Genie Conversation API (dashboards.genie)
+      # and run the governed SQL it generates (sql). iam scopes keep identity resolution working.
+      user_api_scopes:
+        - sql
+        - dashboards.genie
+
+targets:
+  default:
+    default: true
+    workspace:
+      host: https://fevm-serverless-lakebase-praneeth.cloud.databricks.com

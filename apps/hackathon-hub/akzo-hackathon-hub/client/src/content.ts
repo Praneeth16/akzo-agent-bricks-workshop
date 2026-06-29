@@ -131,16 +131,13 @@ export interface Notebook {
 }
 
 export const NOTEBOOKS: Notebook[] = [
-  { file: 'notebooks/01_domain_agent_finance.py', title: 'The domain agent: Finance over governed data', layer: 'Layer 1', blurb: 'Genie + UC metric views + text2SQL on akzo_finance.' },
-  { file: 'notebooks/02_per_user_truth_uc_obo.py', title: 'Per-user truth: Unity Catalog RLS/ABAC + OBO', layer: 'Layer 2', blurb: 'Same question, different rows: controller vs planner.' },
-  { file: 'notebooks/03_scm_commercial_legs.py', title: 'More domain legs: SCM + Commercial', layer: 'Layer 3', blurb: 'OTIF, service levels, churn signals as new agents.' },
-  { file: 'notebooks/04_supervisor_agent.py', title: 'The supervisor itself', layer: 'Layer 4', blurb: 'Multi-Agent Supervisor routing across three Genie spaces.' },
-  { file: 'notebooks/05_lakebase_memory_action.py', title: 'Memory + action (Lakebase)', layer: 'Layer 5', blurb: 'Write-back + approval patterns — the agent acts.' },
-  { file: 'notebooks/06_mlflow_eval_judge.py', title: 'Trust: MLflow eval + an LLM judge', layer: 'Layer 6', blurb: 'Tracing + golden-question evals + MemAlign.' },
-  { file: 'notebooks/07_ai_gateway_govern.py', title: 'Govern at scale: AI Gateway', layer: 'Layer 7', blurb: 'Routes, spend caps, rate limits, payload logs.' },
-  { file: 'notebooks/08_doc_intelligence_qwen.py', title: 'Document intelligence with the latest AI functions', layer: 'Extra', blurb: 'ai_parse_document → ai_extract → auto-chunk → Qwen embed → Vector Search → RAG.' },
-  { file: 'notebooks/09_agents_that_act.py', title: 'Agents that act — the maturity ladder (L1→L4)', layer: 'Action', blurb: 'Propose → guardrail → approve → execute → lineage.' },
-  { file: 'notebooks/10_autonomous_closed_loop.py', title: 'Autonomous closed loop', layer: 'Action', blurb: 'Detect → act → verify → escalate, idempotent.' },
+  { file: 'notebooks/01_governed_supervisor.py', title: 'A governed multi-agent supervisor', layer: 'Chapter 1', blurb: 'Finance agent → OBO/RLS → SCM + Commercial legs → supervisor, governed per-user.' },
+  { file: 'notebooks/02_agents_that_act.py', title: 'Agents that act', layer: 'Chapter 2', blurb: 'Lakebase memory → action plane → stage/approve → governed external execution (L1–L3).' },
+  { file: 'notebooks/03_autonomous_loop.py', title: 'Autonomous closed loop', layer: 'Chapter 3', blurb: 'Detect → decide → auto-execute within policy or escalate (L4).' },
+  { file: 'notebooks/04_trust_and_governance.py', title: 'Trust & governance at scale', layer: 'Chapter 4', blurb: 'Golden-question eval + an LLM judge, then AI Gateway routes / limits / spend / logs.' },
+  { file: 'notebooks/05_document_intelligence.py', title: 'Document intelligence', layer: 'Chapter 5', blurb: 'ai_parse_document → ai_classify → ai_extract → Qwen embed → Vector Search → RAG + SQL.' },
+  { file: 'notebooks/06_custom_agents_and_mcp.py', title: 'Custom agents (LangGraph) + managed MCP, served', layer: 'Advanced', blurb: 'ResponsesAgent over LangGraph + managed MCP tools → log → UC → agents.deploy → consume.' },
+  { file: 'notebooks/07_custom_model_serving.py', title: 'Serve a custom / OSS / fine-tuned model', layer: 'Advanced', blurb: 'log → UC register → Provisioned Throughput / custom GPU / External Models via AI Gateway.' },
 ];
 
 export interface DeployedApp {
@@ -240,7 +237,7 @@ export const GUIDES: TrackGuide[] = [
     ],
     shipTarget: 'A working notebook + a live MLflow trace + a forecast_overrides row written to Lakebase.',
     evalNote: 'Run eval/finance.yaml golden questions through the MLflow judge.',
-    notebook: 'notebooks/01_domain_agent_finance.py',
+    notebook: 'notebooks/01_governed_supervisor.py',
   },
   {
     key: 'scm',
@@ -258,7 +255,7 @@ export const GUIDES: TrackGuide[] = [
     ],
     shipTarget: 'A root-cause answer + a scm_interventions row staged for approval.',
     evalNote: 'eval/scm.yaml golden questions via the judge.',
-    notebook: 'notebooks/03_scm_commercial_legs.py',
+    notebook: 'notebooks/01_governed_supervisor.py',
   },
   {
     key: 'commercial',
@@ -276,7 +273,7 @@ export const GUIDES: TrackGuide[] = [
     ],
     shipTarget: 'An at-risk list + a commercial_actions row for approval.',
     evalNote: 'eval/commercial.yaml via the judge.',
-    notebook: 'notebooks/03_scm_commercial_legs.py',
+    notebook: 'notebooks/01_governed_supervisor.py',
   },
   {
     key: 'supervisor',
@@ -292,7 +289,7 @@ export const GUIDES: TrackGuide[] = [
     ],
     shipTarget: 'One question answered across all three domains with a per-user trace.',
     evalNote: 'eval/supervisor.yaml via the judge.',
-    notebook: 'notebooks/04_supervisor_agent.py',
+    notebook: 'notebooks/01_governed_supervisor.py',
   },
   {
     key: 'governance',
@@ -308,7 +305,7 @@ export const GUIDES: TrackGuide[] = [
     ],
     shipTarget: 'A policy that caps spend + a payload_logs audit query.',
     evalNote: 'eval/governance.yaml via the judge.',
-    notebook: 'notebooks/07_ai_gateway_govern.py',
+    notebook: 'notebooks/04_trust_and_governance.py',
   },
   {
     key: 'forecast',
@@ -324,7 +321,7 @@ export const GUIDES: TrackGuide[] = [
     ],
     shipTarget: 'A forecast_overrides row written + approved.',
     evalNote: 'eval/forecast.yaml via the judge.',
-    notebook: 'notebooks/05_lakebase_memory_action.py',
+    notebook: 'notebooks/02_agents_that_act.py',
   },
   {
     key: 'quote',
@@ -341,7 +338,7 @@ export const GUIDES: TrackGuide[] = [
     ],
     shipTarget: 'A quote drafted, approved, and executed against the mock systems.',
     evalNote: 'eval/quote.yaml via the judge.',
-    notebook: 'notebooks/08_doc_intelligence_qwen.py',
+    notebook: 'notebooks/05_document_intelligence.py',
   },
   {
     key: 'action',
@@ -358,7 +355,7 @@ export const GUIDES: TrackGuide[] = [
     ],
     shipTarget: 'An action executed end-to-end with an external_ref + audit lineage, plus a breach to escalate path.',
     evalNote: 'eval/action.yaml via the judge.',
-    notebook: 'notebooks/09_agents_that_act.py',
+    notebook: 'notebooks/02_agents_that_act.py',
   },
 ];
 

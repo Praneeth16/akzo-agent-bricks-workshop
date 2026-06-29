@@ -7,7 +7,7 @@ In Databricks Apps: app.yaml runs uvicorn on $DATABRICKS_APP_PORT.
 import os
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -50,11 +50,14 @@ def health():
 
 
 @app.post("/api/ask")
-def ask(req: AskReq):
+def ask(req: AskReq, request: Request):
     if not req.question.strip():
         raise HTTPException(400, "question is required")
+    # OBO: Databricks Apps forwards the signed-in user's access token; the Genie legs read under
+    # that identity (row filters / personas apply). Absent (local/curl) -> app service principal.
+    user_token = request.headers.get("X-Forwarded-Access-Token")
     try:
-        return agent.ask(req.question, req.persona or "controller")
+        return agent.ask(req.question, req.persona or "controller", user_token=user_token)
     except Exception as e:
         raise HTTPException(500, f"ask failed: {e}")
 

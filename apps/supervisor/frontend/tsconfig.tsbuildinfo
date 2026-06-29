@@ -1,1 +1,1 @@
-{"root":["./src/actionspanel.tsx","./src/app.tsx","./src/actions.ts","./src/api.ts","./src/main.tsx"],"version":"5.9.3"}
+{"root":["./src/actionspanel.tsx","./src/app.tsx","./src/actions.ts","./src/api.ts","./src/main.tsx","./src/components/action-ui.tsx","./src/components/kit.tsx","./src/lib/utils.ts"],"version":"5.9.3"}

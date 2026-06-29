@@ -55,7 +55,7 @@ export function Section({
 }
 
 const DOMAIN_STYLES: Record<string, string> = {
-  Finance: 'bg-[oklch(0.95_0.04_183)] text-[oklch(0.42_0.09_183)]',
+  Finance: 'bg-[oklch(0.95_0.04_236)] text-[oklch(0.42_0.1_236)]',
   'Supply chain': 'bg-[oklch(0.95_0.04_70)] text-[oklch(0.45_0.1_70)]',
   Commercial: 'bg-[oklch(0.95_0.04_304)] text-[oklch(0.45_0.12_304)]',
   'Multi-agent': 'bg-[oklch(0.95_0.04_250)] text-[oklch(0.45_0.12_250)]',

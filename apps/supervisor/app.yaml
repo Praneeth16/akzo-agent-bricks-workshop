@@ -22,4 +22,12 @@ env:
     value: "databricks_postgres"
   - name: LAKEBASE_SCHEMA
     value: "akzo"
-  # Each domain leg points text2sql at its bundled genie/*_space.md inside backend/ (self-contained).
+  # Real Genie spaces (created from code by genie/create_genie_spaces.py). When set, each domain leg
+  # calls the REAL Genie space via the Conversation API; blank a value to fall back to bundled-instruction
+  # text2sql over genie/*_space.md. The app service principal needs CAN_RUN on these spaces.
+  - name: FINANCE_SPACE_ID
+    value: "01f173afe537118dbd76ace7de8dfd76"
+  - name: SCM_SPACE_ID
+    value: "01f173afe57c11158953241dd24f7416"
+  - name: COMMERCIAL_SPACE_ID
+    value: "01f173afe5bc1671b92d7b5e76cbf046"

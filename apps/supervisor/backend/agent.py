@@ -33,6 +33,61 @@ GENIE_PATHS = {
     "COMMERCIAL": os.path.join(_HERE, "commercial_space.md"),
 }
 
+# Real Genie space ids (created from code by genie/create_genie_spaces.py). When a domain's id is set,
+# its leg calls the REAL Genie space via the Conversation API; when blank, it falls back to the
+# instruction-driven text2sql over the bundled *_space.md. Set via app.yaml env.
+SPACE_IDS = {
+    "FINANCE": os.environ.get("FINANCE_SPACE_ID", "").strip(),
+    "SCM": os.environ.get("SCM_SPACE_ID", "").strip(),
+    "COMMERCIAL": os.environ.get("COMMERCIAL_SPACE_ID", "").strip(),
+}
+
+
+def _user_genie_client(user_token: str | None):
+    """A WorkspaceClient bound to the END USER's forwarded token (OBO), so Genie reads run under the
+    caller's identity / row filters. Falls back to the app service principal when no token is present
+    (local dev / non-SSO callers)."""
+    if not user_token:
+        return dbx.client()
+    from databricks.sdk import WorkspaceClient
+    # auth_type='pat' forces token-only auth so the SP OAuth in the app env (DATABRICKS_CLIENT_ID/
+    # SECRET) does not collide with the forwarded user token ("more than one authorization method").
+    return WorkspaceClient(host=dbx.client().config.host, token=user_token, auth_type="pat")
+
+
+def _genie_leg(space_id: str, question: str, w=None) -> dict:
+    """Call a REAL Genie space via the Conversation API: Genie generates + runs the governed SQL
+    under `w`'s identity (the end user under OBO when provided). Returns {sql, rows, columns, row_count}."""
+    w = w or dbx.client()
+    msg = w.genie.start_conversation_and_wait(space_id=space_id, content=question)
+    sql, rows, cols = "", [], []
+    for att in (msg.attachments or []):
+        if getattr(att, "query", None) is None:
+            continue
+        sql = att.query.query or sql
+        # Fetch the result per the doc's .../query-result/{attachment_id}. Prefer the by-attachment
+        # method; fall back to the message-level one across SDK versions.
+        att_id = getattr(att, "attachment_id", None)
+        res = None
+        for getter in (
+            lambda: w.genie.get_message_attachment_query_result(
+                space_id=space_id, conversation_id=msg.conversation_id, message_id=msg.id, attachment_id=att_id),
+            lambda: w.genie.get_message_query_result_by_attachment(
+                space_id=space_id, conversation_id=msg.conversation_id, message_id=msg.id, attachment_id=att_id),
+            lambda: w.genie.get_message_query_result(
+                space_id=space_id, conversation_id=msg.conversation_id, message_id=msg.id),
+        ):
+            try:
+                res = getter()
+                break
+            except Exception:
+                continue
+        sr = getattr(res, "statement_response", None) if res is not None else None
+        if sr and getattr(sr, "result", None) and sr.result.data_array:
+            cols = [c.name for c in sr.manifest.schema.columns]
+            rows = [dict(zip(cols, r)) for r in sr.result.data_array]
+    return {"sql": sql, "rows": rows, "columns": cols, "row_count": len(rows)}
+
 # >>> THE LAYER YOU TWEAK <<< — one line per registered subagent describing what that domain
 # knows. In a native MAS this is each subagent's "description" field. Editing it re-routes.
 ROUTING_DESCRIPTION = {
@@ -157,25 +212,32 @@ def route(question: str, descriptions: dict | None = None) -> dict:
 # domain's genie space file. Runs the governed SQL on the warehouse (under the
 # caller's UC identity in Apps / OBO). A failing leg degrades, never sinks.
 # ---------------------------------------------------------------------------
-def call_leg(domain: str, question: str) -> dict:
+def call_leg(domain: str, question: str, genie_w=None) -> dict:
     """One domain subagent: NL -> governed SQL -> rows. Returns a structured leg result.
 
     `question` should be the domain-specific subquestion (phrased in the domain's own terms)
-    so the governed leg does not decline it as out of scope.
+    so the governed leg does not decline it as out of scope. `genie_w` is the OBO WorkspaceClient
+    (the end user) used for the real Genie call; None falls back to the app service principal.
     """
-    try:
-        res = text2sql.ask(question, genie_instructions_path=GENIE_PATHS[domain])
-        return {
-            "domain": domain,
-            "sql": res["sql"],
-            "rows": res["rows"][:50],
-            "columns": res["columns"],
-            "row_count": res["row_count"],
-            "error": None,
-        }
-    except Exception as e:
-        return {"domain": domain, "sql": "", "rows": [], "columns": [], "row_count": 0,
-                "error": str(e)[:300]}
+    space_id = SPACE_IDS.get(domain, "")
+    via, res = None, None
+    # Prefer the REAL Genie space (under the end user's identity via OBO); if it errors, fall back to
+    # the instruction-driven text2sql so the leg never goes dark.
+    if space_id:
+        try:
+            res, via = _genie_leg(space_id, question, w=genie_w), "genie_space"
+        except Exception:
+            res, via = None, None
+    if res is None:
+        try:
+            res, via = text2sql.ask(question, genie_instructions_path=GENIE_PATHS[domain]), "ai_query"
+        except Exception as e:
+            return {"domain": domain, "via": "error", "sql": "", "rows": [], "columns": [],
+                    "row_count": 0, "error": str(e)[:300]}
+    return {
+        "domain": domain, "via": via, "sql": res["sql"], "rows": res["rows"][:50],
+        "columns": res["columns"], "row_count": res["row_count"], "error": None,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -216,14 +278,17 @@ def fuse(question: str, decision: dict, legs: list[dict]) -> dict:
 # ---------------------------------------------------------------------------
 # SUPERVISE — full turn: route -> call chosen legs -> fuse -> persist to Lakebase
 # ---------------------------------------------------------------------------
-def ask(question: str, persona: str = "controller") -> dict:
+def ask(question: str, persona: str = "controller", user_token: str | None = None) -> dict:
     """Full supervisor turn. Returns routing trace, per-domain legs, fused answer +
-    recommended action, the persona scope note, and the persisted session id/uuid."""
+    recommended action, the persona scope note, and the persisted session id/uuid.
+    `user_token` is the end user's forwarded access token (OBO); when present, the Genie legs
+    read under the caller's identity / row filters."""
     persona_info = PERSONAS.get(persona, PERSONAS["controller"])
+    genie_w = _user_genie_client(user_token)
 
     decision = route(question)
     legs = [
-        call_leg(d, decision["subquestions"].get(d) or question)
+        call_leg(d, decision["subquestions"].get(d) or question, genie_w=genie_w)
         for d in decision["domains"]
     ]
     fused = fuse(question, decision, legs)
@@ -245,7 +310,7 @@ def ask(question: str, persona: str = "controller") -> dict:
         f"(OBO at the Genie-call layer, reads only).",
         "routing": routing,
         "legs": [
-            {"domain": lr["domain"], "sql": lr["sql"], "rows": lr["rows"],
+            {"domain": lr["domain"], "via": lr.get("via"), "sql": lr["sql"], "rows": lr["rows"],
              "columns": lr["columns"], "row_count": lr["row_count"], "error": lr["error"]}
             for lr in legs
         ],

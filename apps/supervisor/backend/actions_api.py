@@ -64,13 +64,17 @@ def build_actions_router(agent_name: str) -> APIRouter:
     def act(req: ActReq, request: Request):
         """Stage an action through the Action Plane + return its guardrail verdict."""
         try:
+            # The AGENT proposes the action (it advised it); the human then APPROVES it. Attributing
+            # the proposal to the agent (not the signed-in user) is the correct separation of duties:
+            # proposer (agent) != approver (human), so a single signed-in user can approve in the UI
+            # without a second identity or an admin panel.
             action = ap.propose(
                 agent=agent_name,
                 action_type=req.action_type,
                 subject=req.subject,
                 payload=req.payload,
                 region=req.region,
-                requested_by=_end_user(request, agent_name),
+                requested_by=agent_name,
                 level=req.level,
             )
             verdict = evaluate(action)

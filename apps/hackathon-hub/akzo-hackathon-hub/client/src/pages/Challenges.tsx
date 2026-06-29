@@ -70,7 +70,7 @@ export default function ChallengesPage() {
 
       <Section
         title="Day-1 learning path"
-        description="Ten reference notebooks, run live in the room — each peels back one layer of the stack."
+        description="Seven reference notebooks — five core chapters that build the stack, plus two advanced ones (custom agents + serving). Run live in the room."
       >
         <div className="overflow-hidden rounded-xl border border-border">
           {NOTEBOOKS.map((n, i) => (
