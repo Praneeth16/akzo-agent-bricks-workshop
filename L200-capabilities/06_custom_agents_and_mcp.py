@@ -52,6 +52,11 @@ dbutils.library.restartPython()
 # MAGIC ### Prerequisites
 # MAGIC Serverless enabled; a chat model serving endpoint; the `akzo_finance` data (CH1) for the agent's tool;
 # MAGIC permission to register a UC model. Managed MCP + agent serving are optional (guarded).
+# MAGIC
+# MAGIC ### How to run (~20 min)
+# MAGIC Top to bottom. The always-run core (build the agent, in-process `predict`, log + register to UC) runs
+# MAGIC on serverless with no extra provisioning. To exercise the optional steps, set the `genie_space_id`
+# MAGIC widget (managed-MCP Genie probe) and flip `deploy=true` (stands up a serving endpoint — slow).
 
 # COMMAND ----------
 
@@ -248,6 +253,8 @@ def answer_text(r) -> str:
 
 resp = AGENT.predict(ResponsesAgentRequest(
     input=[{"role": "user", "content": "What was Paints EMEA gross margin in Q1 vs Q2 2026?"}]))
+# Expect: the ReAct agent calls finance_sql, which generates + runs governed SQL over akzo_finance,
+# then answers with ~39.6% (Q1) vs ~30.7% (Q2). A "SQL failed" string means the data/CH1 setup is missing.
 print(answer_text(resp)[:800])
 
 # COMMAND ----------

@@ -45,8 +45,21 @@ dbutils.library.restartPython()
 # MAGIC - Provisioned Throughput FM APIs: `.../foundation-model-apis/deploy-prov-throughput-foundation-model-apis`
 # MAGIC - GPU workload types: GPU_SMALL (1xT4), GPU_MEDIUM (1xA10G), MULTIGPU_MEDIUM (4xA10G), GPU_MEDIUM_8 (8xA10G).
 # MAGIC
+# MAGIC ### Which route do I pick?
+# MAGIC
+# MAGIC | Route | Use when | Compute | Governance |
+# MAGIC |---|---|---|---|
+# MAGIC | (a) Provisioned Throughput FM API | the model is a Databricks-supported base/fine-tuned **FM** + you want dedicated, predictable capacity | serverless, auto-scales (no GPU mgmt) | UC-registered, billed per throughput chunk |
+# MAGIC | (b) Custom Model Serving | **any** logged model (OSS, custom pyfunc, your own weights) | CPU, or `workload_type=GPU_*` | UC-registered, scale-to-zero |
+# MAGIC | (c) External Models via AI Gateway | you want a **third-party** provider (OpenAI, Anthropic) governed on Databricks | none (provider hosts it) | every call logged + rate-limited by the Gateway (ties to CH4) |
+# MAGIC
 # MAGIC ### Prerequisites
 # MAGIC Serverless; permission to register a UC model and (for the guarded steps) create serving endpoints.
+# MAGIC
+# MAGIC ### How to run (~15 min)
+# MAGIC Top to bottom. The always-run core (log + register + in-process `predict`) is CPU-only and provisions
+# MAGIC nothing. Routes (a)/(b)/(c) are walkthroughs by default; flip `create_endpoint=true` (and optionally
+# MAGIC set `workload_type`) to actually stand up route (b)'s endpoint.
 
 # COMMAND ----------
 
@@ -123,6 +136,8 @@ print("Registered:", UC_MODEL_NAME, "version", registered.version)
 # COMMAND ----------
 
 loaded = mlflow.pyfunc.load_model(f"models:/{UC_MODEL_NAME}/{registered.version}")
+# Expect: two "[akzo-custom-model] echo: ..." strings (the stand-in model echoes each prompt). This is the
+# same inference path the serving endpoint runs, proven in-process (CPU, no auth) before any endpoint exists.
 print(loaded.predict(pd.DataFrame({"prompt": ["What changed in Q2?", "Which lane broke OTIF?"]})))
 
 # COMMAND ----------
