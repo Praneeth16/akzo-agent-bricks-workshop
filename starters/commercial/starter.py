@@ -28,6 +28,7 @@
 
 # COMMAND ----------
 
+import os
 CATALOG = os.environ.get("AKZO_CATALOG") or spark.sql("SELECT current_catalog()").first()[0]
 COM = f"{CATALOG}.akzo_commercial"
 LLM_ENDPOINT = "databricks-claude-opus-4-8"   # text2SQL + reasoning. Swap to "databricks-gpt-5-5" to compare.
