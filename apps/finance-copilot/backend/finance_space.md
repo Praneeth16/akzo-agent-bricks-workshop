@@ -2,7 +2,7 @@
 
 > Paste the **Instructions** block into the Genie space's *Instructions* field, and add the
 > **example SQL** pairs as *Sample / Trusted Questions* (or SQL examples). All SQL is Spark SQL
-> against `serverless_lakebase_praneeth_catalog.akzo_finance.*`. Do not invent columns — every column below exists in
+> against `<catalog>.akzo_finance.*`. Do not invent columns — every column below exists in
 > `data/output/finance/README.md`.
 
 ---
@@ -21,15 +21,15 @@ buckets. Reporting currency is **EUR** and the current month is **2026-06**.
 
 ## 2. Tables in scope
 
-All tables fully-qualified under `serverless_lakebase_praneeth_catalog.akzo_finance`.
+All tables fully-qualified under `<catalog>.akzo_finance`.
 
 | Table | Purpose | Key columns | Grain |
 |---|---|---|---|
-| `serverless_lakebase_praneeth_catalog.akzo_finance.products` | SKU master / product dimension | `sku`, `product_name`, `product_line` (Decorative Paints \| Performance Coatings), `region` (EMEA/Americas/APAC/China), `currency`, `list_price_eur`, `standard_cost_eur` | one row per SKU |
-| `serverless_lakebase_praneeth_catalog.akzo_finance.margin_actuals` | Realized monthly P&L per SKU×region | `sku`, `region`, `month` (DATE, first-of-month), `units`, `revenue_eur`, `cogs_eur`, `gross_margin_eur`, `gross_margin_pct` (fraction, 0.42 = 42%) | sku × region × month |
-| `serverless_lakebase_praneeth_catalog.akzo_finance.margin_budget` | Plan / budget figures (no shocks) | `sku`, `region`, `month`, `budget_units`, `budget_revenue_eur`, `budget_margin_eur` | sku × region × month |
-| `serverless_lakebase_praneeth_catalog.akzo_finance.fx_rates` | Monthly FX to EUR | `currency` (EUR/USD/GBP/CNY), `month`, `rate_to_eur` (EUR=1.0) | currency × month |
-| `serverless_lakebase_praneeth_catalog.akzo_finance.cost_drivers` | COGS decomposition | `sku`, `region`, `month`, `raw_material_cost`, `freight_cost`, `energy_cost`, `overhead` (EUR; sum reconciles to `cogs_eur`) | sku × region × month |
+| `<catalog>.akzo_finance.products` | SKU master / product dimension | `sku`, `product_name`, `product_line` (Decorative Paints \| Performance Coatings), `region` (EMEA/Americas/APAC/China), `currency`, `list_price_eur`, `standard_cost_eur` | one row per SKU |
+| `<catalog>.akzo_finance.margin_actuals` | Realized monthly P&L per SKU×region | `sku`, `region`, `month` (DATE, first-of-month), `units`, `revenue_eur`, `cogs_eur`, `gross_margin_eur`, `gross_margin_pct` (fraction, 0.42 = 42%) | sku × region × month |
+| `<catalog>.akzo_finance.margin_budget` | Plan / budget figures (no shocks) | `sku`, `region`, `month`, `budget_units`, `budget_revenue_eur`, `budget_margin_eur` | sku × region × month |
+| `<catalog>.akzo_finance.fx_rates` | Monthly FX to EUR | `currency` (EUR/USD/GBP/CNY), `month`, `rate_to_eur` (EUR=1.0) | currency × month |
+| `<catalog>.akzo_finance.cost_drivers` | COGS decomposition | `sku`, `region`, `month`, `raw_material_cost`, `freight_cost`, `energy_cost`, `overhead` (EUR; sum reconciles to `cogs_eur`) | sku × region × month |
 
 > Invariants: `gross_margin_eur = revenue_eur - cogs_eur`; `gross_margin_pct = gross_margin_eur / revenue_eur`;
 > `raw_material_cost + freight_cost + energy_cost + overhead ≈ cogs_eur`.
@@ -87,9 +87,9 @@ WITH base AS (
          WHEN m.month BETWEEN DATE'2026-04-01' AND DATE'2026-06-01' THEN 'Q2' END AS qtr,
     m.units, m.revenue_eur, m.cogs_eur, m.gross_margin_eur,
     c.raw_material_cost, c.freight_cost, c.energy_cost, c.overhead
-  FROM serverless_lakebase_praneeth_catalog.akzo_finance.margin_actuals m
-  JOIN serverless_lakebase_praneeth_catalog.akzo_finance.products p ON m.sku = p.sku
-  LEFT JOIN serverless_lakebase_praneeth_catalog.akzo_finance.cost_drivers c
+  FROM <catalog>.akzo_finance.margin_actuals m
+  JOIN <catalog>.akzo_finance.products p ON m.sku = p.sku
+  LEFT JOIN <catalog>.akzo_finance.cost_drivers c
     ON c.sku = m.sku AND c.region = m.region AND c.month = m.month
   WHERE p.product_line = 'Decorative Paints' AND p.region = 'EMEA'
     AND m.month BETWEEN DATE'2026-01-01' AND DATE'2026-06-01'
@@ -115,8 +115,8 @@ SELECT
   m.month,
   ROUND(SUM(m.gross_margin_eur) / SUM(m.revenue_eur) * 100, 1) AS gross_margin_pct,
   SUM(m.revenue_eur) AS revenue_eur
-FROM serverless_lakebase_praneeth_catalog.akzo_finance.margin_actuals m
-JOIN serverless_lakebase_praneeth_catalog.akzo_finance.products p ON m.sku = p.sku
+FROM <catalog>.akzo_finance.margin_actuals m
+JOIN <catalog>.akzo_finance.products p ON m.sku = p.sku
 WHERE p.product_line = 'Decorative Paints' AND p.region = 'EMEA'
   AND m.month >= DATE'2026-01-01'
 GROUP BY m.month
@@ -132,8 +132,8 @@ WITH q AS (
     CASE WHEN m.month BETWEEN DATE'2026-01-01' AND DATE'2026-03-01' THEN 'Q1'
          WHEN m.month BETWEEN DATE'2026-04-01' AND DATE'2026-06-01' THEN 'Q2' END AS qtr,
     m.revenue_eur, m.gross_margin_eur
-  FROM serverless_lakebase_praneeth_catalog.akzo_finance.margin_actuals m
-  JOIN serverless_lakebase_praneeth_catalog.akzo_finance.products p ON m.sku = p.sku
+  FROM <catalog>.akzo_finance.margin_actuals m
+  JOIN <catalog>.akzo_finance.products p ON m.sku = p.sku
   WHERE m.month BETWEEN DATE'2026-01-01' AND DATE'2026-06-01'
 ),
 g AS (
@@ -159,7 +159,7 @@ SELECT
   SUM(revenue_eur)      AS revenue_eur,
   SUM(gross_margin_eur) AS gross_margin_eur,
   ROUND(SUM(gross_margin_eur) / SUM(revenue_eur) * 100, 1) AS gross_margin_pct
-FROM serverless_lakebase_praneeth_catalog.akzo_finance.margin_actuals
+FROM <catalog>.akzo_finance.margin_actuals
 WHERE month = DATE'2026-06-01';
 ```
 
@@ -171,8 +171,8 @@ SELECT
   ROUND(SUM(c.freight_cost))      AS freight_cost_eur,
   ROUND(SUM(c.energy_cost))       AS energy_cost_eur,
   ROUND(SUM(c.overhead))          AS overhead_eur
-FROM serverless_lakebase_praneeth_catalog.akzo_finance.cost_drivers c
-JOIN serverless_lakebase_praneeth_catalog.akzo_finance.products p ON c.sku = p.sku
+FROM <catalog>.akzo_finance.cost_drivers c
+JOIN <catalog>.akzo_finance.products p ON c.sku = p.sku
 WHERE p.product_line = 'Decorative Paints' AND p.region = 'EMEA'
   AND c.month BETWEEN DATE'2026-04-01' AND DATE'2026-06-01';
 ```
@@ -182,7 +182,7 @@ WHERE p.product_line = 'Decorative Paints' AND p.region = 'EMEA'
 
 ```sql
 SELECT currency, month, rate_to_eur
-FROM serverless_lakebase_praneeth_catalog.akzo_finance.fx_rates
+FROM <catalog>.akzo_finance.fx_rates
 WHERE currency IN ('USD','CNY')
   AND month BETWEEN DATE'2026-01-01' AND DATE'2026-06-01'
 ORDER BY currency, month;
@@ -197,9 +197,9 @@ SELECT
   ROUND(SUM(m.gross_margin_eur))  AS actual_margin_eur,
   ROUND(SUM(b.budget_margin_eur)) AS budget_margin_eur,
   ROUND(SUM(m.gross_margin_eur) - SUM(b.budget_margin_eur)) AS variance_eur
-FROM serverless_lakebase_praneeth_catalog.akzo_finance.margin_actuals m
-JOIN serverless_lakebase_praneeth_catalog.akzo_finance.products p ON m.sku = p.sku
-JOIN serverless_lakebase_praneeth_catalog.akzo_finance.margin_budget b
+FROM <catalog>.akzo_finance.margin_actuals m
+JOIN <catalog>.akzo_finance.products p ON m.sku = p.sku
+JOIN <catalog>.akzo_finance.margin_budget b
   ON b.sku = m.sku AND b.region = m.region AND b.month = m.month
 WHERE p.product_line = 'Decorative Paints' AND p.region = 'EMEA'
   AND m.month >= DATE'2026-01-01'
@@ -215,8 +215,8 @@ SELECT
   m.month,
   SUM(m.units)                                 AS units,
   ROUND(SUM(m.revenue_eur) / SUM(m.units), 2)  AS realized_price_eur
-FROM serverless_lakebase_praneeth_catalog.akzo_finance.margin_actuals m
-JOIN serverless_lakebase_praneeth_catalog.akzo_finance.products p ON m.sku = p.sku
+FROM <catalog>.akzo_finance.margin_actuals m
+JOIN <catalog>.akzo_finance.products p ON m.sku = p.sku
 WHERE p.product_line = 'Decorative Paints' AND p.region = 'EMEA'
   AND m.month >= DATE'2026-01-01'
 GROUP BY m.month
@@ -232,8 +232,8 @@ WITH q AS (
     CASE WHEN m.month BETWEEN DATE'2026-01-01' AND DATE'2026-03-01' THEN 'Q1'
          WHEN m.month BETWEEN DATE'2026-04-01' AND DATE'2026-06-01' THEN 'Q2' END AS qtr,
     m.revenue_eur, m.gross_margin_eur
-  FROM serverless_lakebase_praneeth_catalog.akzo_finance.margin_actuals m
-  JOIN serverless_lakebase_praneeth_catalog.akzo_finance.products p ON m.sku = p.sku
+  FROM <catalog>.akzo_finance.margin_actuals m
+  JOIN <catalog>.akzo_finance.products p ON m.sku = p.sku
   WHERE p.product_line = 'Decorative Paints' AND p.region = 'EMEA'
     AND m.month BETWEEN DATE'2026-01-01' AND DATE'2026-06-01'
 )
@@ -253,8 +253,8 @@ LIMIT 5;
 ```sql
 WITH q2 AS (
   SELECT p.region, m.revenue_eur, m.gross_margin_eur
-  FROM serverless_lakebase_praneeth_catalog.akzo_finance.margin_actuals m
-  JOIN serverless_lakebase_praneeth_catalog.akzo_finance.products p ON m.sku = p.sku
+  FROM <catalog>.akzo_finance.margin_actuals m
+  JOIN <catalog>.akzo_finance.products p ON m.sku = p.sku
   WHERE p.product_line = 'Decorative Paints'
     AND m.month BETWEEN DATE'2026-04-01' AND DATE'2026-06-01'
 )

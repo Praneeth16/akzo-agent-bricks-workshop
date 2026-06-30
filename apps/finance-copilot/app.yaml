@@ -13,11 +13,11 @@ command:
 
 env:
   - name: DATABRICKS_WAREHOUSE_ID
-    value: "4d39ac2e32b72a3a"
+    value: "<your-warehouse-id>"
   - name: DATABRICKS_CHAT_ENDPOINT
     value: "databricks-claude-opus-4-7"
   - name: LAKEBASE_INSTANCE
-    value: "graphrag-spike"
+    value: "<your-lakebase-instance>"
   - name: LAKEBASE_DBNAME
     value: "databricks_postgres"
   - name: LAKEBASE_SCHEMA

@@ -43,7 +43,7 @@ rejects that parameter.
 
 ```bash
 cd apps/finance-copilot
-cp .env.example .env            # uses CLI profile fe-vm-lakebase-praneeth
+cp .env.example .env            # uses CLI profile <your-profile>
 ./run_local.sh                  # builds frontend, installs deps, serves on :8000
 ```
 
@@ -72,19 +72,19 @@ frontend first so `frontend/dist` is bundled, then sync + deploy:
 ```bash
 cd apps/finance-copilot/frontend && npm install && npm run build
 cd ..
-databricks sync . /Workspace/Users/<you>/finance-copilot --profile fe-vm-lakebase-praneeth
-databricks apps deploy finance-copilot --source-code-path /Workspace/Users/<you>/finance-copilot --profile fe-vm-lakebase-praneeth
+databricks sync . /Workspace/Users/<you>/finance-copilot --profile <your-profile>
+databricks apps deploy finance-copilot --source-code-path /Workspace/Users/<you>/finance-copilot --profile <your-profile>
 ```
 
 `app.yaml` runs `uvicorn main:app --app-dir backend` on `$DATABRICKS_APP_PORT` and sets the
 warehouse / chat endpoint / Lakebase env. The app service principal needs: `CAN USE` on warehouse
-`4d39ac2e32b72a3a`, `CAN QUERY` on `databricks-claude-opus-4-7`, SELECT on
-`serverless_lakebase_praneeth_catalog.akzo_finance.*`, and a Postgres role on the `graphrag-spike`
+`<your-warehouse-id>`, `CAN QUERY` on `databricks-claude-opus-4-7`, SELECT on
+`<catalog>.akzo_finance.*`, and a Postgres role on the `<your-lakebase-instance>`
 Lakebase instance for the `akzo` schema.
 
 ## Verified
 
-End-to-end against the live workspace (profile `fe-vm-lakebase-praneeth`):
+End-to-end against the live workspace (profile `<your-profile>`):
 
 - **`/api/variance`** for `{Decorative Paints, EMEA, 2026-Q1 → 2026-Q2}` returned the certified
   bridge: gross margin **39.6% → 30.7% = −8.9pp**, decomposed as **cost −3.8pp** (raw-material/unit

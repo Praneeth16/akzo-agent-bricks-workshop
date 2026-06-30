@@ -63,7 +63,7 @@ parameter, which `databricks-claude-opus-4-7` rejects).
 
 ```bash
 cd apps/supervisor
-cp .env.example .env            # uses CLI profile fe-vm-lakebase-praneeth
+cp .env.example .env            # uses CLI profile <your-profile>
 ./run_local.sh                  # builds frontend, installs deps, serves on :8000
 ```
 
@@ -93,15 +93,15 @@ first so `frontend/dist` is bundled, then sync + deploy:
 ```bash
 cd apps/supervisor/frontend && npm install && npm run build
 cd ..
-databricks sync . /Workspace/Users/<you>/supervisor --profile fe-vm-lakebase-praneeth
-databricks apps deploy supervisor --source-code-path /Workspace/Users/<you>/supervisor --profile fe-vm-lakebase-praneeth
+databricks sync . /Workspace/Users/<you>/supervisor --profile <your-profile>
+databricks apps deploy supervisor --source-code-path /Workspace/Users/<you>/supervisor --profile <your-profile>
 ```
 
 `app.yaml` runs `uvicorn main:app --app-dir backend` on `$DATABRICKS_APP_PORT` and sets the
 warehouse / chat endpoint / Lakebase env. The app service principal needs: `CAN USE` on warehouse
-`4d39ac2e32b72a3a`, `CAN QUERY` on `databricks-claude-opus-4-7`, SELECT on
-`serverless_lakebase_praneeth_catalog.akzo_finance.*`, `.akzo_scm.*`, and `.akzo_commercial.*`,
-and a Postgres role on the `graphrag-spike` Lakebase instance for the `akzo` schema.
+`<your-warehouse-id>`, `CAN QUERY` on `databricks-claude-opus-4-7`, SELECT on
+`<catalog>.akzo_finance.*`, `.akzo_scm.*`, and `.akzo_commercial.*`,
+and a Postgres role on the `<your-lakebase-instance>` Lakebase instance for the `akzo` schema.
 
 ## Upgrade path: this router → a native Agent Bricks Multi-Agent Supervisor
 
@@ -119,7 +119,7 @@ This app reproduces a MAS in code. To move to the managed product:
 
 ## Verified
 
-End-to-end against the live workspace (profile `fe-vm-lakebase-praneeth`): the flagship question
+End-to-end against the live workspace (profile `<your-profile>`): the flagship question
 routed to **Finance + SCM + Commercial**; each leg returned real governed rows — Finance margin
 **39.6% → 30.7%** (price €34.54 → €32.73, raw material €11.47 → €13.37, volume flat), SCM Rotterdam
 lane **OTIF 88.9% in May** with service 90.6% / 2,258 backorders / DEC-1000+DEC-1004 stockouts, and

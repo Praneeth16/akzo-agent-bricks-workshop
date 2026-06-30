@@ -16,7 +16,7 @@ import databricks_client as dbx
 import lakebase as lb
 from action_plane import ActionPlane, evaluate, execute
 
-CATALOG = "serverless_lakebase_praneeth_catalog"
+CATALOG = "<catalog>"
 FINANCE = f"{CATALOG}.akzo_finance"
 
 # Guardrail: flag a draft for escalation if its discount exceeds this, or if its

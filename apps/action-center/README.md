@@ -41,7 +41,7 @@ Routes:
 ## Run locally
 
 ```bash
-cp .env.example .env          # uses CLI profile fe-vm-lakebase-praneeth
+cp .env.example .env          # uses CLI profile <your-profile>
 ./run_local.sh                # builds the frontend, serves API + static on :8000
 ```
 
@@ -49,7 +49,7 @@ Or for frontend dev with hot reload:
 
 ```bash
 # terminal 1 — backend
-cd backend && DATABRICKS_CONFIG_PROFILE=fe-vm-lakebase-praneeth \
+cd backend && DATABRICKS_CONFIG_PROFILE=<your-profile> \
   python3 -m uvicorn main:app --reload --port 8000
 # terminal 2 — frontend (proxies /api → :8000)
 cd frontend && npm install && npm run dev

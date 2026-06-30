@@ -10,9 +10,9 @@
 # prebuilt React frontend (frontend/dist is gitignored, but the Python backend serves it statically).
 #
 # Deploy:
-#   databricks bundle deployment bind supervisor_v2 akzo-supervisor-v2 --auto-approve -p fe-vm-lakebase-praneeth
-#   databricks bundle deploy -p fe-vm-lakebase-praneeth
-#   databricks bundle run   supervisor_v2 -p fe-vm-lakebase-praneeth
+#   databricks bundle deployment bind supervisor_v2 akzo-supervisor-v2 --auto-approve -p <your-profile>
+#   databricks bundle deploy -p <your-profile>
+#   databricks bundle run   supervisor_v2 -p <your-profile>
 
 bundle:
   name: akzo-supervisor-v2
@@ -37,4 +37,4 @@ targets:
   default:
     default: true
     workspace:
-      host: https://fevm-serverless-lakebase-praneeth.cloud.databricks.com
+      host: https://<your-workspace-host>.cloud.databricks.com

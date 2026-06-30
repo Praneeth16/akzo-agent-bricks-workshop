@@ -2,7 +2,7 @@
 
 > Paste the **Instructions** block into the Genie space's *Instructions* field, and add the
 > **example SQL** pairs as *Sample / Trusted Questions*. All SQL is Spark SQL against
-> `serverless_lakebase_praneeth_catalog.akzo_commercial.*`. Every column below exists in `data/output/commercial/README.md` —
+> `<catalog>.akzo_commercial.*`. Every column below exists in `data/output/commercial/README.md` —
 > do not invent columns.
 
 ---
@@ -22,14 +22,14 @@ current month is **2026-06**.
 
 ## 2. Tables in scope
 
-All tables fully-qualified under `serverless_lakebase_praneeth_catalog.akzo_commercial`.
+All tables fully-qualified under `<catalog>.akzo_commercial`.
 
 | Table | Purpose | Key columns | Grain |
 |---|---|---|---|
-| `serverless_lakebase_praneeth_catalog.akzo_commercial.accounts` | Customer / account master | `account_id`, `account_name`, `region` (EMEA/Americas/APAC/China), `segment` (Architectural / Industrial / Marine & Protective / Automotive Refinish), `industry`, `owner_rep` | one row per account |
-| `serverless_lakebase_praneeth_catalog.akzo_commercial.pipeline` | Open & closed opportunities | `opp_id`, `account_id`, `stage`, `amount_eur`, `close_month` (DATE), `product_line` (Decorative Paints \| Performance Coatings) | one row per opportunity |
-| `serverless_lakebase_praneeth_catalog.akzo_commercial.sales_actuals` | Realized sales per account | `account_id`, `month` (DATE), `revenue_eur`, `volume_units`, `margin_eur` | account × month |
-| `serverless_lakebase_praneeth_catalog.akzo_commercial.churn_signals` | Monthly churn-risk signals | `account_id`, `month`, `churn_score` (0–1), `last_order_days`, `complaint_count`, `nps` | account × month |
+| `<catalog>.akzo_commercial.accounts` | Customer / account master | `account_id`, `account_name`, `region` (EMEA/Americas/APAC/China), `segment` (Architectural / Industrial / Marine & Protective / Automotive Refinish), `industry`, `owner_rep` | one row per account |
+| `<catalog>.akzo_commercial.pipeline` | Open & closed opportunities | `opp_id`, `account_id`, `stage`, `amount_eur`, `close_month` (DATE), `product_line` (Decorative Paints \| Performance Coatings) | one row per opportunity |
+| `<catalog>.akzo_commercial.sales_actuals` | Realized sales per account | `account_id`, `month` (DATE), `revenue_eur`, `volume_units`, `margin_eur` | account × month |
+| `<catalog>.akzo_commercial.churn_signals` | Monthly churn-risk signals | `account_id`, `month`, `churn_score` (0–1), `last_order_days`, `complaint_count`, `nps` | account × month |
 
 ---
 
@@ -77,8 +77,8 @@ SELECT
   a.account_id, a.account_name, a.owner_rep,
   ROUND(c.churn_score, 3) AS churn_score,
   c.last_order_days, c.complaint_count, c.nps
-FROM serverless_lakebase_praneeth_catalog.akzo_commercial.churn_signals c
-JOIN serverless_lakebase_praneeth_catalog.akzo_commercial.accounts a ON c.account_id = a.account_id
+FROM <catalog>.akzo_commercial.churn_signals c
+JOIN <catalog>.akzo_commercial.accounts a ON c.account_id = a.account_id
 WHERE a.region = 'EMEA' AND a.segment = 'Architectural'
   AND c.month = DATE'2026-06-01'
   AND c.churn_score > 0.7
@@ -90,7 +90,7 @@ ORDER BY c.churn_score DESC;
 
 ```sql
 SELECT s.month, ROUND(SUM(s.revenue_eur)) AS revenue_eur
-FROM serverless_lakebase_praneeth_catalog.akzo_commercial.sales_actuals s
+FROM <catalog>.akzo_commercial.sales_actuals s
 WHERE s.account_id IN ('ACC0001','ACC0002','ACC0003')
   AND s.month >= DATE'2026-01-01'
 GROUP BY s.month
@@ -104,8 +104,8 @@ ORDER BY s.month;
 SELECT
   a.account_id, a.account_name, a.region, a.segment,
   ROUND(c.churn_score, 3) AS churn_score
-FROM serverless_lakebase_praneeth_catalog.akzo_commercial.churn_signals c
-JOIN serverless_lakebase_praneeth_catalog.akzo_commercial.accounts a ON c.account_id = a.account_id
+FROM <catalog>.akzo_commercial.churn_signals c
+JOIN <catalog>.akzo_commercial.accounts a ON c.account_id = a.account_id
 WHERE c.month = DATE'2026-06-01' AND c.churn_score > 0.7
 ORDER BY c.churn_score DESC;
 ```
@@ -115,7 +115,7 @@ ORDER BY c.churn_score DESC;
 
 ```sql
 SELECT c.account_id, c.month, ROUND(c.churn_score, 3) AS churn_score
-FROM serverless_lakebase_praneeth_catalog.akzo_commercial.churn_signals c
+FROM <catalog>.akzo_commercial.churn_signals c
 WHERE c.account_id IN ('ACC0001','ACC0002','ACC0003')
   AND c.month >= DATE'2026-01-01'
 ORDER BY c.account_id, c.month;
@@ -129,8 +129,8 @@ SELECT
   a.owner_rep,
   COUNT(DISTINCT p.opp_id) AS open_opps,
   ROUND(SUM(p.amount_eur)) AS open_pipeline_eur
-FROM serverless_lakebase_praneeth_catalog.akzo_commercial.accounts a
-JOIN serverless_lakebase_praneeth_catalog.akzo_commercial.pipeline p ON p.account_id = a.account_id
+FROM <catalog>.akzo_commercial.accounts a
+JOIN <catalog>.akzo_commercial.pipeline p ON p.account_id = a.account_id
 WHERE a.account_id IN ('ACC0001','ACC0002','ACC0003')
   AND p.stage NOT IN ('ClosedWon','ClosedLost')
 GROUP BY a.owner_rep
@@ -146,8 +146,8 @@ SELECT
   COUNT(*)                       AS accounts,
   ROUND(AVG(c.churn_score), 3)   AS avg_churn_score,
   ROUND(MAX(c.churn_score), 3)   AS max_churn_score
-FROM serverless_lakebase_praneeth_catalog.akzo_commercial.churn_signals c
-JOIN serverless_lakebase_praneeth_catalog.akzo_commercial.accounts a ON c.account_id = a.account_id
+FROM <catalog>.akzo_commercial.churn_signals c
+JOIN <catalog>.akzo_commercial.accounts a ON c.account_id = a.account_id
 WHERE c.month = DATE'2026-06-01'
 GROUP BY 1
 ORDER BY avg_churn_score DESC;
@@ -160,8 +160,8 @@ ORDER BY avg_churn_score DESC;
 SELECT a.region,
        ROUND(SUM(s.revenue_eur)) AS revenue_eur,
        ROUND(SUM(s.margin_eur))  AS margin_eur
-FROM serverless_lakebase_praneeth_catalog.akzo_commercial.sales_actuals s
-JOIN serverless_lakebase_praneeth_catalog.akzo_commercial.accounts a ON s.account_id = a.account_id
+FROM <catalog>.akzo_commercial.sales_actuals s
+JOIN <catalog>.akzo_commercial.accounts a ON s.account_id = a.account_id
 WHERE s.month = DATE'2026-06-01'
 GROUP BY a.region
 ORDER BY revenue_eur DESC;
@@ -173,8 +173,8 @@ ORDER BY revenue_eur DESC;
 SELECT p.stage,
        COUNT(*)                 AS opps,
        ROUND(SUM(p.amount_eur)) AS pipeline_eur
-FROM serverless_lakebase_praneeth_catalog.akzo_commercial.pipeline p
-JOIN serverless_lakebase_praneeth_catalog.akzo_commercial.accounts a ON p.account_id = a.account_id
+FROM <catalog>.akzo_commercial.pipeline p
+JOIN <catalog>.akzo_commercial.accounts a ON p.account_id = a.account_id
 WHERE a.region = 'EMEA'
   AND p.product_line = 'Decorative Paints'
   AND p.stage NOT IN ('ClosedWon','ClosedLost')
@@ -190,7 +190,7 @@ WITH q AS (
     CASE WHEN month BETWEEN DATE'2026-01-01' AND DATE'2026-03-01' THEN 'Q1'
          WHEN month BETWEEN DATE'2026-04-01' AND DATE'2026-06-01' THEN 'Q2' END AS qtr,
     revenue_eur
-  FROM serverless_lakebase_praneeth_catalog.akzo_commercial.sales_actuals
+  FROM <catalog>.akzo_commercial.sales_actuals
   WHERE month BETWEEN DATE'2026-01-01' AND DATE'2026-06-01'
 )
 SELECT a.account_id, a.account_name, a.region,
@@ -198,7 +198,7 @@ SELECT a.account_id, a.account_name, a.region,
   ROUND(SUM(CASE WHEN qtr='Q2' THEN revenue_eur END)) AS q2_rev,
   ROUND(SUM(CASE WHEN qtr='Q2' THEN revenue_eur END)
       - SUM(CASE WHEN qtr='Q1' THEN revenue_eur END)) AS delta_eur
-FROM q JOIN serverless_lakebase_praneeth_catalog.akzo_commercial.accounts a ON q.account_id = a.account_id
+FROM q JOIN <catalog>.akzo_commercial.accounts a ON q.account_id = a.account_id
 GROUP BY a.account_id, a.account_name, a.region
 ORDER BY delta_eur ASC
 LIMIT 10;
@@ -213,8 +213,8 @@ SELECT
   ROUND(c.churn_score, 3) AS churn_score,
   ROUND(s.revenue_eur)    AS revenue_eur,
   c.complaint_count, c.nps
-FROM serverless_lakebase_praneeth_catalog.akzo_commercial.churn_signals c
-JOIN serverless_lakebase_praneeth_catalog.akzo_commercial.sales_actuals s
+FROM <catalog>.akzo_commercial.churn_signals c
+JOIN <catalog>.akzo_commercial.sales_actuals s
   ON s.account_id = c.account_id AND s.month = c.month
 WHERE c.account_id IN ('ACC0001','ACC0002','ACC0003')
   AND c.month >= DATE'2026-01-01'

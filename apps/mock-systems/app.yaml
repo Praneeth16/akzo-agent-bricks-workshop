@@ -13,7 +13,7 @@ command:
 
 env:
   - name: LAKEBASE_INSTANCE
-    value: "graphrag-spike"
+    value: "<your-lakebase-instance>"
   - name: LAKEBASE_DBNAME
     value: "databricks_postgres"
   - name: LAKEBASE_SCHEMA

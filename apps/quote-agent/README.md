@@ -42,7 +42,7 @@ are the **shared pattern** copied by the sibling Supervisor and Finance apps.
 
 ```bash
 cd apps/quote-agent
-cp .env.example .env            # uses CLI profile fe-vm-lakebase-praneeth
+cp .env.example .env            # uses CLI profile <your-profile>
 ./run_local.sh                  # builds frontend, installs deps, serves on :8000
 ```
 
@@ -70,19 +70,19 @@ the frontend first so `frontend/dist` is bundled, then sync + deploy:
 ```bash
 cd apps/quote-agent/frontend && npm install && npm run build
 cd ..
-databricks sync . /Workspace/Users/<you>/quote-agent --profile fe-vm-lakebase-praneeth
-databricks apps deploy quote-agent --source-code-path /Workspace/Users/<you>/quote-agent --profile fe-vm-lakebase-praneeth
+databricks sync . /Workspace/Users/<you>/quote-agent --profile <your-profile>
+databricks apps deploy quote-agent --source-code-path /Workspace/Users/<you>/quote-agent --profile <your-profile>
 ```
 
 `app.yaml` runs `uvicorn main:app --app-dir backend` on `$DATABRICKS_APP_PORT` and sets
 the warehouse / chat endpoint / Lakebase env. The app service principal needs: `CAN USE`
-on warehouse `4d39ac2e32b72a3a`, `CAN QUERY` on `databricks-claude-opus-4-7`, SELECT on
-`serverless_lakebase_praneeth_catalog.akzo_finance.*`, and a Postgres role on the
-`graphrag-spike` Lakebase instance for the `akzo` schema.
+on warehouse `<your-warehouse-id>`, `CAN QUERY` on `databricks-claude-opus-4-7`, SELECT on
+`<catalog>.akzo_finance.*`, and a Postgres role on the
+`<your-lakebase-instance>` Lakebase instance for the `akzo` schema.
 
 ## Verified
 
-End-to-end against the live workspace (profile `fe-vm-lakebase-praneeth`): parsed the
+End-to-end against the live workspace (profile `<your-profile>`): parsed the
 sample EMEA RFQ → matched **DEC-1008 Textured Exterior Coating** (list €38.52, cost
 €22.82) → drafted 5,000 units @ 10% discount (net €34.67, margin 34.2%, total margin
 €59,250) → wrote **quote_id 2** to Lakebase `akzo.quotes` (status `pending`) →

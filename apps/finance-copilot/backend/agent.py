@@ -23,7 +23,7 @@ import databricks_client as dbx
 import lakebase as lb
 import text2sql
 
-CATALOG = "serverless_lakebase_praneeth_catalog"
+CATALOG = "<catalog>"
 FINANCE = f"{CATALOG}.akzo_finance"
 METRIC_VIEW = f"{FINANCE}.mv_gross_margin"  # certified gross-margin metric view
 

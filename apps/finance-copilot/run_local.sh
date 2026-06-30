@@ -4,7 +4,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-export DATABRICKS_CONFIG_PROFILE="${DATABRICKS_CONFIG_PROFILE:-fe-vm-lakebase-praneeth}"
+export DATABRICKS_CONFIG_PROFILE="${DATABRICKS_CONFIG_PROFILE:-<your-profile>}"
 
 echo "==> Building frontend (npm)…"
 ( cd frontend && npm install --silent && npm run build )

@@ -20,7 +20,7 @@ from databricks.sdk import WorkspaceClient
 from databricks.sdk.service.serving import ChatMessage, ChatMessageRole
 
 # Defaults for this workspace; override via env in app.yaml / .env.
-SQL_WAREHOUSE_ID = os.environ.get("DATABRICKS_WAREHOUSE_ID", "4d39ac2e32b72a3a")
+SQL_WAREHOUSE_ID = os.environ.get("DATABRICKS_WAREHOUSE_ID", "<your-warehouse-id>")
 CHAT_ENDPOINT = os.environ.get("DATABRICKS_CHAT_ENDPOINT", "databricks-claude-opus-4-7")
 
 _lock = threading.Lock()

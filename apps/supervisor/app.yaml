@@ -13,11 +13,11 @@ command:
 
 env:
   - name: DATABRICKS_WAREHOUSE_ID
-    value: "4d39ac2e32b72a3a"
+    value: "<your-warehouse-id>"
   - name: DATABRICKS_CHAT_ENDPOINT
     value: "databricks-claude-opus-4-7"
   - name: LAKEBASE_INSTANCE
-    value: "graphrag-spike"
+    value: "<your-lakebase-instance>"
   - name: LAKEBASE_DBNAME
     value: "databricks_postgres"
   - name: LAKEBASE_SCHEMA
@@ -26,8 +26,8 @@ env:
   # calls the REAL Genie space via the Conversation API; blank a value to fall back to bundled-instruction
   # text2sql over genie/*_space.md. The app service principal needs CAN_RUN on these spaces.
   - name: FINANCE_SPACE_ID
-    value: "01f173afe537118dbd76ace7de8dfd76"
+    value: "<your-finance-space-id>"
   - name: SCM_SPACE_ID
-    value: "01f173afe57c11158953241dd24f7416"
+    value: "<your-scm-space-id>"
   - name: COMMERCIAL_SPACE_ID
-    value: "01f173afe5bc1671b92d7b5e76cbf046"
+    value: "<your-commercial-space-id>"

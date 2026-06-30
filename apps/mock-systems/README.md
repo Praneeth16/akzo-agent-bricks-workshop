@@ -43,7 +43,7 @@ request jsonb · created_by text
 
 ```bash
 cd apps/mock-systems/backend
-DATABRICKS_CONFIG_PROFILE=fe-vm-lakebase-praneeth uvicorn main:app --reload --port 8000
+DATABRICKS_CONFIG_PROFILE=<your-profile> uvicorn main:app --reload --port 8000
 ```
 
 ## Deploy

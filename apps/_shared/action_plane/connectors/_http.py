@@ -45,7 +45,7 @@ import databricks_client as dbx
 CONNECTION_NAME = os.environ.get("AKZO_HTTP_CONNECTION", "akzo_external_systems")
 MOCK_APP_URL = os.environ.get(
     "AKZO_MOCK_SYSTEMS_URL",
-    "https://akzo-mock-systems-7474654904882204.aws.databricksapps.com",
+    "https://<your-mock-systems-app>.aws.databricksapps.com",
 ).rstrip("/")
 # host/port/base_path the connection was created with — re-stated on every ALTER
 # because UC requires the full option set, not just the option being changed.

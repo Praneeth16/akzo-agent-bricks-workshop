@@ -23,7 +23,7 @@ from psycopg.rows import dict_row
 
 from databricks_client import client, current_user
 
-INSTANCE_NAME = os.environ.get("LAKEBASE_INSTANCE", "graphrag-spike")
+INSTANCE_NAME = os.environ.get("LAKEBASE_INSTANCE", "<your-lakebase-instance>")
 DB_NAME = os.environ.get("LAKEBASE_DBNAME", "databricks_postgres")
 PG_SCHEMA = os.environ.get("LAKEBASE_SCHEMA", "akzo")
 
