@@ -4,7 +4,12 @@
 Drives the authed Databricks CLI (statement execution API + `fs cp`).
 Idempotent: safe to re-run. No SDK dependency.
 
-Usage: python3 data/load_to_uc.py
+Configure with environment variables before running:
+  AKZO_CATALOG               your Unity Catalog (required)
+  DATABRICKS_WAREHOUSE_ID    your SQL warehouse id (required)
+  DATABRICKS_CONFIG_PROFILE  your CLI profile (optional; falls back to the CLI default auth)
+
+Usage: AKZO_CATALOG=<catalog> DATABRICKS_WAREHOUSE_ID=<id> python3 data/load_to_uc.py
 """
 import json
 import os
@@ -12,10 +17,16 @@ import subprocess
 import sys
 import time
 
-PROFILE = "fe-vm-lakebase-praneeth"
-WAREHOUSE_ID = "4d39ac2e32b72a3a"
+PROFILE = os.environ.get("DATABRICKS_CONFIG_PROFILE")  # None -> use CLI default auth chain
+WAREHOUSE_ID = os.environ.get("DATABRICKS_WAREHOUSE_ID")
 # No CREATE CATALOG perm on metastore -> use owned managed catalog + akzo_ schema prefix.
-CATALOG = "serverless_lakebase_praneeth_catalog"
+CATALOG = os.environ.get("AKZO_CATALOG")
+
+if not CATALOG or not WAREHOUSE_ID:
+    sys.exit(
+        "Set AKZO_CATALOG and DATABRICKS_WAREHOUSE_ID (and optionally "
+        "DATABRICKS_CONFIG_PROFILE) before running this loader."
+    )
 PFX = "akzo_"  # schema prefix; qualified name = CATALOG.akzo_<domain>.<table>
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "data", "output")
@@ -33,8 +44,9 @@ DOCS_RAW = f"/Volumes/{CATALOG}/{PFX}docs/raw"
 
 
 def cli(args, capture=True):
+    profile_args = ["-p", PROFILE] if PROFILE else []
     return subprocess.run(
-        ["databricks", *args, "-p", PROFILE],
+        ["databricks", *args, *profile_args],
         capture_output=capture, text=True,
     )
 
