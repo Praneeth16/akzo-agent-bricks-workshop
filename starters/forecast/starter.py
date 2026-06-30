@@ -31,7 +31,7 @@
 CATALOG = os.environ.get("AKZO_CATALOG") or spark.sql("SELECT current_catalog()").first()[0]
 FIN = f"{CATALOG}.akzo_finance"
 SCM = f"{CATALOG}.akzo_scm"
-LLM_ENDPOINT = "databricks-claude-opus-4-7"   # reasoning. Swap to "databricks-gpt-5-5" to compare.
+LLM_ENDPOINT = "databricks-claude-opus-4-8"   # reasoning. Swap to "databricks-gpt-5-5" to compare.
 
 spark.sql(f"USE CATALOG {CATALOG}")
 print("Finance:", FIN, "| SCM:", SCM, "| LLM:", LLM_ENDPOINT)

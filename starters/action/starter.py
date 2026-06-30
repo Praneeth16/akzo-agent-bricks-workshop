@@ -48,7 +48,7 @@ import os
 import sys
 
 # Add the synced shared package to the path. Locally, run with
-#   DATABRICKS_CONFIG_PROFILE=fe-vm-lakebase-praneeth  and the repo root as cwd.
+#   DATABRICKS_CONFIG_PROFILE=<your-profile>  and the repo root as cwd.
 for cand in ("apps/_shared", "../../apps/_shared", "/Workspace/Repos/_shared",
              os.path.join(os.path.dirname(os.path.abspath("__file__")), "..", "..", "apps", "_shared")):
     if os.path.isdir(cand) and cand not in sys.path:
@@ -322,7 +322,7 @@ import yaml
 
 from databricks_client import chat
 
-JUDGE_ENDPOINT = os.environ.get("JUDGE_ENDPOINT", "databricks-claude-opus-4-7")
+JUDGE_ENDPOINT = os.environ.get("JUDGE_ENDPOINT", "databricks-claude-opus-4-8")
 
 
 def _find_eval():

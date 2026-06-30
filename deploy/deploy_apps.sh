@@ -1,24 +1,26 @@
 #!/usr/bin/env bash
-# Deploy the 3 AkzoNobel React+FastAPI Databricks Apps to the
-# fe-vm-lakebase-praneeth workspace, wire all resource grants, and smoke-test.
+# Deploy the 3 AkzoNobel React+FastAPI Databricks Apps to your workspace, wire all
+# resource grants, and smoke-test.
 #
 # Idempotent + re-runnable: `apps create` is skipped if the app exists, grants are
 # additive (GRANT is a no-op if already held), and sync/deploy always push the
-# current source. Run from the repo root:
+# current source. Configure with environment variables, then run from the repo root:
 #
+#   DATABRICKS_CONFIG_PROFILE=<your-profile> WORKSPACE_USER=<you@example.com> \
+#   DATABRICKS_WAREHOUSE_ID=<id> AKZO_CATALOG=<catalog> LAKEBASE_INSTANCE=<instance> \
 #   ./deploy/deploy_apps.sh
 #
 # Requires: databricks CLI v0.298+, python3 with psycopg[binary] + databricks-sdk,
 # node 26 (only if you need to rebuild a frontend; prebuilt dist/ is committed).
 set -euo pipefail
 
-PROFILE="fe-vm-lakebase-praneeth"
-WORKSPACE_USER="praneeth.paikray@databricks.com"
-WAREHOUSE_ID="4d39ac2e32b72a3a"
-CHAT_ENDPOINT="databricks-claude-opus-4-7"       # FOUNDATION_MODEL_API (pay-per-token)
-CATALOG="serverless_lakebase_praneeth_catalog"
+PROFILE="${DATABRICKS_CONFIG_PROFILE:-<your-profile>}"
+WORKSPACE_USER="${WORKSPACE_USER:-<you@example.com>}"
+WAREHOUSE_ID="${DATABRICKS_WAREHOUSE_ID:-<your-warehouse-id>}"
+CHAT_ENDPOINT="${DATABRICKS_CHAT_ENDPOINT:-databricks-claude-opus-4-8}"  # FOUNDATION_MODEL_API (pay-per-token)
+CATALOG="${AKZO_CATALOG:-<catalog>}"
 SCHEMAS=(akzo_finance akzo_scm akzo_commercial akzo_docs akzo_ops akzo_gateway)
-LAKEBASE_INSTANCE="graphrag-spike"
+LAKEBASE_INSTANCE="${LAKEBASE_INSTANCE:-<your-lakebase-instance>}"
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 # app dir -> app name
@@ -77,7 +79,7 @@ databricks api patch "/api/2.0/permissions/warehouses/$WAREHOUSE_ID" -p "$PROFIL
 echo "    warehouse $WAREHOUSE_ID -> CAN_USE granted to 3 SPs"
 
 # NOTE on the serving endpoint:
-#   databricks-claude-opus-4-7 is a FOUNDATION_MODEL_API (pay-per-token) system endpoint.
+#   databricks-claude-opus-4-8 is a FOUNDATION_MODEL_API (pay-per-token) system endpoint.
 #   It has no per-endpoint numeric id, so the per-SP CAN_QUERY permissions API rejects it
 #   ('not a valid Inference Endpoint ID'). FM API endpoints are queryable by all workspace
 #   principals by default, so no explicit grant is required (and live ai_query/ai_extract
@@ -94,14 +96,15 @@ for name in "${APPS[@]}"; do
     >/dev/null 2>&1 && echo "    role added: $sp" || echo "    role exists: $sp"
 done
 # Grant the roles privileges on the akzo schema (connect as the instance superuser).
-DATABRICKS_CONFIG_PROFILE="$PROFILE" python3 - "${SP_CLIENT_ID[@]}" <<'PY'
+DATABRICKS_CONFIG_PROFILE="$PROFILE" LAKEBASE_INSTANCE="$LAKEBASE_INSTANCE" python3 - "${SP_CLIENT_ID[@]}" <<'PY'
 import os, sys, psycopg
 from databricks.sdk import WorkspaceClient
 sps = sys.argv[1:]
+instance = os.environ["LAKEBASE_INSTANCE"]
 w = WorkspaceClient()
-inst = w.database.get_database_instance(name="graphrag-spike")
+inst = w.database.get_database_instance(name=instance)
 me = w.current_user.me().user_name
-tok = w.database.generate_database_credential(instance_names=["graphrag-spike"]).token
+tok = w.database.generate_database_credential(instance_names=[instance]).token
 conn = psycopg.connect(host=inst.read_write_dns, port=5432, dbname="databricks_postgres",
                        user=me, password=tok, sslmode="require", autocommit=True)
 with conn.cursor() as cur:

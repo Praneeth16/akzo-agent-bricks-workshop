@@ -54,4 +54,4 @@ Each sprint maps to a `# TODO (Day-2)` marker in `starter.py`.
 A working notebook + a live routing trace + a Lakebase `agent_sessions` row. Deployable React+FastAPI
 version: **`apps/supervisor/`** (clone, don't author). Upgrade path: register the three Akzo Genie
 spaces as subagents of an Agent Bricks Multi-Agent Supervisor — the per-subagent description field IS
-`ROUTING_DESCRIPTION`. Reference MAS endpoint in this workspace: `mas-f14da7dc-endpoint`.
+`ROUTING_DESCRIPTION`. Reference MAS endpoint in this workspace: `<your-mas-endpoint>`.

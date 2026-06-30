@@ -55,15 +55,15 @@ dbutils.library.restartPython()
 
 # COMMAND ----------
 
-dbutils.widgets.text("catalog", "serverless_lakebase_praneeth_catalog", "Unity Catalog")
-dbutils.widgets.text("uc_model_name", "serverless_lakebase_praneeth_catalog.akzo_ops.akzo_custom_model", "UC model name")
+dbutils.widgets.text("catalog", "", "Unity Catalog (blank = current_catalog())")
+dbutils.widgets.text("uc_model_name", "", "UC model name (blank = <catalog>.akzo_ops.akzo_custom_model)")
 dbutils.widgets.text("serving_endpoint_name", "akzo-custom-model", "Serving endpoint name")
 dbutils.widgets.dropdown("create_endpoint", "false", ["true", "false"], "Create a serving endpoint (uses compute)")
 dbutils.widgets.dropdown("workload_type", "CPU", ["CPU", "GPU_SMALL", "GPU_MEDIUM"], "Workload type (GPU = cost)")
 
-CATALOG = dbutils.widgets.get("catalog")
+CATALOG = dbutils.widgets.get("catalog") or spark.sql("SELECT current_catalog()").first()[0]
 OPS = f"{CATALOG}.akzo_ops"
-UC_MODEL_NAME = dbutils.widgets.get("uc_model_name")
+UC_MODEL_NAME = dbutils.widgets.get("uc_model_name") or f"{CATALOG}.akzo_ops.akzo_custom_model"
 ENDPOINT_NAME = dbutils.widgets.get("serving_endpoint_name")
 CREATE_ENDPOINT = dbutils.widgets.get("create_endpoint") == "true"
 WORKLOAD_TYPE = dbutils.widgets.get("workload_type")

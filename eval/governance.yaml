@@ -8,7 +8,7 @@ golden_questions:
       - "OBO: the Genie call runs as the end user, not a service principal"
       - "controller sees all-region finance; planner is scoped to their region"
       - "personas table maps email -> role -> region scope"
-    expected_data_source: "serverless_lakebase_praneeth_catalog.akzo_ops.personas (user/email, role, region scope) + RLS policies on serverless_lakebase_praneeth_catalog.akzo_finance tables; OBO at the Genie-call layer — governance notebook 02_per_user_truth_uc_obo"
+    expected_data_source: "<catalog>.akzo_ops.personas (user/email, role, region scope) + RLS policies on <catalog>.akzo_finance tables; OBO at the Genie-call layer — governance notebook 02_per_user_truth_uc_obo"
     grading_notes: "Good: explains identical query returns different rows because RLS filters by the caller's role/region under OBO, citing the personas table. Wrong: says the model 'chose' different data, attributes it to prompt differences, or denies that access is enforced at the data layer."
   - id: q2
     question: "A regional planner asks for global Paints margin across all regions — what happens?"
@@ -17,17 +17,17 @@ golden_questions:
       - "rows outside their region are filtered out"
       - "they cannot see global/all-region totals"
       - "enforced by UC, not by the agent's discretion"
-    expected_data_source: "serverless_lakebase_praneeth_catalog.akzo_ops.personas + RLS on serverless_lakebase_praneeth_catalog.akzo_finance.margin_actuals — governance notebook"
+    expected_data_source: "<catalog>.akzo_ops.personas + RLS on <catalog>.akzo_finance.margin_actuals — governance notebook"
     grading_notes: "Good: the planner gets only their region's rows; UC silently filters the rest; the agent cannot override it. Wrong: claims the planner sees everything, or that the agent decides what to withhold."
   - id: q3
     question: "Where can I see who asked what and what the model returned for audit?"
     expected_answer_contains:
       - "AI Gateway payload logging"
       - "request/response payloads captured to Unity Catalog"
-      - "preseeded gateway logs in serverless_lakebase_praneeth_catalog.akzo_gateway"
+      - "preseeded gateway logs in <catalog>.akzo_gateway"
       - "log lag ~1h (preseeded for the demo)"
-    expected_data_source: "serverless_lakebase_praneeth_catalog.akzo_gateway (preseeded payload logs) + AI Gateway inference tables — notebook 07_ai_gateway_govern"
-    grading_notes: "Good: points to AI Gateway payload/inference logging landing in UC (serverless_lakebase_praneeth_catalog.akzo_gateway), suitable for audit, and notes the ~1h lag handled via preseeded logs. Wrong: says nothing is logged, or points to MLflow traces only without the gateway audit layer."
+    expected_data_source: "<catalog>.akzo_gateway (preseeded payload logs) + AI Gateway inference tables — notebook 07_ai_gateway_govern"
+    grading_notes: "Good: points to AI Gateway payload/inference logging landing in UC (<catalog>.akzo_gateway), suitable for audit, and notes the ~1h lag handled via preseeded logs. Wrong: says nothing is logged, or points to MLflow traces only without the gateway audit layer."
   - id: q4
     question: "How do we cap spend and prevent one team from exhausting the model endpoint?"
     expected_answer_contains:

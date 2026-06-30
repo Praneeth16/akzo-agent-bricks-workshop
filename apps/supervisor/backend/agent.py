@@ -8,7 +8,7 @@ This is the supervisor-SPECIFIC layer. It composes the shared modules:
 It is a faithful, self-contained reproduction of an Agent Bricks Multi-Agent Supervisor:
 the per-domain `ROUTING_DESCRIPTION` lines below ARE the per-subagent "description" field you
 fill in when registering each Genie space with a native MAS (reference endpoint in this
-workspace: `mas-f14da7dc-endpoint`). See README for the upgrade path.
+workspace: `<your-mas-endpoint>`). See README for the upgrade path.
 
 Verified router/fuser logic from L200-capabilities/04_supervisor_agent.py.
 """

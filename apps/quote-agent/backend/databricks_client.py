@@ -21,7 +21,7 @@ from databricks.sdk.service.serving import ChatMessage, ChatMessageRole
 
 # Defaults for this workspace; override via env in app.yaml / .env.
 SQL_WAREHOUSE_ID = os.environ.get("DATABRICKS_WAREHOUSE_ID", "<your-warehouse-id>")
-CHAT_ENDPOINT = os.environ.get("DATABRICKS_CHAT_ENDPOINT", "databricks-claude-opus-4-7")
+CHAT_ENDPOINT = os.environ.get("DATABRICKS_CHAT_ENDPOINT", "databricks-claude-opus-4-8")
 
 _lock = threading.Lock()
 _client: WorkspaceClient | None = None
@@ -73,7 +73,7 @@ def chat(messages: list[dict[str, str]], endpoint: str | None = None,
     """Query a Model Serving chat endpoint. `messages` is OpenAI-style
     [{"role": "system"|"user"|"assistant", "content": str}, ...]. Returns text.
 
-    Note: some endpoints (e.g. databricks-claude-opus-4-7) reject the
+    Note: some endpoints (e.g. databricks-claude-opus-4-8) reject the
     `temperature` parameter, so it is only sent when explicitly provided."""
     role_map = {
         "system": ChatMessageRole.SYSTEM,

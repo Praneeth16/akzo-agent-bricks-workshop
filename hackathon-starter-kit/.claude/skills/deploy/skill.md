@@ -9,7 +9,7 @@ Use this skill after the team has a working demo path and at least one eval or t
 
 ## Inputs To Ask For
 
-- Demo artifact type: notebook, Agent Bricks agent, Databricks App, or AppKit hub submission
+- Demo artifact type: notebook, Agent Bricks agent, or Databricks App
 - Team catalog and workspace URL
 - Required environment variables
 - One verification prompt or document

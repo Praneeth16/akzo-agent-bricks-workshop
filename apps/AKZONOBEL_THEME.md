@@ -1,7 +1,7 @@
 # AkzoNobel theme — shared design tokens
 
-Brand-accurate palette, sampled from akzonobel.com (computed CSS, 2026-06-29). Used by the hub
-(`hackathon-hub`, LIGHT) and the agent apps (`supervisor` etc., DARK variant). Supersedes the generic
+Brand-accurate palette, sampled from akzonobel.com (computed CSS, 2026-06-29). Used by the agent
+apps (`supervisor` etc., DARK variant). Supersedes the generic
 Databricks-teal accent in `DESIGN_BRIEF.md` for brand surfaces — keep the brief's component specs
 (LadderMeter, GuardrailChips, Timeline, StatusBadge) and status colors.
 

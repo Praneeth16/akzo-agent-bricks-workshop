@@ -62,17 +62,17 @@ dbutils.library.restartPython()
 
 # COMMAND ----------
 
-dbutils.widgets.text("catalog", "serverless_lakebase_praneeth_catalog", "Unity Catalog (SCM source)")
-dbutils.widgets.text("lakebase_instance", "graphrag-spike", "Lakebase instance")
+dbutils.widgets.text("catalog", "", "Unity Catalog (SCM source) (blank = current_catalog())")
+dbutils.widgets.text("lakebase_instance", "<your-lakebase-instance>", "Lakebase instance")
 dbutils.widgets.text("pg_schema", "akzo", "Postgres schema")
-dbutils.widgets.text("mock_app_url", "https://akzo-mock-systems-7474654904882204.aws.databricksapps.com", "Mock app URL")
+dbutils.widgets.text("mock_app_url", "<your-mock-systems-app-url>", "Mock app URL")
 dbutils.widgets.text("connection_name", "akzo_external_systems", "UC HTTP connection")
-dbutils.widgets.text("llm_endpoint", "databricks-claude-opus-4-7", "Decision LLM endpoint")
+dbutils.widgets.text("llm_endpoint", "databricks-claude-opus-4-8", "Decision LLM endpoint")
 # Optional: leave EMPTY for interactive runs (uses your workspace identity). Set only headless where the
 # run identity is not authorized for the app SSO gate.
 dbutils.widgets.text("bearer_token", "", "App bearer token (optional override)")
 
-CATALOG = dbutils.widgets.get("catalog")
+CATALOG = dbutils.widgets.get("catalog") or spark.sql("SELECT current_catalog()").first()[0]
 SCM = f"{CATALOG}.akzo_scm"
 INSTANCE_NAME = dbutils.widgets.get("lakebase_instance")
 PG_SCHEMA = dbutils.widgets.get("pg_schema")

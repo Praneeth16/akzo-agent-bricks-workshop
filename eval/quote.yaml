@@ -9,7 +9,7 @@ golden_questions:
       - "region: EMEA"
       - "payment terms: Net 30"
       - "matched to a products SKU"
-    expected_data_source: "ai_extract over the inbound RFQ text -> matched against serverless_lakebase_praneeth_catalog.akzo_finance.products (product_name -> sku) — quote-agent / 08_doc_intelligence"
+    expected_data_source: "ai_extract over the inbound RFQ text -> matched against <catalog>.akzo_finance.products (product_name -> sku) — quote-agent / 08_doc_intelligence"
     grading_notes: "Good: structured extraction of product, quantity, region, terms, then resolves the product to a products-table SKU. Wrong: misses a field, fails to map the free-text product to a SKU, or hallucinates a SKU not in products."
   - id: q2
     question: "What is the list price and standard cost for that product, and what unit margin does that imply?"
@@ -18,7 +18,7 @@ golden_questions:
       - "standard_cost_eur from products"
       - "unit gross margin = list_price_eur - standard_cost_eur"
       - "margin % = margin / list_price"
-    expected_data_source: "serverless_lakebase_praneeth_catalog.akzo_finance.products (list_price_eur, standard_cost_eur for the matched SKU) — Akzo Finance Genie space / quote-agent"
+    expected_data_source: "<catalog>.akzo_finance.products (list_price_eur, standard_cost_eur for the matched SKU) — Akzo Finance Genie space / quote-agent"
     grading_notes: "Good: pulls list_price_eur and standard_cost_eur for the matched SKU and computes unit margin and margin %. Wrong: invents prices, uses a different SKU's price, or skips the margin calculation."
   - id: q3
     question: "Draft a quote for 5,000 units at a 10% volume discount and show the resulting margin."
@@ -28,7 +28,7 @@ golden_questions:
       - "resulting unit margin = net price - standard_cost_eur"
       - "margin % after discount"
       - "flag if discounted margin falls below a floor"
-    expected_data_source: "serverless_lakebase_praneeth_catalog.akzo_finance.products price/cost -> computed quote line — quote-agent"
+    expected_data_source: "<catalog>.akzo_finance.products price/cost -> computed quote line — quote-agent"
     grading_notes: "Good: applies the 10% discount, computes extended price and post-discount margin %, and flags margin erosion. Wrong: applies the discount to cost, miscomputes the extended total, or ignores the margin impact."
   - id: q4
     question: "Is this discounted price acceptable, or does it breach our margin guardrail?"
@@ -37,7 +37,7 @@ golden_questions:
       - "flags if below an acceptable margin floor"
       - "recommends approve or escalate accordingly"
       - "references the product's standard margin from products"
-    expected_data_source: "serverless_lakebase_praneeth_catalog.akzo_finance.products (standard margin baseline) + computed quote margin — quote-agent"
+    expected_data_source: "<catalog>.akzo_finance.products (standard margin baseline) + computed quote margin — quote-agent"
     grading_notes: "Good: judges the quote against a margin guardrail and gives an approve/escalate recommendation with the number. Wrong: approves any discount blindly, or has no margin threshold concept."
   - id: q5
     question: "Stage this quote for approval — what gets written and who approves?"

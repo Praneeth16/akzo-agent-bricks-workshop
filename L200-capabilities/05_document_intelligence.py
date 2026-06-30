@@ -60,12 +60,12 @@ dbutils.library.restartPython()
 
 # COMMAND ----------
 
-dbutils.widgets.text("catalog", "serverless_lakebase_praneeth_catalog", "Unity Catalog")
+dbutils.widgets.text("catalog", "", "Unity Catalog (blank = current_catalog())")
 dbutils.widgets.text("embed_endpoint", "databricks-qwen3-embedding-0-6b", "Qwen embedding endpoint")
-dbutils.widgets.text("chat_endpoint", "databricks-claude-opus-4-7", "RAG chat model")
+dbutils.widgets.text("chat_endpoint", "databricks-claude-opus-4-8", "RAG chat model")
 dbutils.widgets.text("vs_endpoint", "akzo_workshop_vs", "Vector Search endpoint")
 
-CATALOG = dbutils.widgets.get("catalog")
+CATALOG = dbutils.widgets.get("catalog") or spark.sql("SELECT current_catalog()").first()[0]
 SCHEMA = "akzo_docs"
 DOCS = f"{CATALOG}.{SCHEMA}"
 VOLUME_GLOB = f"/Volumes/{CATALOG}/{SCHEMA}/raw/*/*.pdf"

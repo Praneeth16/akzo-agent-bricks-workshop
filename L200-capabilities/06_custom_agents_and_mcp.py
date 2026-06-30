@@ -60,16 +60,16 @@ dbutils.library.restartPython()
 
 # COMMAND ----------
 
-dbutils.widgets.text("catalog", "serverless_lakebase_praneeth_catalog", "Unity Catalog")
-dbutils.widgets.text("llm_endpoint", "databricks-claude-opus-4-7", "Chat model endpoint")
-dbutils.widgets.text("uc_model_name", "serverless_lakebase_praneeth_catalog.akzo_ops.akzo_langgraph_agent", "UC model name to register")
+dbutils.widgets.text("catalog", "", "Unity Catalog (blank = current_catalog())")
+dbutils.widgets.text("llm_endpoint", "databricks-claude-opus-4-8", "Chat model endpoint")
+dbutils.widgets.text("uc_model_name", "", "UC model name (blank = <catalog>.akzo_ops.akzo_langgraph_agent)")
 dbutils.widgets.text("genie_space_id", "", "Genie Space id for MCP (optional)")
 dbutils.widgets.dropdown("deploy", "false", ["true", "false"], "Deploy to Model Serving (slow)")
 
-CATALOG = dbutils.widgets.get("catalog")
+CATALOG = dbutils.widgets.get("catalog") or spark.sql("SELECT current_catalog()").first()[0]
 FIN = f"{CATALOG}.akzo_finance"
 LLM_ENDPOINT = dbutils.widgets.get("llm_endpoint")
-UC_MODEL_NAME = dbutils.widgets.get("uc_model_name")
+UC_MODEL_NAME = dbutils.widgets.get("uc_model_name") or f"{CATALOG}.akzo_ops.akzo_langgraph_agent"
 GENIE_SPACE_ID = dbutils.widgets.get("genie_space_id").strip()
 DEPLOY = dbutils.widgets.get("deploy") == "true"
 

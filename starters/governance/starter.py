@@ -28,8 +28,8 @@
 # MAGIC The full governance layer ships across the deployed apps' OBO + the gateway endpoint (clone, don't author).
 # MAGIC
 # MAGIC > **Status (say it out loud):** Unity **AI Gateway is Beta**; payload logs lag ~1h. We use **preseeded
-# MAGIC > logs** for the "see" beat and change **one** control live. `harman-aes-ai-gateway` is a **shared**
-# MAGIC > endpoint — the BEAT-2 cell restores the control it changes.
+# MAGIC > logs** for the "see" beat and change **one** control live. Point `GATEWAY_ENDPOINT` at your own
+# MAGIC > AI Gateway endpoint — the BEAT-2 cell restores the control it changes.
 
 # COMMAND ----------
 
@@ -42,9 +42,9 @@ CATALOG = os.environ.get("AKZO_CATALOG") or spark.sql("SELECT current_catalog()"
 FIN = f"{CATALOG}.akzo_finance"
 OPS = f"{CATALOG}.akzo_ops"
 GW = f"{CATALOG}.akzo_gateway"
-LLM_ENDPOINT = "databricks-claude-opus-4-7"   # the policy agent's explanation model
+LLM_ENDPOINT = "databricks-claude-opus-4-8"   # the policy agent's explanation model
 JUDGE_ENDPOINT = "databricks-gpt-5-5"          # an independent grader
-GATEWAY_ENDPOINT = "harman-aes-ai-gateway"     # the live gateway we govern (swap for your own akzo-ai-gateway)
+GATEWAY_ENDPOINT = os.environ.get("DATABRICKS_GATEWAY_ENDPOINT", "<your-ai-gateway-endpoint>")  # the AI Gateway we govern
 
 spark.sql(f"USE CATALOG {CATALOG}")
 print("Finance:", FIN, "| Ops:", OPS, "| Gateway schema:", GW)

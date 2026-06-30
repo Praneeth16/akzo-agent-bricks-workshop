@@ -1,8 +1,8 @@
 # Deploy + Smoke Test Results — "Agents That Act" (U10)
 
-**Workspace:** `fevm-serverless-lakebase-praneeth` (AWS) · profile `fe-vm-lakebase-praneeth`
-**Deployed:** 2026-06-27 · **Deployer:** praneeth.paikray@databricks.com
-**Deploy host:** `7474654904882204.aws.databricksapps.com`
+**Workspace:** `<your-workspace-host>` (AWS) · profile `<your-profile>`
+**Deployed:** 2026-06-27 · **Deployer:** <you@example.com>
+**Deploy host:** `<deploy-host>.aws.databricksapps.com`
 **Driver script:** `deploy/deploy_action_apps.sh` (idempotent, re-runnable)
 
 The "Agents That Act" expansion is **live and all-green**. The new Action Center app,
@@ -13,20 +13,20 @@ governed UC HTTP connection.
 
 | App | URL | Compute | Deployment | Smoke |
 |---|---|---|---|---|
-| **akzo-action-center** (NEW) | https://akzo-action-center-7474654904882204.aws.databricksapps.com | ACTIVE | SUCCEEDED | GREEN — health/ladder/actions + SoD guard + serves SPA |
-| **akzo-supervisor** | https://akzo-supervisor-7474654904882204.aws.databricksapps.com | ACTIVE | SUCCEEDED | GREEN — health + `/api/act` stages a cross-agent action |
-| **akzo-finance-copilot** | https://akzo-finance-copilot-7474654904882204.aws.databricksapps.com | ACTIVE | SUCCEEDED | GREEN — health + own action queue |
-| **akzo-quote-agent** | https://akzo-quote-agent-7474654904882204.aws.databricksapps.com | ACTIVE | SUCCEEDED | GREEN — health + own action queue (8) |
-| **akzo-mock-systems** | https://akzo-mock-systems-7474654904882204.aws.databricksapps.com | ACTIVE | SUCCEEDED | GREEN — health + receives governed calls, lands receipts |
+| **akzo-action-center** (NEW) | https://akzo-action-center-<deploy-host>.aws.databricksapps.com | ACTIVE | SUCCEEDED | GREEN — health/ladder/actions + SoD guard + serves SPA |
+| **akzo-supervisor** | https://akzo-supervisor-<deploy-host>.aws.databricksapps.com | ACTIVE | SUCCEEDED | GREEN — health + `/api/act` stages a cross-agent action |
+| **akzo-finance-copilot** | https://akzo-finance-copilot-<deploy-host>.aws.databricksapps.com | ACTIVE | SUCCEEDED | GREEN — health + own action queue |
+| **akzo-quote-agent** | https://akzo-quote-agent-<deploy-host>.aws.databricksapps.com | ACTIVE | SUCCEEDED | GREEN — health + own action queue (8) |
+| **akzo-mock-systems** | https://akzo-mock-systems-<deploy-host>.aws.databricksapps.com | ACTIVE | SUCCEEDED | GREEN — health + receives governed calls, lands receipts |
 
-**Autonomous Job:** `akzo-autonomous-scm` · **job_id `957865596190448`** · **PAUSED** ·
+**Autonomous Job:** `akzo-autonomous-scm` · **job_id `<job-id>`** · **PAUSED** ·
 serverless (no cluster) · cron `0 0 * * * ?` Europe/Amsterdam · notebook
-`/Workspace/Users/praneeth.paikray@databricks.com/akzo-apps/L200-capabilities/10_autonomous_closed_loop`
+`/Workspace/Users/<you@example.com>/akzo-apps/L200-capabilities/10_autonomous_closed_loop`
 (synced + recognized as a PYTHON notebook). Safe — paused; never auto-runs.
 
 > Databricks Apps require workspace SSO, so a raw browser hit 302-redirects to login.
 > Every smoke call below attached the deployer's OAuth bearer token
-> (`databricks auth token -p fe-vm-lakebase-praneeth`) — a real authenticated round-trip
+> (`databricks auth token -p <your-profile>`) — a real authenticated round-trip
 > through each app's HTTP surface to its FastAPI backend, which then acts under the
 > **app's own service principal** (each `/api/health` echoes its SP client_id, not the caller).
 
@@ -49,11 +49,11 @@ identity `WorkspaceClient().current_user.me().user_name` returns inside a Databr
 
 **Grants applied to every executor SP (idempotent):**
 
-1. **Unity Catalog** (SQL statement-execution on warehouse `4d39ac2e32b72a3a`) — all SUCCEEDED:
-   - `GRANT USE CATALOG ON CATALOG serverless_lakebase_praneeth_catalog`
+1. **Unity Catalog** (SQL statement-execution on warehouse `<your-warehouse-id>`) — all SUCCEEDED:
+   - `GRANT USE CATALOG ON CATALOG <catalog>`
    - `GRANT USE SCHEMA` + `GRANT SELECT ON SCHEMA` for: `akzo_finance`, `akzo_scm`,
      `akzo_commercial`, `akzo_docs`, `akzo_ops`, `akzo_gateway`.
-2. **SQL warehouse `4d39ac2e32b72a3a`** — `CAN_USE` (additive PATCH). The executor runs
+2. **SQL warehouse `<your-warehouse-id>`** — `CAN_USE` (additive PATCH). The executor runs
    `http_request(...)` on the warehouse, so warehouse access is required.
 3. **UC HTTP connection `akzo_external_systems`** — `GRANT USE CONNECTION` to the four
    **executor** SPs (action-center, supervisor, finance-copilot, quote-agent). This is the
@@ -62,7 +62,7 @@ identity `WorkspaceClient().current_user.me().user_name` returns inside a Databr
    falls back to the SP-direct path. Confirmed live: the fresh L3 execute below ran
    `via=uc_connection` (not the fallback). The mock-systems SP intentionally does NOT get this
    grant — it is the *target*, not a caller.
-4. **Lakebase `graphrag-spike`** (Postgres, db `databricks_postgres`, schema `akzo`):
+4. **Lakebase `<your-lakebase-instance>`** (Postgres, db `databricks_postgres`, schema `akzo`):
    - Registered each SP as a Postgres role (`identity_type: SERVICE_PRINCIPAL`, role name = SP client_id).
    - Connected as the instance superuser and granted each role on schema `akzo`:
      `USAGE, CREATE`, `SELECT/INSERT/UPDATE/DELETE ON ALL TABLES`,
@@ -93,7 +93,7 @@ Action-plane tables present + writable in `akzo`: `actions`, `action_events`,
   (the Lakebase fix), `psycopg 3.3.4` installed, "Application startup complete", "Deployment successful".
 
 ### Separation-of-duties guard (verified live)
-- An action staged via the supervisor (`/api/act`) gets `requested_by = praneeth.paikray@databricks.com`
+- An action staged via the supervisor (`/api/act`) gets `requested_by = <you@example.com>`
   (derived from the `X-Forwarded-Email` Apps header, never the request body).
 - `POST /api/actions/30/approve` as the **same** identity → **403**
   `"separation of duties: you cannot approve an action you requested"`. The guard works.
@@ -176,9 +176,9 @@ Action-plane tables present + writable in `akzo`: `actions`, `action_events`,
 - **Autonomous Job left PAUSED and not run via `run-now`.** Per the task, the notebook-10 local
   run is already verified (it produced the L4 actions + receipts visible in the ladder), so the
   paused serverless job was created but not triggered — the safe choice. **To run it live:**
-  `databricks jobs run-now 957865596190448 -p fe-vm-lakebase-praneeth` (serverless; it acts only
+  `databricks jobs run-now <job-id> -p <your-profile>` (serverless; it acts only
   on the mock systems and escalates over-cap, so it is safe to trigger for a demo).
-- **FM API serving endpoint** `databricks-claude-opus-4-7` needs no per-SP grant (queryable by all
+- **FM API serving endpoint** `databricks-claude-opus-4-8` needs no per-SP grant (queryable by all
   workspace principals; live `ai_query`/`chat` calls succeed under each SP). Unchanged from the
   original deploy. No action required.
 

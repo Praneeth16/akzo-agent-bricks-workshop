@@ -13,8 +13,8 @@ gateway control* — not a Lakebase action write.
 | `eval.yaml` | The 5 default golden questions + the failing case (a credential-surfacing request it must decline) + the measurable-value claim (copy of `eval/governance.yaml`). |
 | `README.md` | This file. |
 
-Pre-wired: the `akzo_ops.personas` ABAC table + `fn_region_rls` row filter, the live `harman-aes-ai-gateway`
-endpoint, the preseeded `akzo_gateway.payload_logs` audit table, a policy-explainer agent, an MLflow-style
+Pre-wired: the `akzo_ops.personas` ABAC table + `fn_region_rls` row filter, your AI Gateway
+endpoint (set `DATABRICKS_GATEWAY_ENDPOINT`), the preseeded `akzo_gateway.payload_logs` audit table, a policy-explainer agent, an MLflow-style
 judge, and 5 golden questions. **Day-2 = tweak, swap, extend** — not stand one up.
 
 ## Measurable value

@@ -28,3 +28,6 @@
 **/*.pyc
 **/.venv/
 .gstack/
+
+# Generated per-workspace by genie/create_genie_spaces.py
+genie/space_ids.json

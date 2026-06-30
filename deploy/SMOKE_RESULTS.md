@@ -1,21 +1,21 @@
 # Deploy + Smoke Test Results — AkzoNobel Agent Bricks Apps
 
-**Workspace:** `fevm-serverless-lakebase-praneeth` (AWS) · profile `fe-vm-lakebase-praneeth`
-**Deployed:** 2026-06-26 · **Deployer:** praneeth.paikray@databricks.com
-**Deploy host:** `7474654904882204.aws.databricksapps.com`
+**Workspace:** `<your-workspace-host>` (AWS) · profile `<your-profile>`
+**Deployed:** 2026-06-26 · **Deployer:** <you@example.com>
+**Deploy host:** `<deploy-host>.aws.databricksapps.com`
 
 All three apps are **live, ACTIVE, and SUCCEEDED**, and every read / reason / write
 path was exercised against the deployed URL (not just locally). Bottom line: **all green**.
 
 | App | URL | Compute | Deployment | Smoke result |
 |---|---|---|---|---|
-| **akzo-quote-agent** | https://akzo-quote-agent-7474654904882204.aws.databricksapps.com | ACTIVE | SUCCEEDED | GREEN — full parse→price→quote→approve incl. Lakebase write |
-| **akzo-supervisor** | https://akzo-supervisor-7474654904882204.aws.databricksapps.com | ACTIVE | SUCCEEDED | GREEN — route→fuse + session/feedback Lakebase writes |
-| **akzo-finance-copilot** | https://akzo-finance-copilot-7474654904882204.aws.databricksapps.com | ACTIVE | SUCCEEDED | GREEN — ask (text2sql)→variance→save→read-back |
+| **akzo-quote-agent** | https://akzo-quote-agent-<deploy-host>.aws.databricksapps.com | ACTIVE | SUCCEEDED | GREEN — full parse→price→quote→approve incl. Lakebase write |
+| **akzo-supervisor** | https://akzo-supervisor-<deploy-host>.aws.databricksapps.com | ACTIVE | SUCCEEDED | GREEN — route→fuse + session/feedback Lakebase writes |
+| **akzo-finance-copilot** | https://akzo-finance-copilot-<deploy-host>.aws.databricksapps.com | ACTIVE | SUCCEEDED | GREEN — ask (text2sql)→variance→save→read-back |
 
 > The apps require workspace SSO, so a raw browser `curl` redirects to login. Smoke
 > tests below were run by attaching the deployer's OAuth bearer token
-> (`databricks auth token -p fe-vm-lakebase-praneeth`) to each request — this is a
+> (`databricks auth token -p <your-profile>`) to each request — this is a
 > real authenticated round-trip through the app's HTTP surface to the FastAPI backend,
 > which then acts under the **app's own service principal** (confirmed: `/api/health`
 > reports the SP client_id, not the caller).
@@ -37,21 +37,21 @@ Databricks App (verified live: each `/api/health` echoes its own client_id).
 
 **Grants applied to all three SPs (idempotent):**
 
-1. **Unity Catalog** (via SQL statement-execution on warehouse `4d39ac2e32b72a3a`) — all SUCCEEDED:
-   - `GRANT USE CATALOG ON CATALOG serverless_lakebase_praneeth_catalog`
+1. **Unity Catalog** (via SQL statement-execution on warehouse `<your-warehouse-id>`) — all SUCCEEDED:
+   - `GRANT USE CATALOG ON CATALOG <catalog>`
    - `GRANT USE SCHEMA` + `GRANT SELECT ON SCHEMA` for: `akzo_finance`, `akzo_scm`,
      `akzo_commercial`, `akzo_docs`, `akzo_ops`, `akzo_gateway`
-2. **SQL warehouse `4d39ac2e32b72a3a`** — `CAN_USE` via
+2. **SQL warehouse `<your-warehouse-id>`** — `CAN_USE` via
    `PATCH /api/2.0/permissions/warehouses/...` (additive). Confirmed live: governed
    `ai_extract` / `text2sql` queries run on the warehouse under each SP.
-3. **Serving endpoint `databricks-claude-opus-4-7`** — see "Known item" below; no
+3. **Serving endpoint `databricks-claude-opus-4-8`** — see "Known item" below; no
    explicit grant needed (FM API). Confirmed live: each app's LLM narrative / ai_query
    calls succeed under its SP.
-4. **Lakebase `graphrag-spike`** (Postgres, db `databricks_postgres`, schema `akzo`):
+4. **Lakebase `<your-lakebase-instance>`** (Postgres, db `databricks_postgres`, schema `akzo`):
    - Registered each SP as a Postgres role via
-     `POST /api/2.0/database/instances/graphrag-spike/roles`
+     `POST /api/2.0/database/instances/<your-lakebase-instance>/roles`
      (`identity_type: SERVICE_PRINCIPAL`, role name = SP client_id).
-   - Connected to Postgres as the instance superuser (`praneeth.paikray@databricks.com`,
+   - Connected to Postgres as the instance superuser (`<you@example.com>`,
      `DATABRICKS_SUPERUSER`) and granted each role on schema `akzo`:
      `USAGE, CREATE`, `SELECT/INSERT/UPDATE/DELETE ON ALL TABLES`,
      `USAGE, SELECT ON ALL SEQUENCES`, plus matching `ALTER DEFAULT PRIVILEGES`.
@@ -132,9 +132,9 @@ Databricks App (verified live: each `/api/health` echoes its own client_id).
 
 ## Known items / remediation notes
 
-- **Serving endpoint `databricks-claude-opus-4-7` is a `FOUNDATION_MODEL_API`
+- **Serving endpoint `databricks-claude-opus-4-8` is a `FOUNDATION_MODEL_API`
   (pay-per-token).** It has no per-endpoint numeric id, so the per-SP `CAN_QUERY`
-  permissions API rejects it (`'databricks-claude-opus-4-7' is not a valid Inference
+  permissions API rejects it (`'databricks-claude-opus-4-8' is not a valid Inference
   Endpoint ID`). FM API endpoints are queryable by all workspace principals by default,
   and live smoke tests confirm each app SP can call it (all LLM narratives / `ai_query`
   succeeded). **No action required.** If the workspace ever locks down FM API access,
@@ -144,7 +144,7 @@ Databricks App (verified live: each `/api/health` echoes its own client_id).
   (quote-agent quotes/approvals, supervisor sessions/feedback, finance-copilot
   saved_analyses) was exercised live and **succeeded under the app service principal.**
   The remediation that would otherwise be needed — adding each SP as a Postgres role on
-  `graphrag-spike` and granting it `USAGE/CREATE/DML` on schema `akzo` — has already been
+  `<your-lakebase-instance>` and granting it `USAGE/CREATE/DML` on schema `akzo` — has already been
   applied (see grants above) and is captured idempotently in `deploy/deploy_apps.sh`.
 
 - **Token-expiry resilience:** `lakebase.py` caches the ~1h DB credential and transparently

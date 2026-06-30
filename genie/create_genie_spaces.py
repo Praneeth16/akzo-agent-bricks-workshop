@@ -24,8 +24,10 @@ import random
 
 from databricks.sdk import WorkspaceClient
 
-CAT = os.environ.get("AKZO_CATALOG", "serverless_lakebase_praneeth_catalog")
-WAREHOUSE = os.environ.get("DATABRICKS_WAREHOUSE_ID", "4d39ac2e32b72a3a")
+CAT = os.environ.get("AKZO_CATALOG")
+WAREHOUSE = os.environ.get("DATABRICKS_WAREHOUSE_ID")
+if not CAT or not WAREHOUSE:
+    raise SystemExit("Set AKZO_CATALOG and DATABRICKS_WAREHOUSE_ID before running.")
 FIN, SCM, COM = f"{CAT}.akzo_finance", f"{CAT}.akzo_scm", f"{CAT}.akzo_commercial"
 
 

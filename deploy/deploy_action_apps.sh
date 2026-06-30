@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Deploy the "Agents That Act" (U10) expansion to the fe-vm-lakebase-praneeth
-# workspace, using the PROVEN recipe from deploy/deploy_apps.sh + deploy_mock_systems.sh.
+# Deploy the "Agents That Act" expansion to your workspace, using the proven
+# recipe from deploy/deploy_apps.sh + deploy_mock_systems.sh.
 #
 # This script is idempotent + re-runnable. It:
 #   1. Creates akzo-action-center (NEW), captures its SP, applies the full grant recipe
@@ -16,15 +16,17 @@
 #   4. Creates the PAUSED serverless autonomous Job akzo-autonomous-scm and syncs the
 #      L200-capabilities/ + apps/_shared to the workspace paths the job + notebook import expects.
 #
+#   DATABRICKS_CONFIG_PROFILE=<your-profile> WORKSPACE_USER=<you@example.com> \
+#   DATABRICKS_WAREHOUSE_ID=<id> AKZO_CATALOG=<catalog> LAKEBASE_INSTANCE=<instance> \
 #   ./deploy/deploy_action_apps.sh
 set -euo pipefail
 
-PROFILE="fe-vm-lakebase-praneeth"
-WORKSPACE_USER="praneeth.paikray@databricks.com"
-WAREHOUSE_ID="4d39ac2e32b72a3a"
-CATALOG="serverless_lakebase_praneeth_catalog"
+PROFILE="${DATABRICKS_CONFIG_PROFILE:-<your-profile>}"
+WORKSPACE_USER="${WORKSPACE_USER:-<you@example.com>}"
+WAREHOUSE_ID="${DATABRICKS_WAREHOUSE_ID:-<your-warehouse-id>}"
+CATALOG="${AKZO_CATALOG:-<catalog>}"
 SCHEMAS=(akzo_finance akzo_scm akzo_commercial akzo_docs akzo_ops akzo_gateway)
-LAKEBASE_INSTANCE="graphrag-spike"
+LAKEBASE_INSTANCE="${LAKEBASE_INSTANCE:-<your-lakebase-instance>}"
 CONNECTION_NAME="akzo_external_systems"   # governed UC HTTP connection (executor path)
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 APPS_BASE="/Workspace/Users/$WORKSPACE_USER/akzo-apps"
@@ -81,14 +83,15 @@ grant_sp() {   # $1=SP client_id : full UC + warehouse + Lakebase recipe (idempo
   databricks api post "/api/2.0/database/instances/$LAKEBASE_INSTANCE/roles" -p "$PROFILE" \
     --json "{\"name\":\"$sp\",\"identity_type\":\"SERVICE_PRINCIPAL\",\"attributes\":{\"bypassrls\":false,\"createdb\":false,\"createrole\":false}}" \
     >/dev/null 2>&1 && echo "      role added: $sp" || echo "      role exists: $sp"
-  DATABRICKS_CONFIG_PROFILE="$PROFILE" python3 - "$sp" <<'PY'
-import sys, psycopg
+  DATABRICKS_CONFIG_PROFILE="$PROFILE" LAKEBASE_INSTANCE="$LAKEBASE_INSTANCE" python3 - "$sp" <<'PY'
+import os, sys, psycopg
 from databricks.sdk import WorkspaceClient
 sp = sys.argv[1]
+instance = os.environ["LAKEBASE_INSTANCE"]
 w = WorkspaceClient()
-inst = w.database.get_database_instance(name="graphrag-spike")
+inst = w.database.get_database_instance(name=instance)
 me = w.current_user.me().user_name
-tok = w.database.generate_database_credential(instance_names=["graphrag-spike"]).token
+tok = w.database.generate_database_credential(instance_names=[instance]).token
 conn = psycopg.connect(host=inst.read_write_dns, port=5432, dbname="databricks_postgres",
                        user=me, password=tok, sslmode="require", autocommit=True)
 with conn.cursor() as cur:
@@ -156,7 +159,7 @@ sync_app mock-systems akzo-mock-systems
 echo "==> 4. Sync notebooks + _shared to workspace, create autonomous Job (PAUSED)"
 # The job notebook_path = $APPS_BASE/L200-capabilities/10_autonomous_closed_loop, and the
 # notebook imports apps/_shared via sys.path -> $APPS_BASE/_shared. Sync both.
-dbx sync "$REPO_ROOT/notebooks" "$APPS_BASE/notebooks" >/dev/null && echo "    synced notebooks -> $APPS_BASE/notebooks"
+dbx sync "$REPO_ROOT/L200-capabilities" "$APPS_BASE/L200-capabilities" >/dev/null && echo "    synced L200-capabilities -> $APPS_BASE/L200-capabilities"
 dbx sync "$REPO_ROOT/apps/_shared" "$APPS_BASE/_shared" \
   --exclude "frontend/node_modules/**" >/dev/null && echo "    synced _shared -> $APPS_BASE/_shared"
 # Create the job only if a job with this name does not already exist.

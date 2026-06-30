@@ -30,7 +30,7 @@
 
 CATALOG = os.environ.get("AKZO_CATALOG") or spark.sql("SELECT current_catalog()").first()[0]
 FIN = f"{CATALOG}.akzo_finance"
-LLM_ENDPOINT = "databricks-claude-opus-4-7"   # text2SQL + reasoning. Swap to "databricks-gpt-5-5" to compare.
+LLM_ENDPOINT = "databricks-claude-opus-4-8"   # text2SQL + reasoning. Swap to "databricks-gpt-5-5" to compare.
 JUDGE_ENDPOINT = "databricks-gpt-5-5"          # an independent grader (not marking its own homework)
 
 spark.sql(f"USE CATALOG {CATALOG}")

@@ -1,13 +1,18 @@
 # Multi-domain Supervisor Agent — Databricks App (React + FastAPI)
 
+> **L300 use case (flagship).** This app, together with `starters/supervisor/`, is the L300
+> tier of the workshop ladder — it wires the full fleet together on top of everything built in
+> L100 and L200. See the root `README.md` for the ladder. Set your own catalog, warehouse,
+> Lakebase instance, and Genie space ids via the env vars in `.env.example` before deploying.
+
 AkzoNobel Agent Bricks workshop, the **flagship** showcase. One chat that, given a
 cross-domain question, **routes** to the right domain subagents (Finance / SCM / Commercial),
 calls each governed Genie space, and **fuses one answer** with a visible routing trace and a
 recommended action.
 
 This is a faithful, self-contained reproduction of an **Agent Bricks Multi-Agent Supervisor
-(MAS)**. A real MAS endpoint (`mas-f14da7dc-endpoint`) already exists in this workspace as a
-reference — see the upgrade path below.
+(MAS)**. Stand up a real MAS endpoint in your own workspace as a reference — see the upgrade
+path below.
 
 ## The loop
 
@@ -57,7 +62,7 @@ apps/supervisor/
 
 `databricks_client.py`, `lakebase.py`, and `text2sql.py` are the shared pattern, copied verbatim
 from the sibling `quote-agent` app (with one shared fix: `chat()` omits the `temperature`
-parameter, which `databricks-claude-opus-4-7` rejects).
+parameter, which the Claude serving endpoints reject).
 
 ## Run locally
 
@@ -99,7 +104,7 @@ databricks apps deploy supervisor --source-code-path /Workspace/Users/<you>/supe
 
 `app.yaml` runs `uvicorn main:app --app-dir backend` on `$DATABRICKS_APP_PORT` and sets the
 warehouse / chat endpoint / Lakebase env. The app service principal needs: `CAN USE` on warehouse
-`<your-warehouse-id>`, `CAN QUERY` on `databricks-claude-opus-4-7`, SELECT on
+`<your-warehouse-id>`, `CAN QUERY` on your chat endpoint (e.g. `databricks-claude-opus-4-8`), SELECT on
 `<catalog>.akzo_finance.*`, `.akzo_scm.*`, and `.akzo_commercial.*`,
 and a Postgres role on the `<your-lakebase-instance>` Lakebase instance for the `akzo` schema.
 
@@ -112,10 +117,9 @@ This app reproduces a MAS in code. To move to the managed product:
    exactly the `ROUTING_DESCRIPTION` lines in `agent.py` — edit one and routing changes.
 2. The MAS does the route → call → fuse loop for you, **with OBO and tracing built in** — no
    router/fuser code to maintain.
-3. Call the deployed MAS endpoint with the `agent/v1/responses` task. A reference MAS endpoint
-   already lives in this workspace: **`mas-f14da7dc-endpoint`** (state READY). Point the backend at
-   it by swapping `agent.ask()` for a single `serving_endpoints.query(name="mas-f14da7dc-endpoint", ...)`
-   call once your own MAS is registered over the three Akzo Genie spaces.
+3. Call the deployed MAS endpoint with the `agent/v1/responses` task. Once your own MAS is
+   registered over the three Akzo Genie spaces, point the backend at it by swapping `agent.ask()`
+   for a single `serving_endpoints.query(name="<your-mas-endpoint>", ...)` call.
 
 ## Verified
 

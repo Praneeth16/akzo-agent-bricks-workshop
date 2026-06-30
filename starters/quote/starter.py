@@ -31,7 +31,7 @@
 
 CATALOG = os.environ.get("AKZO_CATALOG") or spark.sql("SELECT current_catalog()").first()[0]
 FIN = f"{CATALOG}.akzo_finance"
-LLM_ENDPOINT = "databricks-claude-opus-4-7"   # extraction + drafting. Swap to "databricks-gpt-5-5" to compare.
+LLM_ENDPOINT = "databricks-claude-opus-4-8"   # extraction + drafting. Swap to "databricks-gpt-5-5" to compare.
 MARGIN_FLOOR_PCT = 30.0                        # guardrail: a discounted quote below this escalates.
 
 spark.sql(f"USE CATALOG {CATALOG}")

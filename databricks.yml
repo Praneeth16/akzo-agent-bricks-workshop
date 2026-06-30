@@ -1,16 +1,14 @@
 # Root Databricks Asset Bundle for the AkzoNobel Agent Bricks workshop.
 #
-# Scope (per plan): the reference NOTEBOOKS as a serverless workflow job. The
-# Hackathon-in-the-Box HUB keeps its own bundle at
-# apps/hackathon-hub/akzo-hackathon-hub/databricks.yml and deploys via
-# `databricks apps deploy` (the AppKit flow). The other 4 agent apps keep their
-# per-app deploy scripts under deploy/.
+# Scope: the reference L200 NOTEBOOKS as a serverless workflow job. The agent apps
+# keep their per-app deploy scripts under deploy/.
 #
-# Deploy the notebooks workflow:
-#   databricks bundle validate -t dev -p fe-vm-lakebase-praneeth
-#   databricks bundle deploy   -t dev -p fe-vm-lakebase-praneeth
+# Set your own workspace host (targets.dev.workspace.host below) and profile, then
+# deploy the notebooks workflow:
+#   databricks bundle validate -t dev -p <your-profile>
+#   databricks bundle deploy   -t dev -p <your-profile>
 # Then run it from the Workspace > Workflows UI, or:
-#   databricks bundle run akzo_workshop_notebooks -t dev -p fe-vm-lakebase-praneeth
+#   databricks bundle run akzo_workshop_notebooks -t dev -p <your-profile>
 #
 # Note: the notebooks expect the synthetic data loaded (see data/load_to_uc.py)
 # and the akzo_* schemas + Lakebase + Genie spaces in place. The job provisions
@@ -81,4 +79,4 @@ targets:
     default: true
     mode: development
     workspace:
-      host: https://fevm-serverless-lakebase-praneeth.cloud.databricks.com
+      host: https://<your-workspace-host>.cloud.databricks.com

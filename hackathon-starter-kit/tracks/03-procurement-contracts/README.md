@@ -70,5 +70,5 @@ Build a contract assistant that parses supplier contracts, extracts key terms, c
 
 - Add supplier spend context.
 - Add side-by-side redline recommendations.
-- Add a reviewer queue in the hackathon hub.
+- Add a reviewer queue in your app.
 

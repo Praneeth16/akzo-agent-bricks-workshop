@@ -36,7 +36,7 @@ apps/finance-copilot/
 
 `backend/databricks_client.py`, `lakebase.py`, and `text2sql.py` are the **shared pattern** copied
 from the sibling Quote agent. The only shared-module change vs. the quote-agent copy: `chat()` now
-omits the `temperature` parameter unless explicitly set, because `databricks-claude-opus-4-7`
+omits the `temperature` parameter unless explicitly set, because `databricks-claude-opus-4-8`
 rejects that parameter.
 
 ## Run locally
@@ -78,7 +78,7 @@ databricks apps deploy finance-copilot --source-code-path /Workspace/Users/<you>
 
 `app.yaml` runs `uvicorn main:app --app-dir backend` on `$DATABRICKS_APP_PORT` and sets the
 warehouse / chat endpoint / Lakebase env. The app service principal needs: `CAN USE` on warehouse
-`<your-warehouse-id>`, `CAN QUERY` on `databricks-claude-opus-4-7`, SELECT on
+`<your-warehouse-id>`, `CAN QUERY` on `databricks-claude-opus-4-8`, SELECT on
 `<catalog>.akzo_finance.*`, and a Postgres role on the `<your-lakebase-instance>`
 Lakebase instance for the `akzo` schema.
 

@@ -36,12 +36,12 @@
 
 # COMMAND ----------
 
-dbutils.widgets.text("catalog", "serverless_lakebase_praneeth_catalog", "Unity Catalog")
-dbutils.widgets.text("agent_endpoint", "databricks-claude-opus-4-7", "Agent under test")
+dbutils.widgets.text("catalog", "", "Unity Catalog (blank = current_catalog())")
+dbutils.widgets.text("agent_endpoint", "databricks-claude-opus-4-8", "Agent under test")
 dbutils.widgets.text("judge_endpoint", "databricks-gpt-5-5", "Independent judge")
-dbutils.widgets.text("gateway_endpoint", "harman-aes-ai-gateway", "AI Gateway endpoint (PART B)")
+dbutils.widgets.text("gateway_endpoint", "<your-ai-gateway-endpoint>", "AI Gateway endpoint (PART B)")
 
-CATALOG = dbutils.widgets.get("catalog")
+CATALOG = dbutils.widgets.get("catalog") or spark.sql("SELECT current_catalog()").first()[0]
 FIN = f"{CATALOG}.akzo_finance"
 OPS = f"{CATALOG}.akzo_ops"
 GW = f"{CATALOG}.akzo_gateway"
@@ -402,7 +402,7 @@ COMMENT 'Preseeded AI Gateway payload/usage logs for the Akzo workshop (real log
 import random
 from datetime import timedelta
 PRICE_PER_1K = {"chat-quality": 0.012, "chat-fast": 0.0008, "chat-cheap": 0.0003}
-MODEL_OF = {"chat-quality": "databricks-claude-opus-4-7",
+MODEL_OF = {"chat-quality": "databricks-claude-opus-4-8",
             "chat-fast": "databricks-meta-llama-3-3-70b-instruct", "chat-cheap": "databricks-gpt-oss-20b"}
 SEED = [
     ("Finance", "controller.emea@akzonobel.com", "chat-quality",

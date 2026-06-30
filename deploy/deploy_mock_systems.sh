@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
-# Deploy the Mock External Systems FastAPI Databricks App (akzo-mock-systems) to the
-# fe-vm-lakebase-praneeth workspace, wire all resource grants, and smoke-test.
+# Deploy the Mock External Systems FastAPI Databricks App (akzo-mock-systems) to your
+# workspace, wire all resource grants, and smoke-test.
 #
 # Mirrors the proven recipe in deploy/deploy_apps.sh (create -> grant SP UC + warehouse
 # + Lakebase Postgres role with DML+CREATE on schema akzo -> sync -> deploy -> wait
 # ACTIVE/SUCCEEDED). Single app, no frontend (pure API). Idempotent + re-runnable.
 #
+#   DATABRICKS_CONFIG_PROFILE=<your-profile> WORKSPACE_USER=<you@example.com> \
+#   DATABRICKS_WAREHOUSE_ID=<id> AKZO_CATALOG=<catalog> LAKEBASE_INSTANCE=<instance> \
 #   ./deploy/deploy_mock_systems.sh
 set -euo pipefail
 
-PROFILE="fe-vm-lakebase-praneeth"
-WORKSPACE_USER="praneeth.paikray@databricks.com"
-WAREHOUSE_ID="4d39ac2e32b72a3a"
-CATALOG="serverless_lakebase_praneeth_catalog"
+PROFILE="${DATABRICKS_CONFIG_PROFILE:-<your-profile>}"
+WORKSPACE_USER="${WORKSPACE_USER:-<you@example.com>}"
+WAREHOUSE_ID="${DATABRICKS_WAREHOUSE_ID:-<your-warehouse-id>}"
+CATALOG="${AKZO_CATALOG:-<catalog>}"
 SCHEMAS=(akzo_finance akzo_scm akzo_commercial akzo_docs akzo_ops akzo_gateway)
-LAKEBASE_INSTANCE="graphrag-spike"
+LAKEBASE_INSTANCE="${LAKEBASE_INSTANCE:-<your-lakebase-instance>}"
 APP_DIR="mock-systems"
 APP_NAME="akzo-mock-systems"
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -59,14 +61,15 @@ echo "==> 3c. Lakebase ($LAKEBASE_INSTANCE) Postgres role + akzo schema privileg
 databricks api post "/api/2.0/database/instances/$LAKEBASE_INSTANCE/roles" -p "$PROFILE" \
   --json "{\"name\":\"$SP\",\"identity_type\":\"SERVICE_PRINCIPAL\",\"attributes\":{\"bypassrls\":false,\"createdb\":false,\"createrole\":false}}" \
   >/dev/null 2>&1 && echo "    role added: $SP" || echo "    role exists: $SP"
-DATABRICKS_CONFIG_PROFILE="$PROFILE" python3 - "$SP" <<'PY'
-import sys, psycopg
+DATABRICKS_CONFIG_PROFILE="$PROFILE" LAKEBASE_INSTANCE="$LAKEBASE_INSTANCE" python3 - "$SP" <<'PY'
+import os, sys, psycopg
 from databricks.sdk import WorkspaceClient
 sp = sys.argv[1]
+instance = os.environ["LAKEBASE_INSTANCE"]
 w = WorkspaceClient()
-inst = w.database.get_database_instance(name="graphrag-spike")
+inst = w.database.get_database_instance(name=instance)
 me = w.current_user.me().user_name
-tok = w.database.generate_database_credential(instance_names=["graphrag-spike"]).token
+tok = w.database.generate_database_credential(instance_names=[instance]).token
 conn = psycopg.connect(host=inst.read_write_dns, port=5432, dbname="databricks_postgres",
                        user=me, password=tok, sslmode="require", autocommit=True)
 with conn.cursor() as cur:

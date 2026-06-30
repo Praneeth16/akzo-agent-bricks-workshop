@@ -2,7 +2,7 @@
 
 > **Audience:** Head of AkzoNobel (+ exec staff). **The question:** *"Can your agents actually take action?"*
 > **Run time:** 5 minutes live + 3-4 Q&A. **Presenter:** drives the deployed apps + replays notebook 10.
-> **Workspace:** `fevm-serverless-lakebase-praneeth` (CLI profile `fe-vm-lakebase-praneeth`), Lakebase `graphrag-spike` / schema `akzo`.
+> **Workspace:** your workspace (CLI profile `<your-profile>`), Lakebase `<your-lakebase-instance>` / schema `akzo`.
 > Every claim below maps to a built, live-verified artifact (app, notebook, or table). App URLs are filled in at deploy time / live in the workspace.
 
 ---

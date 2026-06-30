@@ -64,7 +64,7 @@ dbutils.library.restartPython()
 # MAGIC in `apps/_shared/action_plane/` (which adds concurrency guards and partial-failure reconciliation).
 # MAGIC
 # MAGIC ### Prerequisites
-# MAGIC - A Lakebase database instance (default `graphrag-spike`) you can reach, with native Postgres login.
+# MAGIC - A Lakebase database instance (default `<your-lakebase-instance>`) you can reach, with native Postgres login.
 # MAGIC - The **Mock External Systems** app deployed (`deploy/deploy_mock_systems.sh`) — L3 posts to it.
 # MAGIC - Permission to `CREATE CONNECTION` in the catalog. `psycopg` (psycopg3) is preinstalled on serverless.
 # MAGIC
@@ -83,9 +83,9 @@ dbutils.library.restartPython()
 
 # COMMAND ----------
 
-dbutils.widgets.text("lakebase_instance", "graphrag-spike", "Lakebase instance")
+dbutils.widgets.text("lakebase_instance", "<your-lakebase-instance>", "Lakebase instance")
 dbutils.widgets.text("pg_schema", "akzo", "Postgres schema")
-dbutils.widgets.text("mock_app_url", "https://akzo-mock-systems-7474654904882204.aws.databricksapps.com", "Mock app URL")
+dbutils.widgets.text("mock_app_url", "<your-mock-systems-app-url>", "Mock app URL")
 dbutils.widgets.text("connection_name", "akzo_external_systems", "UC HTTP connection")
 # Optional: leave EMPTY for interactive runs (uses your workspace identity automatically). Set only when
 # running headless where the run identity is not authorized for the app's SSO gate (e.g. a CI job).

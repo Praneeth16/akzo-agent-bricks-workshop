@@ -32,7 +32,7 @@ CATALOG = os.environ.get("AKZO_CATALOG") or spark.sql("SELECT current_catalog()"
 FIN = f"{CATALOG}.akzo_finance"
 SCM = f"{CATALOG}.akzo_scm"
 COM = f"{CATALOG}.akzo_commercial"
-LLM_ENDPOINT = "databricks-claude-opus-4-7"   # router + fuser. Swap to "databricks-gpt-5-5" to compare.
+LLM_ENDPOINT = "databricks-claude-opus-4-8"   # router + fuser. Swap to "databricks-gpt-5-5" to compare.
 
 spark.sql(f"USE CATALOG {CATALOG}")
 print("Finance    :", FIN)
@@ -339,5 +339,5 @@ print(f"\nPASS RATE: {n_pass}/{len(QUESTIONS)}")
 # MAGIC
 # MAGIC **Upgrade path:** register the three Akzo Genie spaces as subagents of an Agent Bricks
 # MAGIC Multi-Agent Supervisor; the per-subagent description field IS `ROUTING_DESCRIPTION`. A reference
-# MAGIC MAS endpoint `mas-f14da7dc-endpoint` exists in this workspace. **Deployable app:**
+# MAGIC MAS endpoint `<your-mas-endpoint>` exists in this workspace. **Deployable app:**
 # MAGIC `apps/supervisor/` (React+FastAPI; clone, don't author).

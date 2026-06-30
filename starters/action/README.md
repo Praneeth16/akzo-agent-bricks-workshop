@@ -68,7 +68,7 @@ Each sprint maps to a `# TODO (Day-2)` marker in `starter.py`.
 In the workspace, `apps/_shared` is synced beside your repo; the setup cell adds it to `sys.path`. Locally:
 
 ```bash
-DATABRICKS_CONFIG_PROFILE=fe-vm-lakebase-praneeth python -c "import sys; sys.path.insert(0,'apps/_shared'); ..."
+DATABRICKS_CONFIG_PROFILE=<your-profile> python -c "import sys; sys.path.insert(0,'apps/_shared'); ..."
 ```
 
 The starter asserts the primary path live: an action goes `proposed → approved → executed` with a real

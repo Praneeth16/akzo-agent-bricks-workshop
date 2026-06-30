@@ -18,7 +18,6 @@ The first six tracks are the priority use cases. The remaining tracks are top-va
 | `starter-prompts/` | One ready-to-use prompt per track |
 | `tracks/` | Forkable team guides using the required track template |
 | `TRACK_TEMPLATE.md` | The template every track README follows |
-| [`hackathon-hub/`](./hackathon-hub/) | The AppKit event hub app: Register / Teams / Submit / Judge / Leaderboard on Lakebase. See its README to configure env vars and run it. |
 
 ---
 
@@ -57,7 +56,7 @@ The shared `../data/` setup provisions a fixed set of resources. Know what is pr
 - SCM tables in `<catalog>.akzo_scm`: `otif`, `inventory`, `lanes`, `service_levels`
 - Commercial tables in `<catalog>.akzo_commercial`: `accounts`, `pipeline`, `sales_actuals`, `churn_signals`
 - Documents in `/Volumes/<catalog>/akzo_docs/raw/`: 8 safety data sheets (`sds/`) and 6 supplier contracts (`contracts/`), with a ground-truth field table in `../data/output/docs/README.md`
-- Three Genie spaces (Akzo Finance, Akzo SCM, Akzo Commercial), ids in `../data/setup/space_ids.json`
+- Three Genie spaces (Akzo Finance, Akzo SCM, Akzo Commercial), ids written to `../genie/space_ids.json` by `../genie/create_genie_spaces.py`
 - Vector Search endpoint `akzo_workshop_vs` and index `akzo_docs.chunks_idx`
 - Empty schemas for your own tables: `akzo_ops`, `akzo_gateway`
 

@@ -78,19 +78,22 @@ dbutils.library.restartPython()
 # MAGIC calls the **real Genie space** via the Genie Conversation API (Genie generates + runs the governed
 # MAGIC SQL); when blank, it falls back to the in-code `ai_query` reproduction so the notebook still runs
 # MAGIC anywhere. Create the three spaces from code first with `genie/create_genie_spaces.py` (it writes the
-# MAGIC ids); the defaults below are the spaces created on the workshop workspace.
+# MAGIC ids), or paste each space id from the UI (`/genie/rooms/<space_id>`). The defaults are blank, so the
+# MAGIC notebook runs on the `ai_query` fallback until you fill them in.
 
 # COMMAND ----------
 
-dbutils.widgets.text("catalog", "serverless_lakebase_praneeth_catalog", "Unity Catalog")
-dbutils.widgets.text("llm_endpoint", "databricks-claude-opus-4-7", "Router/fuser model endpoint")
-# Real Genie spaces (created by genie/create_genie_spaces.py). Blank a field to use the ai_query fallback.
-dbutils.widgets.text("finance_space_id", "01f173afe537118dbd76ace7de8dfd76", "Finance Genie space id")
-dbutils.widgets.text("scm_space_id", "01f173afe57c11158953241dd24f7416", "SCM Genie space id")
-dbutils.widgets.text("commercial_space_id", "01f173afe5bc1671b92d7b5e76cbf046", "Commercial Genie space id")
+dbutils.widgets.text("catalog", "", "Unity Catalog (blank = current_catalog())")
+dbutils.widgets.text("llm_endpoint", "databricks-claude-opus-4-8", "Router/fuser model endpoint")
+# Paste your Genie space ids from the UI (open each space; the id is the last URL segment
+# of /genie/rooms/<space_id>), or run genie/create_genie_spaces.py to create them.
+# Blank a field to use the ai_query fallback.
+dbutils.widgets.text("finance_space_id", "", "Finance Genie space id")
+dbutils.widgets.text("scm_space_id", "", "SCM Genie space id")
+dbutils.widgets.text("commercial_space_id", "", "Commercial Genie space id")
 
-CATALOG = dbutils.widgets.get("catalog")
-LLM_ENDPOINT = dbutils.widgets.get("llm_endpoint")   # e.g. databricks-claude-opus-4-7 / databricks-gpt-5-5
+CATALOG = dbutils.widgets.get("catalog") or spark.sql("SELECT current_catalog()").first()[0]
+LLM_ENDPOINT = dbutils.widgets.get("llm_endpoint")   # e.g. databricks-claude-opus-4-8 / databricks-gpt-5-5
 
 FIN = f"{CATALOG}.akzo_finance"
 SCM = f"{CATALOG}.akzo_scm"
