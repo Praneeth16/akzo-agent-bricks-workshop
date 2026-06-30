@@ -1,8 +1,7 @@
 # Mock External Systems (`akzo-mock-systems`)
 
 A small FastAPI app that simulates the external systems the AkzoNobel agents act
-on — **the governed external target for the Action Plane** (`AGENTS_THAT_ACT_PLAN.md`
-§3, §4, U2). No real email/PO/ticket is ever sent; every call lands an auditable
+on — **the governed external target for the Action Plane**. No real email/PO/ticket is ever sent; every call lands an auditable
 receipt in Lakebase `akzo.external_system_log`.
 
 ## Endpoints

@@ -8,16 +8,16 @@ golden questions reliably and consistently on the first try.
 
 | File | Genie space name | Catalog.schema |
 |---|---|---|
-| [`finance_space.md`](finance_space.md) | **Akzo Finance** | `serverless_lakebase_praneeth_catalog.akzo_finance` |
-| [`scm_space.md`](scm_space.md) | **Akzo SCM** | `serverless_lakebase_praneeth_catalog.akzo_scm` |
-| [`commercial_space.md`](commercial_space.md) | **Akzo Commercial** | `serverless_lakebase_praneeth_catalog.akzo_commercial` |
+| [`finance_space.md`](finance_space.md) | **Akzo Finance** | `<catalog>.akzo_finance` |
+| [`scm_space.md`](scm_space.md) | **Akzo SCM** | `<catalog>.akzo_scm` |
+| [`commercial_space.md`](commercial_space.md) | **Akzo Commercial** | `<catalog>.akzo_commercial` |
 
-> Space names match BUILD_PLAN.md §2. Catalog = `serverless_lakebase_praneeth_catalog` (schemas prefixed `akzo_`). All SQL is Spark SQL written
+> Catalog = your workshop catalog `<catalog>` (schemas prefixed `akzo_`). All SQL is Spark SQL written
 > against the real columns documented in `data/output/<domain>/README.md` — no invented columns.
 
 ## How to use (facilitator)
 
-1. Create (or open) each Genie space and attach the listed tables (catalog serverless_lakebase_praneeth_catalog, schemas akzo_finance/akzo_scm/akzo_commercial).
+1. Create (or open) each Genie space and attach the listed tables (catalog <catalog>, schemas akzo_finance/akzo_scm/akzo_commercial).
 2. Open the matching `*_space.md` file:
    - Copy **§5 General instructions** + the **§4 certified metric / business-term definitions** into the space *Instructions* field.
    - Add the **§6 example NL → SQL pairs** as the space's sample/trusted questions (paste the SQL as the curated answer).
@@ -26,7 +26,7 @@ golden questions reliably and consistently on the first try.
 ## Each file contains
 
 1. **Space title + description** — business-user framing.
-2. **Tables in scope** — fully-qualified `serverless_lakebase_praneeth_catalog.akzo_<schema>.<table>`, purpose, key columns, grain.
+2. **Tables in scope** — fully-qualified `<catalog>.akzo_<schema>.<table>`, purpose, key columns, grain.
 3. **Join hints / relationships** — how the tables connect.
 4. **Certified metrics / business-term definitions** — the canonical formulas Genie must use.
 5. **General instructions** — currency (EUR), current month (2026-06), prefer certified metrics, decline out-of-scope.
@@ -39,7 +39,7 @@ golden questions reliably and consistently on the first try.
 | Domain | "Paints EMEA" filter |
 |---|---|
 | **Finance** | Join `margin_actuals.sku = products.sku`, then `product_line = 'Decorative Paints' AND region = 'EMEA'`. EMEA Decorative SKUs: `DEC-1000, DEC-1004, DEC-1008, DEC-1012, DEC-1016, DEC-1020, DEC-1024, DEC-1028`. |
-| **SCM** | `otif/inventory` filtered to `region = 'EMEA'` + Decorative SKUs (`sku LIKE 'DEC-%'`, or join to `serverless_lakebase_praneeth_catalog.akzo_finance.products` where `product_line = 'Decorative Paints'`). Narrative lane = `Rotterdam-NL->EMEA-DACH`; EMEA plants = Rotterdam-NL, Felling-UK. |
+| **SCM** | `otif/inventory` filtered to `region = 'EMEA'` + Decorative SKUs (`sku LIKE 'DEC-%'`, or join to `<catalog>.akzo_finance.products` where `product_line = 'Decorative Paints'`). Narrative lane = `Rotterdam-NL->EMEA-DACH`; EMEA plants = Rotterdam-NL, Felling-UK. |
 | **Commercial** | `accounts.region = 'EMEA' AND accounts.segment = 'Architectural'` (the Decorative-Paints buyers). The 3 at-risk accounts are `ACC0001`, `ACC0002`, `ACC0003`. |
 
 Other shared conventions: `month` (and `close_month`) are DATEs at first-of-month — compare against
