@@ -2,7 +2,7 @@
 # MAGIC %md
 # MAGIC # STARTER — Finance controlling copilot (variance decomposition -> recommended action)
 # MAGIC
-# MAGIC *Hackathon track #1. Forkable Day-2 starter — a slim distillation of `L200-capabilities/01_governed_supervisor.py (Finance leg)`.*
+# MAGIC *Hackathon track #1. Forkable Day-2 starter — a slim distillation of `L200-capabilities/01_governed_supervisor.py` (Finance leg).*
 # MAGIC
 # MAGIC A **self-contained, forkable** Finance copilot: a governed **text2SQL** call over
 # MAGIC `<catalog>.akzo_finance` (the Akzo Finance Genie-space pattern in code),
