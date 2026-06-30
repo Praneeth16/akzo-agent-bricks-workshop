@@ -18,7 +18,7 @@ the rest of L200/L300 and the apps.
 | 2 | Load the data | everything | `data/load_to_uc.py` |
 | 3 | A Foundation Model endpoint | every LLM call | enable FM API; note the endpoint name |
 | 4 | Genie spaces (3) | L100 no-code lab, L200 ch1, supervisor app | `genie/create_genie_spaces.py` or the UI |
-| 5 | Lakebase instance | L100 ch3, L200 ch2–3, apps | enable Lakebase; note the instance name |
+| 5 | Lakebase instance | L100 ch3, L200 ch2–3, ch8, apps | enable Lakebase; note the instance name |
 | 6 | Vector Search endpoint | L200 ch5 | enable Vector Search; note the endpoint name |
 | 7 | Mock Systems app + UC HTTP connection | L200 ch2–3, action apps | `deploy/deploy_mock_systems.sh` |
 
@@ -100,8 +100,9 @@ walkthrough: [`genie/README.md`](genie/README.md).
 
 ## 5. Lakebase instance
 
-Agent memory (L100 ch3), the action plane (L200 ch2–3), and the apps persist to a **Lakebase**
-managed Postgres instance.
+Agent memory (short-term in L100 ch3, durable semantic memory in L200 ch8), the action plane
+(L200 ch2–3), and the apps persist to a **Lakebase** managed Postgres instance. L200 ch8 also uses the
+`pgvector` extension on Lakebase to store and search memory embeddings.
 
 - Enable Lakebase and create an instance. Note its **name**.
 - Set it where prompted: the `lakebase_instance` widget (notebooks) or `LAKEBASE_INSTANCE` env var

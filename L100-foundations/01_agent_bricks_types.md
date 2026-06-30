@@ -37,7 +37,7 @@ The seven types, each mapped to the SQL AI function it wraps (the ones you ran i
 | **Document Parsing** | Extract structured content from documents — text, tables, metadata | `ai_parse_document` | Section 4 |
 | **Text Classification** | Categorize text into predefined or dynamic labels | `ai_classify` | Section 5 |
 | **Code your own agent** | Build with OSS libraries and the Agent Framework | (any) | Section 6 + `L100-agent-langgraph/` |
-| **Supervisor Agent** | Combine Genie Spaces, other agents, and MCP tools for complex workflows | (orchestrates the rest) | Built in L300 |
+| **Supervisor Agent** | Combine Genie Spaces, other agents, and MCP tools for complex workflows | (orchestrates the rest) | Section 7 + `04_multi_agent_supervisor` |
 
 How to read this ladder:
 
@@ -167,11 +167,13 @@ Run the shared data setup first (`../data/load_to_uc.py`). It provisions the **t
 
 ---
 
-## 7. Supervisor Agent (preview here, built in L300)
+## 7. Supervisor Agent (build it in `04_multi_agent_supervisor`)
 
 **Type:** Chat. The Supervisor is the top of the ladder: it does not answer directly, it **orchestrates** — given a cross-domain question, it decides which Genie Spaces, other agents, and MCP tools to consult, runs them, and fuses one answer.
 
-**How it works.** Each subagent carries a **routing description** (what it is good at). The supervisor reads the question plus those descriptions, routes to the right subagents (e.g. Finance + SCM + Commercial for a margin-and-service question), collects their structured results, and composes a single answer with a visible routing trace. You do not build it here — it reuses the Genie spaces and agents from this lab — but you assemble it in **L300** (`../apps/supervisor/`). Keeping it in view now explains *why* you ground each domain agent well: the supervisor is only as good as the agents it routes to.
+**How it works.** Each subagent carries a **routing description** (what it is good at). The supervisor reads the question plus those descriptions, routes to the right subagents (e.g. Finance + SCM + Commercial for a margin-and-service question), collects their structured results, and composes a single answer with a visible routing trace. Because it runs with the **caller's** Unity Catalog permissions (OBO), the same governance that scopes each Genie space scopes the supervisor too. Keeping it in view now explains *why* you ground each domain agent well: the supervisor is only as good as the agents it routes to.
+
+**Build it next.** [`04_multi_agent_supervisor.ipynb`](04_multi_agent_supervisor.ipynb) walks you through assembling a Supervisor over the three Akzo Genie spaces in the **no-code UI**, then driving it from code with the **Supervisor API** (call the deployed endpoint, and verify each subagent from the Genie Conversation API). You revisit the same route → run → fuse loop in pure Python in L200 chapter 1, and ship it as an app in **L300** (`../apps/supervisor/`).
 
 ![Supervisor Agent routing](images/agent_bricks_supervisor.png)
 > *Image: `images/agent_bricks_supervisor.png` — see the [appendix](#appendix-image-prompts).*

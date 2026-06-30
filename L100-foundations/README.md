@@ -14,6 +14,7 @@ Start here. Learn to call AI from SQL and build the no code Agent Bricks agents,
 | Field extraction and PDF parsing | Information Extraction, Document Parsing |
 | Ticket and email triage | Text Classification |
 | Your first coded agent that calls a tool | OpenAI Agents SDK plus one MCP tool |
+| Cross-domain orchestration over your Genie spaces | Supervisor Agent + Supervisor API |
 | Quality evaluation and human feedback | MLflow Tracing, LLM Judges, Review App |
 
 ---
@@ -24,7 +25,7 @@ The workshop deepens three capabilities across L100, L200, and L300. At L100 you
 
 | Spine | L100 (here) |
 |---|---|
-| Agent Bricks types | Build the single purpose types: Genie, Knowledge Assistant, Extraction, Parsing, Classification, plus a coded agent |
+| Agent Bricks types | Build the single purpose types: Genie, Knowledge Assistant, Extraction, Parsing, Classification, a coded agent — and the **Supervisor Agent** that orchestrates them (`04`) |
 | MCP | Consume one read only MCP tool from a coded agent |
 | Agents that act | None yet. Everything here is read only. Actions arrive in L200 |
 | LLMOps | MLflow evaluation, one LLM judge, tracing, and `ai_mask` for governance |
@@ -39,7 +40,8 @@ Work through the materials in order.
 2. `01_agent_bricks_types.md` Build the no code Agent Bricks agents in the UI, on the same tables and documents.
 3. `02_agent_evaluation.ipynb` Evaluate an agent with MLflow and a single LLM judge.
 4. `03_short_term_memory.ipynb` Give an agent short term memory backed by Lakebase.
-5. `L100-agent-langgraph/` Your first coded agent. A LangGraph agent wrapped as an MLflow ResponsesAgent that answers questions and consumes one read only managed MCP tool.
+5. `04_multi_agent_supervisor.ipynb` Build the flagship **Supervisor Agent** over your three Genie spaces in the no code UI, then drive it from code with the **Supervisor API**.
+6. `L100-agent-langgraph/` Your first coded agent. A LangGraph agent wrapped as an MLflow ResponsesAgent that answers questions and consumes one read only managed MCP tool.
 
 The shared data setup in the repo root `data/` folder must run once before this tier. It creates the `akzo_*` schemas, the coatings tables, and the document volume. Genie spaces are created separately (see `../genie/`); the vector index is built in L200 chapter 5. See `../SETUP.md` for the full order.
 
@@ -59,7 +61,7 @@ Nothing to install locally for the SQL and UI labs. The coded agent uses `uv`.
 
 ## How the Notebooks Run
 
-Every query is driven from Python through `spark.sql(...)` with the catalog and model endpoint read from notebook widgets. Nothing is hardcoded, the catalog and endpoint are validated before use, and the same notebook runs identically in an interactive session and as a scheduled job. Set the `catalog` and `llm_endpoint` widgets at the top, then run top to bottom.
+Every query is driven from Python through `spark.sql(...)` with the catalog and model endpoint read from notebook widgets. Nothing is hardcoded, the catalog and endpoint are validated before use, and the same notebook runs identically in an interactive session and as a scheduled job. Set the `catalog` and `llm_endpoint` widgets at the top, then run top to bottom. The supervisor notebook (`04`) additionally uses the Databricks SDK and the Supervisor API — it reads Genie space ids and a deployed-endpoint name from its own widgets.
 
 ---
 
@@ -81,6 +83,7 @@ Nothing in this tier is tied to one workspace. Set these before you run, all fro
 | `01_agent_bricks_types.md` | Guided build of the no code Agent Bricks types |
 | `02_agent_evaluation.ipynb` | MLflow evaluation with an LLM judge |
 | `03_short_term_memory.ipynb` | Short term memory on Lakebase |
+| `04_multi_agent_supervisor.ipynb` | Build the Supervisor Agent in the UI, then drive it with the Supervisor API |
 | `L100-agent-langgraph/` | First coded agent (LangGraph + ResponsesAgent), with one MCP tool |
 | `L100_Architecture.drawio` | Architecture diagram for this tier (editable draw.io source; export to `L100_Architecture.png` to embed) |
 

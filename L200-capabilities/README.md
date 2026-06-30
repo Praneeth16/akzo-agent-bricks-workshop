@@ -15,6 +15,7 @@ Step up from the no code tier. Here you build coded agents that call tools, hold
 | `05_document_intelligence.py` | Parse and extract PDFs → embed → RAG + SQL over safety sheets and contracts |
 | `06_custom_agents_and_mcp.py` | A custom LangGraph agent registered in Unity Catalog, consuming an MCP tool |
 | `07_custom_model_serving.py` | Register and serve a custom model on Model Serving |
+| `08_long_term_memory.py` | Durable, cross-session memory: semantic recall over a `pgvector` store on Lakebase, with LLM-managed save/search/delete memory tools |
 
 ---
 
@@ -26,6 +27,7 @@ Step up from the no code tier. Here you build coded agents that call tools, hold
 | MCP | Build and register a server, then consume it from an agent |
 | Agents that act | One or two connectors behind a human approval gate, with an audit trail |
 | LLMOps | Judge suite, AI Gateway, and guardrails |
+| Memory | Short-term thread memory (L100 ch3) → durable semantic per-user memory on Lakebase (ch8) |
 
 ---
 
@@ -34,9 +36,9 @@ Step up from the no code tier. Here you build coded agents that call tools, hold
 Nothing here is tied to one workspace. Each notebook reads its config from widgets at the top, so set these from your own workspace before you run.
 
 1. **Catalog.** Leave the `catalog` widget blank to use your current catalog (`current_catalog()`), or type your workshop catalog. Run the shared `../data/` loader once first so the `akzo_*` schemas and tables exist.
-2. **Model endpoints.** Set `llm_endpoint` / `chat_endpoint` / `agent_endpoint` / `judge_endpoint` to Foundation Model or custom endpoints you can query (for example `databricks-claude-opus-4-8`).
+2. **Model endpoints.** Set `llm_endpoint` / `chat_endpoint` / `agent_endpoint` / `judge_endpoint` to Foundation Model or custom endpoints you can query (for example `databricks-claude-opus-4-8`). The long-term-memory chapter also needs an `embedding_endpoint` (for example `databricks-gte-large-en`) to vectorize memories.
 3. **Genie space ids** (supervisor chapter). Create each Genie space in the UI: **New → Genie space**, attach the `akzo_finance` / `akzo_scm` / `akzo_commercial` tables, then open the space. The id is the last URL segment of `/genie/rooms/<space_id>`. Paste each id into the `finance_space_id` / `scm_space_id` / `commercial_space_id` widgets. Leave a field blank to use the in-code `ai_query` fallback. You can also create the spaces from code with `../genie/create_genie_spaces.py`, which prints the ids.
-4. **Lakebase instance** (action + autonomous chapters). Set the `lakebase_instance` widget to your Lakebase database instance name (Compute → Database instances).
+4. **Lakebase instance** (action, autonomous, and long-term-memory chapters). Set the `lakebase_instance` widget to your Lakebase database instance name (Compute → Database instances), or leave it blank in ch8 to auto-pick the first AVAILABLE one. Ch8 needs permission to `CREATE EXTENSION vector` + `CREATE TABLE` on the Lakebase `public` schema.
 5. **Mock systems app URL** (action + autonomous chapters). After deploying the mock systems app (`../deploy/deploy_mock_systems.sh`), open it and copy its URL into the `mock_app_url` widget.
 6. **AI Gateway endpoint** (governance chapter). Set `gateway_endpoint` to your AI Gateway serving endpoint, or skip Part B.
 
