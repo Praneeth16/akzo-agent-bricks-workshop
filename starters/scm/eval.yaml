@@ -8,7 +8,7 @@ golden_questions:
       - "OTIF dropped to ~88.9% in May 2026"
       - "from ~96% baseline"
       - "partial recovery to ~93% in June"
-    expected_data_source: "serverless_lakebase_praneeth_catalog.akzo_scm.otif (lane = Rotterdam-NL->EMEA-DACH, volume-weighted otif_pct, baseline vs May/Jun 2026) — Akzo SCM Genie space"
+    expected_data_source: "<catalog>.akzo_scm.otif (lane = Rotterdam-NL->EMEA-DACH, volume-weighted otif_pct, baseline vs May/Jun 2026) — Akzo SCM Genie space"
     grading_notes: "Good: names the lane, the ~88.9% May figure, the ~96% baseline, and the partial June recovery to ~93%. Wrong: cites a different lane, reports the noisy ~96% other-lane figures as the problem, or gives raw on_time without otif_pct."
   - id: q2
     question: "Why did that lane's OTIF fall — what is the root cause?"
@@ -17,7 +17,7 @@ golden_questions:
       - "transit disruption in Q2 2026"
       - "stockout of key EMEA Decorative SKUs at Rotterdam in May"
       - "in_full collapsed"
-    expected_data_source: "serverless_lakebase_praneeth_catalog.akzo_scm.lanes (lead_time_days) + serverless_lakebase_praneeth_catalog.akzo_scm.inventory (stockout_flag, days_of_supply) for Rotterdam, May 2026 — Akzo SCM Genie space"
+    expected_data_source: "<catalog>.akzo_scm.lanes (lead_time_days) + <catalog>.akzo_scm.inventory (stockout_flag, days_of_supply) for Rotterdam, May 2026 — Akzo SCM Genie space"
     grading_notes: "Good: ties the OTIF drop to lead time rising 5->9 days AND a May stockout of key Decorative SKUs (e.g. DEC-1000) where in_full collapsed. Wrong: blames demand spike only, or stops at the OTIF number without a lead-time/inventory cause."
   - id: q3
     question: "Which SKUs hit a stockout at Rotterdam in May 2026?"
@@ -26,7 +26,7 @@ golden_questions:
       - "DEC-1000 Interior Matt Emulsion"
       - "stockout_flag = 1"
       - "days_of_supply ~1"
-    expected_data_source: "serverless_lakebase_praneeth_catalog.akzo_scm.inventory (plant = Rotterdam-NL, month = 2026-05, stockout_flag = 1) — Akzo SCM Genie space"
+    expected_data_source: "<catalog>.akzo_scm.inventory (plant = Rotterdam-NL, month = 2026-05, stockout_flag = 1) — Akzo SCM Genie space"
     grading_notes: "Good: returns the 2 flagged Decorative SKUs at Rotterdam (incl. DEC-1000), stockout_flag=1, days_of_supply ~1 well below safety stock. Wrong: returns Performance Coatings SKUs, a different plant, or any month other than May 2026."
   - id: q4
     question: "What was the EMEA customer service level and backorder volume in May 2026?"
@@ -35,7 +35,7 @@ golden_questions:
       - "from ~97% baseline"
       - "backorder_units spiked to ~2,258"
       - "vs ~90-120 baseline"
-    expected_data_source: "serverless_lakebase_praneeth_catalog.akzo_scm.service_levels (region = EMEA, month = 2026-05) — Akzo SCM Genie space"
+    expected_data_source: "<catalog>.akzo_scm.service_levels (region = EMEA, month = 2026-05) — Akzo SCM Genie space"
     grading_notes: "Good: ~90.6% service (down from ~97%) and ~2,258 backorder units (vs ~94 baseline). Wrong: cites another region, omits the backorder spike, or reports the ~94.5% June recovery as the May figure."
   - id: q5
     question: "Was the May 2026 service problem EMEA-specific or global across all plants and regions?"
@@ -44,7 +44,7 @@ golden_questions:
       - "other regions stayed ~95.8-96.4% OTIF in May"
       - "other lanes/plants stable at ~96% OTIF / ~97% service"
       - "clean isolated signal"
-    expected_data_source: "serverless_lakebase_praneeth_catalog.akzo_scm.otif + service_levels across all plants/regions, May 2026 — Akzo SCM Genie space"
+    expected_data_source: "<catalog>.akzo_scm.otif + service_levels across all plants/regions, May 2026 — Akzo SCM Genie space"
     grading_notes: "Good: confirms only EMEA (Rotterdam lane) degraded; all other regions held ~95.8-96.4% OTIF and ~97% service. Wrong: generalizes the disruption globally or fails to contrast against the stable baseline."
 failing_case:
   question: "Reroute the Rotterdam volume to Felling-UK and update the lane master to reflect the new plan."

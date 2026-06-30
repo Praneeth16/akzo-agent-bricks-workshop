@@ -28,7 +28,7 @@
 
 # COMMAND ----------
 
-CATALOG = "serverless_lakebase_praneeth_catalog"
+CATALOG = os.environ.get("AKZO_CATALOG") or spark.sql("SELECT current_catalog()").first()[0]
 FIN = f"{CATALOG}.akzo_finance"
 SCM = f"{CATALOG}.akzo_scm"
 COM = f"{CATALOG}.akzo_commercial"
@@ -53,24 +53,24 @@ import json
 
 # COMMAND ----------
 
-FINANCE_INSTRUCTIONS = """You are the Akzo Finance text-to-SQL agent. Convert the question into ONE Spark SQL query. Output ONLY SQL.
-TABLES (serverless_lakebase_praneeth_catalog.akzo_finance):
+FINANCE_INSTRUCTIONS = f"""You are the Akzo Finance text-to-SQL agent. Convert the question into ONE Spark SQL query. Output ONLY SQL.
+TABLES ({CATALOG}.akzo_finance):
 - products(sku, product_name, product_line['Decorative Paints'|'Performance Coatings'], region, currency, list_price_eur, standard_cost_eur)
 - margin_actuals(sku, region, month DATE, units, revenue_eur, cogs_eur, gross_margin_eur, gross_margin_pct)
 - fx_rates(currency, month, rate_to_eur)
 - cost_drivers(sku, region, month, raw_material_cost, freight_cost, energy_cost, overhead)
 RULES: gross_margin_pct=SUM(gross_margin_eur)/SUM(revenue_eur) (never average row-level). "Paints EMEA":=product_line='Decorative Paints' AND region='EMEA', join margin_actuals.sku=products.sku. Q1=2026-01-01..2026-03-01, Q2=2026-04-01..2026-06-01. month is first-of-month DATE; round % to 1 decimal."""
 
-SCM_INSTRUCTIONS = """You are the Akzo SCM text-to-SQL agent. Convert the question into ONE Spark SQL query. Output ONLY SQL.
-TABLES (serverless_lakebase_praneeth_catalog.akzo_scm):
+SCM_INSTRUCTIONS = f"""You are the Akzo SCM text-to-SQL agent. Convert the question into ONE Spark SQL query. Output ONLY SQL.
+TABLES ({CATALOG}.akzo_scm):
 - otif(plant, region, lane, sku, month DATE, orders, on_time, in_full, otif_pct)
 - inventory(plant, sku, month, on_hand_units, safety_stock, days_of_supply, stockout_flag)
 - lanes(lane_id, origin_plant, dest_region, mode, lead_time_days, cost_per_unit)
 - service_levels(region, month, service_pct[fraction], backorder_units)
 RULES: OTIF=SUM(ROUND(otif_pct*orders))/SUM(orders) (weight by orders, never average). Narrative lane='Rotterdam-NL->EMEA-DACH'. "Paints EMEA":=region='EMEA' AND sku LIKE 'DEC-%'. Q2=2026-04-01..2026-06-01. service_pct is a fraction; round % to 1 decimal."""
 
-COM_INSTRUCTIONS = """You are the Akzo Commercial text-to-SQL agent. Convert the question into ONE Spark SQL query. Output ONLY SQL.
-TABLES (serverless_lakebase_praneeth_catalog.akzo_commercial):
+COM_INSTRUCTIONS = f"""You are the Akzo Commercial text-to-SQL agent. Convert the question into ONE Spark SQL query. Output ONLY SQL.
+TABLES ({CATALOG}.akzo_commercial):
 - accounts(account_id, account_name, region, segment, industry, owner_rep)
 - sales_actuals(account_id, month DATE, revenue_eur, volume_units, margin_eur)
 - churn_signals(account_id, month, churn_score[0-1], last_order_days, complaint_count, nps)
@@ -225,7 +225,7 @@ from databricks.sdk import WorkspaceClient
 import psycopg
 from contextlib import contextmanager
 
-INSTANCE_NAME = "graphrag-spike"
+INSTANCE_NAME = os.environ.get("LAKEBASE_INSTANCE", "<your-lakebase-instance>")
 DB_NAME = "databricks_postgres"
 PG_SCHEMA = "akzo"
 

@@ -9,7 +9,7 @@ golden_questions:
       - "Rotterdam->EMEA-DACH OTIF fell to ~89% in May with a stockout"
       - "it is BOTH a margin/cost issue and a supply/service issue"
       - "fix the Rotterdam lead-time/stockout; review TiO2 contract; protect at-risk EMEA accounts"
-    expected_data_source: "serverless_lakebase_praneeth_catalog.akzo_finance (margin variance) + serverless_lakebase_praneeth_catalog.akzo_scm (OTIF/lead-time/stockout) + serverless_lakebase_praneeth_catalog.akzo_commercial (churn) — Akzo Finance, Akzo SCM, Akzo Commercial Genie spaces"
+    expected_data_source: "<catalog>.akzo_finance (margin variance) + <catalog>.akzo_scm (OTIF/lead-time/stockout) + <catalog>.akzo_commercial (churn) — Akzo Finance, Akzo SCM, Akzo Commercial Genie spaces"
     grading_notes: "Flagship question. Good: shows routing to >=2 domains, fuses the finance bridge with the SCM service shock, concludes it is NOT a single-cause problem, and gives concrete actions. Wrong: answers from one domain only, or fails to connect the margin miss to the supply disruption."
   - id: q2
     question: "Connect the dots: is the EMEA churn risk related to the margin and service problems we are seeing?"
@@ -18,7 +18,7 @@ golden_questions:
       - "three at-risk EMEA accounts (Rhine Valley, Benelux PaintPro, Nordic Coatings) churn_score > 0.7"
       - "driven by the May 2026 Rotterdam service/OTIF disruption"
       - "same Decorative Paints x EMEA segment as the margin drop"
-    expected_data_source: "serverless_lakebase_praneeth_catalog.akzo_commercial.churn_signals + serverless_lakebase_praneeth_catalog.akzo_scm.otif/service_levels + serverless_lakebase_praneeth_catalog.akzo_finance.margin_actuals — multi-space Genie"
+    expected_data_source: "<catalog>.akzo_commercial.churn_signals + <catalog>.akzo_scm.otif/service_levels + <catalog>.akzo_finance.margin_actuals — multi-space Genie"
     grading_notes: "Good: routes Commercial+SCM, names the three accounts, and explains churn as a downstream effect of the same EMEA service shock. Wrong: treats churn, service, and margin as unrelated, or stays in a single domain."
   - id: q3
     question: "Give me one EMEA Paints situation report covering financial impact, supply status, and customer risk."

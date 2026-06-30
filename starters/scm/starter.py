@@ -5,7 +5,7 @@
 # MAGIC *Hackathon track #2. Forkable Day-2 starter — a slim distillation of `L200-capabilities/03_scm_commercial_legs.py` (SCM leg).*
 # MAGIC
 # MAGIC A **self-contained, forkable** SCM copilot: a governed **text2SQL** call over
-# MAGIC `serverless_lakebase_praneeth_catalog.akzo_scm` (the Akzo SCM Genie-space pattern in code), a
+# MAGIC `<catalog>.akzo_scm` (the Akzo SCM Genie-space pattern in code), a
 # MAGIC **reasoning step** that ties lead-time + stockout + service/backorder evidence into a root cause and
 # MAGIC ONE concrete intervention, a **Lakebase write** that stages the intervention for human approval, and an
 # MAGIC **`ai_query` judge** over the 5 golden questions. Reads governed by OBO/UC; the write governed by
@@ -29,7 +29,7 @@
 
 # COMMAND ----------
 
-CATALOG = "serverless_lakebase_praneeth_catalog"
+CATALOG = os.environ.get("AKZO_CATALOG") or spark.sql("SELECT current_catalog()").first()[0]
 SCM = f"{CATALOG}.akzo_scm"
 LLM_ENDPOINT = "databricks-claude-opus-4-7"   # text2SQL + reasoning. Swap to "databricks-gpt-5-5" to compare.
 JUDGE_ENDPOINT = "databricks-gpt-5-5"          # an independent grader
@@ -53,10 +53,10 @@ def _ai_query(prompt: str, endpoint: str = LLM_ENDPOINT) -> str:
 
 # TODO (Day-2) SPRINT 1 — TWEAK THE INSTRUCTION: edit one CERTIFIED RULE or add one EXAMPLE Q:/SQL: pair
 #   (e.g. normalize lead time by transport mode so sea lanes don't dominate), re-run BEAT 1, watch the SQL change.
-SCM_INSTRUCTIONS = """You are the Akzo SCM text-to-SQL agent. Convert the user's question into ONE Spark SQL query.
+SCM_INSTRUCTIONS = f"""You are the Akzo SCM text-to-SQL agent. Convert the user's question into ONE Spark SQL query.
 Output ONLY the SQL, no prose, no fences.
 
-TABLES (all under serverless_lakebase_praneeth_catalog.akzo_scm):
+TABLES (all under {CATALOG}.akzo_scm):
 - otif(plant, region['EMEA'|'Americas'|'APAC'|'China'], lane, sku, month DATE, orders, on_time, in_full, otif_pct)
 - inventory(plant, sku, month, on_hand_units, safety_stock, days_of_supply, stockout_flag[1=stockout])
 - lanes(lane_id, origin_plant, dest_region, mode['road'|'sea'|'air'], lead_time_days, cost_per_unit)
@@ -72,7 +72,7 @@ CERTIFIED RULES:
 EXAMPLE:
 Q: "Show monthly OTIF for the Rotterdam-NL->EMEA-DACH lane in 2026."
 SQL: SELECT month, ROUND(SUM(ROUND(otif_pct*orders))/SUM(orders)*100,1) AS lane_otif_pct, SUM(orders) AS orders
-FROM serverless_lakebase_praneeth_catalog.akzo_scm.otif
+FROM {CATALOG}.akzo_scm.otif
 WHERE lane='Rotterdam-NL->EMEA-DACH' AND month>=DATE'2026-01-01'
 GROUP BY month ORDER BY month;"""
 
@@ -170,7 +170,7 @@ from databricks.sdk import WorkspaceClient
 import psycopg
 from contextlib import contextmanager
 
-INSTANCE_NAME = "graphrag-spike"
+INSTANCE_NAME = os.environ.get("LAKEBASE_INSTANCE", "<your-lakebase-instance>")
 DB_NAME = "databricks_postgres"
 PG_SCHEMA = "akzo"
 SERVICE_IDENTITY = "scm-copilot@service"

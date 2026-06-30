@@ -5,7 +5,7 @@
 # MAGIC *Hackathon track #5. Forkable Day-2 starter — a slim distillation of `L200-capabilities/03_scm_commercial_legs.py` (Commercial leg).*
 # MAGIC
 # MAGIC A **self-contained, forkable** Commercial assistant: a governed **text2SQL** call over
-# MAGIC `serverless_lakebase_praneeth_catalog.akzo_commercial` (the Akzo Commercial Genie-space pattern in
+# MAGIC `<catalog>.akzo_commercial` (the Akzo Commercial Genie-space pattern in
 # MAGIC code), a **reasoning step** that ranks at-risk accounts, ties the churn to its upstream cause, and
 # MAGIC proposes ONE next-best-action, a **Lakebase write** that stages the save play for human approval, and an
 # MAGIC **`ai_query` judge** over the 5 golden questions. Reads governed by OBO/UC; the write governed by
@@ -28,7 +28,7 @@
 
 # COMMAND ----------
 
-CATALOG = "serverless_lakebase_praneeth_catalog"
+CATALOG = os.environ.get("AKZO_CATALOG") or spark.sql("SELECT current_catalog()").first()[0]
 COM = f"{CATALOG}.akzo_commercial"
 LLM_ENDPOINT = "databricks-claude-opus-4-7"   # text2SQL + reasoning. Swap to "databricks-gpt-5-5" to compare.
 JUDGE_ENDPOINT = "databricks-gpt-5-5"          # an independent grader
@@ -52,10 +52,10 @@ def _ai_query(prompt: str, endpoint: str = LLM_ENDPOINT) -> str:
 
 # TODO (Day-2) SPRINT 1 — TWEAK THE INSTRUCTION: edit one CERTIFIED RULE (e.g. the churn_score>0.7
 #   threshold) or add one EXAMPLE Q:/SQL: pair, re-run BEAT 1, and watch the generated SQL / answer change.
-COM_INSTRUCTIONS = """You are the Akzo Commercial text-to-SQL agent. Convert the user's question into ONE Spark SQL query.
+COM_INSTRUCTIONS = f"""You are the Akzo Commercial text-to-SQL agent. Convert the user's question into ONE Spark SQL query.
 Output ONLY the SQL, no prose, no fences.
 
-TABLES (all under serverless_lakebase_praneeth_catalog.akzo_commercial):
+TABLES (all under {CATALOG}.akzo_commercial):
 - accounts(account_id, account_name, region['EMEA'|'Americas'|'APAC'|'China'], segment['Architectural'|'Industrial'|'Marine & Protective'|'Automotive Refinish'], industry, owner_rep)
 - pipeline(opp_id, account_id, stage, amount_eur, close_month DATE, product_line['Decorative Paints'|'Performance Coatings'])
 - sales_actuals(account_id, month DATE, revenue_eur, volume_units, margin_eur)
@@ -71,8 +71,8 @@ CERTIFIED RULES:
 EXAMPLE:
 Q: "Which accounts have churn_score above 0.7 in June 2026?"
 SQL: SELECT a.account_id, a.account_name, a.region, a.segment, ROUND(c.churn_score,3) AS churn_score
-FROM serverless_lakebase_praneeth_catalog.akzo_commercial.churn_signals c
-JOIN serverless_lakebase_praneeth_catalog.akzo_commercial.accounts a ON c.account_id=a.account_id
+FROM {CATALOG}.akzo_commercial.churn_signals c
+JOIN {CATALOG}.akzo_commercial.accounts a ON c.account_id=a.account_id
 WHERE c.month=DATE'2026-06-01' AND c.churn_score>0.7 ORDER BY c.churn_score DESC;"""
 
 def text2sql(question: str, instructions: str = COM_INSTRUCTIONS) -> str:
@@ -167,7 +167,7 @@ from databricks.sdk import WorkspaceClient
 import psycopg
 from contextlib import contextmanager
 
-INSTANCE_NAME = "graphrag-spike"
+INSTANCE_NAME = os.environ.get("LAKEBASE_INSTANCE", "<your-lakebase-instance>")
 DB_NAME = "databricks_postgres"
 PG_SCHEMA = "akzo"
 SERVICE_IDENTITY = "commercial-assistant@service"

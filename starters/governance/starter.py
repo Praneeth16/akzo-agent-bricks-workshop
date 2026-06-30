@@ -38,7 +38,7 @@
 
 # COMMAND ----------
 
-CATALOG = "serverless_lakebase_praneeth_catalog"
+CATALOG = os.environ.get("AKZO_CATALOG") or spark.sql("SELECT current_catalog()").first()[0]
 FIN = f"{CATALOG}.akzo_finance"
 OPS = f"{CATALOG}.akzo_ops"
 GW = f"{CATALOG}.akzo_gateway"

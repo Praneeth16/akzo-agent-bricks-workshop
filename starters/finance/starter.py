@@ -5,7 +5,7 @@
 # MAGIC *Hackathon track #1. Forkable Day-2 starter — a slim distillation of `L200-capabilities/01_domain_agent_finance.py`.*
 # MAGIC
 # MAGIC A **self-contained, forkable** Finance copilot: a governed **text2SQL** call over
-# MAGIC `serverless_lakebase_praneeth_catalog.akzo_finance` (the Akzo Finance Genie-space pattern in code),
+# MAGIC `<catalog>.akzo_finance` (the Akzo Finance Genie-space pattern in code),
 # MAGIC a **reasoning step** that turns the numbers into a four-way **price/volume/FX/cost** bridge plus a
 # MAGIC recommended action, a **Lakebase write** that stages the recommendation as a saved analysis / forecast
 # MAGIC override for human approval, and an **`ai_query` judge** over the 5 golden questions. Reads governed by
@@ -28,7 +28,7 @@
 
 # COMMAND ----------
 
-CATALOG = "serverless_lakebase_praneeth_catalog"
+CATALOG = os.environ.get("AKZO_CATALOG") or spark.sql("SELECT current_catalog()").first()[0]
 FIN = f"{CATALOG}.akzo_finance"
 LLM_ENDPOINT = "databricks-claude-opus-4-7"   # text2SQL + reasoning. Swap to "databricks-gpt-5-5" to compare.
 JUDGE_ENDPOINT = "databricks-gpt-5-5"          # an independent grader (not marking its own homework)
@@ -54,10 +54,10 @@ def _ai_query(prompt: str, endpoint: str = LLM_ENDPOINT) -> str:
 
 # TODO (Day-2) SPRINT 1 — TWEAK THE INSTRUCTION: edit one CERTIFIED RULE or add one EXAMPLE Q:/SQL: pair
 #   to match your tables/persona, then re-run BEAT 1 and watch the generated SQL (and the answer) change.
-FINANCE_INSTRUCTIONS = """You are the Akzo Finance text-to-SQL agent. Convert the user's question into ONE Spark SQL query.
+FINANCE_INSTRUCTIONS = f"""You are the Akzo Finance text-to-SQL agent. Convert the user's question into ONE Spark SQL query.
 Output ONLY the SQL, no prose, no markdown fences.
 
-TABLES (all under serverless_lakebase_praneeth_catalog.akzo_finance):
+TABLES (all under {CATALOG}.akzo_finance):
 - products(sku, product_name, product_line['Decorative Paints'|'Performance Coatings'], region['EMEA'|'Americas'|'APAC'|'China'], currency, list_price_eur, standard_cost_eur)
 - margin_actuals(sku, region, month DATE, units, revenue_eur, cogs_eur, gross_margin_eur, gross_margin_pct)
 - margin_budget(sku, region, month, budget_units, budget_revenue_eur, budget_margin_eur)
@@ -74,8 +74,8 @@ CERTIFIED RULES (always follow):
 EXAMPLE:
 Q: "Show Paints EMEA gross margin % by month for 2026."
 SQL: SELECT m.month, ROUND(SUM(m.gross_margin_eur)/SUM(m.revenue_eur)*100,1) AS gross_margin_pct
-FROM serverless_lakebase_praneeth_catalog.akzo_finance.margin_actuals m
-JOIN serverless_lakebase_praneeth_catalog.akzo_finance.products p ON m.sku=p.sku
+FROM {CATALOG}.akzo_finance.margin_actuals m
+JOIN {CATALOG}.akzo_finance.products p ON m.sku=p.sku
 WHERE p.product_line='Decorative Paints' AND p.region='EMEA' AND m.month>=DATE'2026-01-01'
 GROUP BY m.month ORDER BY m.month;"""
 
@@ -189,7 +189,7 @@ from databricks.sdk import WorkspaceClient
 import psycopg
 from contextlib import contextmanager
 
-INSTANCE_NAME = "graphrag-spike"
+INSTANCE_NAME = os.environ.get("LAKEBASE_INSTANCE", "<your-lakebase-instance>")
 DB_NAME = "databricks_postgres"
 PG_SCHEMA = "akzo"
 SERVICE_IDENTITY = "finance-copilot@service"

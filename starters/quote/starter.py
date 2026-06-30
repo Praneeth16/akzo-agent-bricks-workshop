@@ -29,7 +29,7 @@
 
 # COMMAND ----------
 
-CATALOG = "serverless_lakebase_praneeth_catalog"
+CATALOG = os.environ.get("AKZO_CATALOG") or spark.sql("SELECT current_catalog()").first()[0]
 FIN = f"{CATALOG}.akzo_finance"
 LLM_ENDPOINT = "databricks-claude-opus-4-7"   # extraction + drafting. Swap to "databricks-gpt-5-5" to compare.
 MARGIN_FLOOR_PCT = 30.0                        # guardrail: a discounted quote below this escalates.
@@ -153,7 +153,7 @@ from databricks.sdk import WorkspaceClient
 import psycopg
 from contextlib import contextmanager
 
-INSTANCE_NAME = "graphrag-spike"
+INSTANCE_NAME = os.environ.get("LAKEBASE_INSTANCE", "<your-lakebase-instance>")
 DB_NAME = "databricks_postgres"
 PG_SCHEMA = "akzo"
 SERVICE_IDENTITY = "quote-agent@service"

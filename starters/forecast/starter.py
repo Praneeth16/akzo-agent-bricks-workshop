@@ -28,7 +28,7 @@
 
 # COMMAND ----------
 
-CATALOG = "serverless_lakebase_praneeth_catalog"
+CATALOG = os.environ.get("AKZO_CATALOG") or spark.sql("SELECT current_catalog()").first()[0]
 FIN = f"{CATALOG}.akzo_finance"
 SCM = f"{CATALOG}.akzo_scm"
 LLM_ENDPOINT = "databricks-claude-opus-4-7"   # reasoning. Swap to "databricks-gpt-5-5" to compare.
@@ -151,7 +151,7 @@ from databricks.sdk import WorkspaceClient
 import psycopg
 from contextlib import contextmanager
 
-INSTANCE_NAME = "graphrag-spike"
+INSTANCE_NAME = os.environ.get("LAKEBASE_INSTANCE", "<your-lakebase-instance>")
 DB_NAME = "databricks_postgres"
 PG_SCHEMA = "akzo"
 SERVICE_IDENTITY = "forecast-agent@service"
