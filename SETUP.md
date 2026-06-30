@@ -54,7 +54,7 @@ export DATABRICKS_CONFIG_PROFILE=<your_profile>
 python3 data/load_to_uc.py
 ```
 
-(`AKZO_CATALOG` and `DATABRICKS_WAREHOUSE_ID` from step 1 must be set.) This creates 6 schemas, 12
+(`AKZO_CATALOG` and `DATABRICKS_WAREHOUSE_ID` from step 1 must be set.) This creates 6 schemas, 13
 tables, 2 volumes, and uploads 14 PDFs. Idempotent — safe to re-run. Full detail and the column
 docs are in [`data/README.md`](data/README.md).
 
@@ -82,7 +82,7 @@ Commercial. Two ways to create them:
 - **From code (recommended):**
   ```bash
   python3 genie/create_genie_spaces.py            # uses AKZO_CATALOG + DATABRICKS_WAREHOUSE_ID
-  # or: python3 genie/create_genie_spaces.py --profile <your_profile>
+  # add --profile <your_profile> if you use a named CLI profile (env vars still required)
   ```
   It creates all three, seeds them with the prebuilt configs, and writes the ids to
   `genie/space_ids.json`.
@@ -121,10 +121,11 @@ L200 chapter 5 (document intelligence) embeds the PDFs and builds an index.
 
 ---
 
-## 7. Mock Systems app + UC HTTP connection
+## 7. Mock Systems app (+ the UC HTTP connection)
 
 The "agents that act" labs (L200 ch2–3) and the action apps POST to a **Mock External Systems**
-app through a governed Unity Catalog HTTP connection.
+app through a governed Unity Catalog HTTP connection. The deploy script below stands up the **app**
+and its grants; the **UC HTTP connection** `akzo_external_systems` is created inside L200 chapter 2.
 
 - Deploy the app:
   ```bash
@@ -132,7 +133,7 @@ app through a governed Unity Catalog HTTP connection.
   DATABRICKS_WAREHOUSE_ID=<id> AKZO_CATALOG=<catalog> LAKEBASE_INSTANCE=<instance> \
   ./deploy/deploy_mock_systems.sh
   ```
-- Copy its URL into the `mock_app_url` widget (notebooks) or `MOCK_APP_URL` env var (apps).
+- Copy its URL into the `mock_app_url` widget (notebooks) or the `AKZO_MOCK_SYSTEMS_URL` env var (apps).
 - The UC HTTP connection `akzo_external_systems` is created inside L200 chapter 2; the notebooks and
   apps reference it by the `connection_name` widget / `AKZO_HTTP_CONNECTION` env var.
 

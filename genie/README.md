@@ -32,8 +32,8 @@ prebuilt config, prints the ids, and writes them to `space_ids.json`:
 
 ```bash
 AKZO_CATALOG=<catalog> DATABRICKS_WAREHOUSE_ID=<id> python3 genie/create_genie_spaces.py
-# or, with a named CLI profile:
-python3 genie/create_genie_spaces.py --profile <your_profile>
+# or, with a named CLI profile (AKZO_CATALOG + DATABRICKS_WAREHOUSE_ID still required):
+AKZO_CATALOG=<catalog> DATABRICKS_WAREHOUSE_ID=<id> python3 genie/create_genie_spaces.py --profile <your_profile>
 ```
 
 It reads `AKZO_CATALOG` + `DATABRICKS_WAREHOUSE_ID` from the environment (and stops with

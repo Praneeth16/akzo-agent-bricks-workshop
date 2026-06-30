@@ -11,7 +11,7 @@ lands it in **your** Unity Catalog. Run the loader once before any notebook, sta
 
 ## What you get
 
-The loader creates **6 schemas** (all prefixed `akzo_`) in your catalog, plus **12 tables**, **2
+The loader creates **6 schemas** (all prefixed `akzo_`) in your catalog, plus **13 tables**, **2
 volumes**, and **14 PDFs**:
 
 | Schema | Tables | Holds |
