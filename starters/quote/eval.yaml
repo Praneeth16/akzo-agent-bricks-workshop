@@ -9,7 +9,7 @@ golden_questions:
       - "region: EMEA"
       - "payment terms: Net 30"
       - "matched to a products SKU"
-    expected_data_source: "ai_extract over the inbound RFQ text -> matched against <catalog>.akzo_finance.products (product_name -> sku) — quote-agent / 08_doc_intelligence"
+    expected_data_source: "ai_extract over the inbound RFQ text -> matched against <catalog>.akzo_finance.products (product_name -> sku) — quote-agent / 05_document_intelligence"
     grading_notes: "Good: structured extraction of product, quantity, region, terms, then resolves the product to a products-table SKU. Wrong: misses a field, fails to map the free-text product to a SKU, or hallucinates a SKU not in products."
   - id: q2
     question: "What is the list price and standard cost for that product, and what unit margin does that imply?"

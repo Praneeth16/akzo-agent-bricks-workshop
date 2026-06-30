@@ -157,7 +157,7 @@ wait_active akzo-mock-systems
 sync_app mock-systems akzo-mock-systems
 
 echo "==> 4. Sync notebooks + _shared to workspace, create autonomous Job (PAUSED)"
-# The job notebook_path = $APPS_BASE/L200-capabilities/10_autonomous_closed_loop, and the
+# The job notebook_path = $APPS_BASE/L200-capabilities/03_autonomous_loop, and the
 # notebook imports apps/_shared via sys.path -> $APPS_BASE/_shared. Sync both.
 dbx sync "$REPO_ROOT/L200-capabilities" "$APPS_BASE/L200-capabilities" >/dev/null && echo "    synced L200-capabilities -> $APPS_BASE/L200-capabilities"
 dbx sync "$REPO_ROOT/apps/_shared" "$APPS_BASE/_shared" \

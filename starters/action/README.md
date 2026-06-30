@@ -61,7 +61,7 @@ Each sprint maps to a `# TODO (Day-2)` marker in `starter.py`.
   connector under `apps/_shared/action_plane/connectors/` + a `ROUTING` entry.
 - **Sprint 4 — AUTONOMOUS (L4).** `# TODO (Day-2) SPRINT 4` on `act_autonomously`. Auto-approve-within-policy
   and escalate-on-breach is wired; extend it to a real trigger (e.g. OTIF < 90% on a lane) + a verify step.
-  The full detect → act → verify → escalate loop is `L200-capabilities/10_autonomous_closed_loop.py`.
+  The full detect → act → verify → escalate loop is `L200-capabilities/03_autonomous_loop.py`.
 
 ## Running it
 

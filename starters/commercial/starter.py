@@ -2,7 +2,7 @@
 # MAGIC %md
 # MAGIC # STARTER — Commercial action assistant (churn signals -> next-best-action)
 # MAGIC
-# MAGIC *Hackathon track #5. Forkable Day-2 starter — a slim distillation of `L200-capabilities/03_scm_commercial_legs.py` (Commercial leg).*
+# MAGIC *Hackathon track #5. Forkable Day-2 starter — a slim distillation of `L200-capabilities/01_governed_supervisor.py` (Commercial leg).*
 # MAGIC
 # MAGIC A **self-contained, forkable** Commercial assistant: a governed **text2SQL** call over
 # MAGIC `<catalog>.akzo_commercial` (the Akzo Commercial Genie-space pattern in

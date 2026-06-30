@@ -2,7 +2,7 @@
 # MAGIC %md
 # MAGIC # STARTER — SCM control-tower copilot (OTIF diagnosis -> recommended intervention)
 # MAGIC
-# MAGIC *Hackathon track #2. Forkable Day-2 starter — a slim distillation of `L200-capabilities/03_scm_commercial_legs.py` (SCM leg).*
+# MAGIC *Hackathon track #2. Forkable Day-2 starter — a slim distillation of `L200-capabilities/01_governed_supervisor.py` (SCM leg).*
 # MAGIC
 # MAGIC A **self-contained, forkable** SCM copilot: a governed **text2SQL** call over
 # MAGIC `<catalog>.akzo_scm` (the Akzo SCM Genie-space pattern in code), a

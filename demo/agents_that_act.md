@@ -1,7 +1,7 @@
 # Agents That Act — Exec Demo Script + Slide Outline
 
 > **Audience:** Head of AkzoNobel (+ exec staff). **The question:** *"Can your agents actually take action?"*
-> **Run time:** 5 minutes live + 3-4 Q&A. **Presenter:** drives the deployed apps + replays notebook 10.
+> **Run time:** 5 minutes live + 3-4 Q&A. **Presenter:** drives the deployed apps + replays CH3 (03_autonomous_loop).
 > **Workspace:** your workspace (CLI profile `<your-profile>`), Lakebase `<your-lakebase-instance>` / schema `akzo`.
 > Every claim below maps to a built, live-verified artifact (app, notebook, or table). App URLs are filled in at deploy time / live in the workspace.
 
@@ -18,7 +18,7 @@ We don't ship "agents that call APIs." We ship the **Action Maturity Ladder** �
 | **L1** | **Recommend** | Answers + proposes a next-best-action. Nothing written, nothing happens. | every agent (supervisor, finance-copilot, quote-agent) |
 | **L2** | **Stage & approve** | Writes a *governed action record*, guardrails check it, a human approves. | `akzo.actions` + `akzo.action_events`; domain apps |
 | **L3** | **Execute externally** | On approval, pushes the action into real systems (email / CRM / ERP-PO) via a governed UC HTTP connection. | Action Center + connectors |
-| **L4** | **Autonomous closed-loop** | Trigger → pick an action within policy → execute → verify → escalate only on breach. | notebook 10 + `akzo-autonomous-scm` job |
+| **L4** | **Autonomous closed-loop** | Trigger → pick an action within policy → execute → verify → escalate only on breach. | CH3 (03_autonomous_loop) + `akzo-autonomous-scm` job |
 
 Every rung travels the **same governed plane**, and that is the whole point:
 
@@ -34,7 +34,7 @@ Every rung travels the **same governed plane**, and that is the whole point:
 
 ## 2. The 5-minute live flow (presenter runbook)
 
-> Have these tabs open before you start: **akzo-supervisor**, **akzo-finance-copilot**, **akzo-quote-agent**, **akzo-action-center**, **akzo-mock-systems**, and notebook **`10_autonomous_closed_loop.py`** (already run, outputs visible). Same Paints EMEA story runs through all of it.
+> Have these tabs open before you start: **akzo-supervisor**, **akzo-finance-copilot**, **akzo-quote-agent**, **akzo-action-center**, **akzo-mock-systems**, and notebook **`03_autonomous_loop.py`** (already run, outputs visible). Same Paints EMEA story runs through all of it.
 
 ### Step 0 — Frame (15 sec)
 > "You asked if agents can act. Let me walk you up a ladder — recommend, stage, execute into your systems, and run on their own — and show you that every rung is governed."
@@ -53,8 +53,8 @@ Every rung travels the **same governed plane**, and that is the whole point:
 8. Show the **Timeline** in the detail panel: `proposed → approved → executing → connector(email) → connector(crm) → executed`, with the external refs embedded. *Say: "That's the audit lineage — who did what, when, why, from one table."*
 9. Flip to **akzo-mock-systems** (`/api/log` or its status page). Show the matching **receipt** row in `external_system_log` for the same `EMAIL-####` / `CRM-####` ref, attributed to the mock app's service principal. *Say: "And here's the proof on the receiving system — same ref, governed end to end."*
 
-### Step 3 — L4 Autonomous closed-loop (replay notebook 10) — ~90 sec
-10. Open notebook **`10_autonomous_closed_loop.py`** (already run). *Say: "At the top of the ladder, the agent acts on its own — but only within policy."*
+### Step 3 — L4 Autonomous closed-loop (replay 03_autonomous_loop) — ~90 sec
+10. Open notebook **`03_autonomous_loop.py`** (already run). *Say: "At the top of the ladder, the agent acts on its own — but only within policy."*
 11. **DETECT:** point at the output — the loop queried `akzo_scm.otif` and found **`Rotterdam-NL->EMEA-DACH` at ~88.9% OTIF in May 2026** (below the 90% threshold), with **DEC-1000 / DEC-1004 stocked out**.
 12. **PATH A (auto-execute):** an in-policy `scm_reorder` (≤ €100k cap) → **auto-approved by `autonomous-loop` (no human)** → `execute()` raised a **PO on the mock ERP** → real `external_ref` (`PO-####`) + a receipt in `external_system_log`. *Say: "In-policy, so it acted on its own — and logged everything."*
 13. **PATH B (escalate):** the over-cap reorder (**€205k > €100k cap**) → `evaluate()` breach → **escalated to a human gate, NO external system called, no PO raised**. *Say: "This is the moment that lets you sign off on autonomy. The instant it would breach policy, it stops and hands it to a human. Human-on-the-loop, not in-the-loop."*
@@ -125,7 +125,7 @@ Say these out loud — they are the difference between "a demo" and "a thing you
 ## 6. Talk track + Q&A
 
 **Q: "Is it actually autonomous, or is a human always clicking?"**
-> L1-L3 keep a human in the approval loop by design — staged, guardrailed, approved, then executed. L4 removes the human from the per-action approval path **only while the action stays within policy** — that's the autonomous closed-loop in notebook 10: it detected the Rotterdam OTIF breach, sized an in-policy reorder, and raised the PO on its own. The moment an action would breach policy, it escalates to a human. So: autonomous within policy, human-on-the-loop on breach.
+> L1-L3 keep a human in the approval loop by design — staged, guardrailed, approved, then executed. L4 removes the human from the per-action approval path **only while the action stays within policy** — that's the autonomous closed-loop in CH3 (03_autonomous_loop): it detected the Rotterdam OTIF breach, sized an in-policy reorder, and raised the PO on its own. The moment an action would breach policy, it escalates to a human. So: autonomous within policy, human-on-the-loop on breach.
 
 **Q: "What stops an agent from doing something dumb — a huge order, a crazy discount?"**
 > The guardrail engine. Before anything executes, `evaluate()` checks the action against `akzo.action_policies`: discount cap, spend cap, region scope, allowed action types. You saw it live — the €205k reorder breached the €100k cap and **escalated instead of executing; no PO was raised.** And the cap is data, not code: you change the policy row, the behavior changes, with full audit of who changed it.
@@ -146,8 +146,8 @@ Say these out loud — they are the difference between "a demo" and "a thing you
 If an app is slow or a connector call hangs mid-demo, do not wait on the spinner — switch to pre-verified evidence:
 
 1. **Pre-seeded actions in the Action Center.** The queue and LadderMeter are already populated from prior verified runs (L1-L4 counts). Open an already-`executed` action's detail panel to show GuardrailChips + Timeline + `external_ref` — same story, no live call needed.
-2. **Notebook outputs.** Both `09_agents_that_act.py` and `10_autonomous_closed_loop.py` are run-verified with outputs saved. Walk the L1→L4 cells in NB09, or the DETECT → PATH A (auto-execute, PO ref) → PATH B (escalate) → VERIFY cells in NB10. The printed `external_ref`s and `external_system_log` receipts are right there.
+2. **Notebook outputs.** Both `02_agents_that_act.py` and `03_autonomous_loop.py` are run-verified with outputs saved. Walk the L1→L4 cells in CH2, or the DETECT → PATH A (auto-execute, PO ref) → PATH B (escalate) → VERIFY cells in CH3. The printed `external_ref`s and `external_system_log` receipts are right there.
 3. **Mock systems log.** `akzo-mock-systems` `/api/log` shows the receipt history (`EMAIL-####`, `CRM-####`, `PO-####`) independent of a fresh execute — proof the external effects landed.
-4. **Screenshots.** Keep stills of: finance-copilot Stage-action + guardrail chips; Action Center detail (Timeline + external_ref); NB10 PATH A auto-execute and PATH B escalate; the LadderMeter. Drop straight to these if the network is hostile.
+4. **Screenshots.** Keep stills of: finance-copilot Stage-action + guardrail chips; Action Center detail (Timeline + external_ref); CH3 PATH A auto-execute and PATH B escalate; the LadderMeter. Drop straight to these if the network is hostile.
 
 > **Golden rule:** the story is the ladder + governance, not the spinner. If anything lags, narrate the ladder over a screenshot and move on — the verified evidence carries it.

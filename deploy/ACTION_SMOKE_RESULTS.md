@@ -21,7 +21,7 @@ governed UC HTTP connection.
 
 **Autonomous Job:** `akzo-autonomous-scm` · **job_id `<job-id>`** · **PAUSED** ·
 serverless (no cluster) · cron `0 0 * * * ?` Europe/Amsterdam · notebook
-`/Workspace/Users/<you@example.com>/akzo-apps/L200-capabilities/10_autonomous_closed_loop`
+`/Workspace/Users/<you@example.com>/akzo-apps/L200-capabilities/03_autonomous_loop`
 (synced + recognized as a PYTHON notebook). Safe — paused; never auto-runs.
 
 > Databricks Apps require workspace SSO, so a raw browser hit 302-redirects to login.
@@ -115,7 +115,7 @@ Action-plane tables present + writable in `akzo`: `actions`, `action_events`,
 - **Guardrail gate on execute (verified):** `POST /api/actions/24/execute` on an over-cap
   `scm_reorder` (€205k > €100k cap) → the executor's final guardrail re-check **escalated**
   instead of acting → status `escalated`, `external_ref` null, **no external call made**.
-- **L4 autonomous loop:** notebook 10 (`10_autonomous_closed_loop.py`) was already verified
+- **L4 autonomous loop:** CH3 (`03_autonomous_loop.py`) was already verified
   end-to-end on its local run (it seeded the existing `external_system_log` rows + the L4 `actions`):
   PATH A in-policy `scm_reorder` auto-approved (`autonomous-loop`, no human) + executed (PO on mock ERP);
   PATH B over-cap reorder escalated (no execution); PATH C re-fire deduped by `breach_key`.
@@ -139,7 +139,7 @@ Action-plane tables present + writable in `akzo`: `actions`, `action_events`,
   as a final gate; a breach (e.g. spend > cap) **escalates** to a human gate instead of executing.
   Verified live on the €205k over-cap reorder (action 24).
 - **Idempotency** — the L4 loop de-dupes on `payload.breach_key`; a re-fired scheduled run finds the
-  already-handled breach and skips (no duplicate PO). Verified in notebook 10 PATH C.
+  already-handled breach and skips (no duplicate PO). Verified in CH3 PATH C.
 - **Governed external path** — every connector call goes through the UC HTTP connection
   `akzo_external_systems` (the four executor SPs now hold `USE CONNECTION`), so the path is
   catalog-governed + lineage-traced; the SP-direct path is only a documented fallback. The fresh

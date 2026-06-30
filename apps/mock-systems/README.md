@@ -33,7 +33,7 @@ request jsonb · created_by text
 ## How it is called
 
 - **Governed path (preferred):** through the UC HTTP connection
-  `akzo_external_systems` (see `L200-capabilities/09b_uc_http_connection.py`) so every
+  `akzo_external_systems` (see `L200-capabilities/02_agents_that_act.py`) so every
   external call is catalog-governed and logged.
 - **Fallback:** the app's connectors call the deployed URL directly under the app
   service principal — still authenticated and still logged in
