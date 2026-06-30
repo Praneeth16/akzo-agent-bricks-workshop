@@ -9,7 +9,7 @@
 
 # COMMAND ----------
 
-# MAGIC %pip install --quiet "mcp>=1.9" "databricks-sdk[openai]" "mlflow>=3.1.0" "databricks-agents>=1.0.0" "databricks-mcp" "databricks-langchain" "langgraph"
+# MAGIC %pip install --quiet "mcp>=1.9" "databricks-sdk[openai]" "mlflow>=3.1.0" "databricks-agents>=1.0.0" "databricks-mcp" "databricks-langchain" "langgraph==0.3.4" "langgraph-prebuilt==0.1.8"
 
 # COMMAND ----------
 
@@ -289,7 +289,7 @@ with mlflow.start_run():
         artifact_path="agent",
         python_model=AGENT_FILE,
         resources=resources,
-        pip_requirements=["databricks-langchain", "langgraph", "databricks-agents", "mlflow>=3.1.0", "databricks-mcp"],
+        pip_requirements=["databricks-langchain", "langgraph==0.3.4", "langgraph-prebuilt==0.1.8", "databricks-agents", "mlflow>=3.1.0", "databricks-mcp"],
     )
 print("Logged model:", logged.model_uri)
 
