@@ -1,0 +1,26 @@
+command: ["uv", "run", "start-app"]
+# Databricks Apps listen by default on port 8000.
+
+env:
+  - name: MLFLOW_TRACKING_URI
+    value: "databricks"
+  - name: MLFLOW_REGISTRY_URI
+    value: "databricks-uc"
+  - name: API_PROXY
+    value: "http://localhost:8000/invocations"
+  - name: CHAT_APP_PORT
+    value: "3000"
+  - name: CHAT_PROXY_TIMEOUT_SECONDS
+    value: "300"
+  - name: MLFLOW_EXPERIMENT_ID
+    valueFrom: "experiment"
+  # LLM endpoint is REQUIRED (no default in code). Set it to a model you are entitled to.
+  - name: LLM_ENDPOINT
+    value: "databricks-meta-llama-3-3-70b-instruct"
+  # Catalog: current_catalog() does NOT resolve in the Apps runtime (no SQL context),
+  # so AKZO_CATALOG MUST be set for app deploys. Via DABs it comes from `--var catalog=...`
+  # (see databricks.yml). For a raw `databricks apps deploy`, set it here:
+  # - name: AKZO_CATALOG
+  #   value: "<your_catalog>"
+  - name: AKZO_SCHEMA
+    value: "akzo_finance"

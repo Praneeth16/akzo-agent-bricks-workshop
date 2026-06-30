@@ -1,0 +1,45 @@
+[project]
+name = "akzo-l100-agent-langgraph"
+version = "0.1.0"
+description = "AkzoNobel L100 code-your-own agent — LangGraph ReAct agent + managed MCP, wrapped as an MLflow ResponsesAgent"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.129.0",
+    "uvicorn>=0.41.0",
+    "databricks-langchain>=0.4.0",
+    "langgraph>=0.3.0",
+    "databricks-agents>=1.0.0",
+    "databricks-mcp>=0.1.0",
+    "databricks-sdk>=0.40.0",
+    "sqlglot>=25.0.0",
+    "mlflow>=3.1.0",
+    "python-dotenv>=1.2.1",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.25.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# Package dirs don't match the project name, so tell hatchling what to ship in the wheel.
+[tool.hatch.build.targets.wheel]
+packages = ["agent_server", "scripts"]
+
+[dependency-groups]
+dev = [
+    "hatchling>=1.28.0",
+    "pytest>=8.0.0",
+]
+setup = [
+    "ruamel.yaml>=0.18.0",
+]
+
+[tool.uv]
+default-groups = ["dev", "setup"]
+
+[project.scripts]
+quickstart = "scripts.quickstart:main"
+start-app = "scripts.start_app:main"
+start-server = "agent_server.start_server:main"
+preflight = "scripts.preflight:main"

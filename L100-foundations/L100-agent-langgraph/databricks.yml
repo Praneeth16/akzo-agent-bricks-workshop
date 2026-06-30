@@ -1,0 +1,70 @@
+bundle:
+  name: akzo_l100_agent_langgraph
+
+# Nothing workspace-specific is hardcoded. Set at deploy:
+#   databricks bundle deploy --var catalog=<your_catalog> [--var llm_endpoint=<endpoint>]
+# current_catalog() does NOT resolve in the Apps runtime, so catalog is required.
+variables:
+  catalog:
+    description: Unity Catalog holding the coatings data (akzo_finance etc.). Required for Apps deploy.
+    default: ""
+  llm_endpoint:
+    description: Foundation Model serving endpoint the agent calls.
+    default: "databricks-meta-llama-3-3-70b-instruct"
+
+resources:
+  apps:
+    akzo_l100_agent_langgraph:
+      name: "akzo-l100-agent-langgraph"
+      description: "AkzoNobel L100 code-your-own agent — LangGraph + managed MCP, wrapped as an MLflow ResponsesAgent"
+      source_code_path: ./
+      config:
+        command: ["uv", "run", "start-app"]
+        env:
+          - name: MLFLOW_TRACKING_URI
+            value: "databricks"
+          - name: MLFLOW_REGISTRY_URI
+            value: "databricks-uc"
+          - name: API_PROXY
+            value: "http://localhost:8000/invocations"
+          - name: CHAT_APP_PORT
+            value: "3000"
+          - name: CHAT_PROXY_TIMEOUT_SECONDS
+            value: "300"
+          - name: MLFLOW_EXPERIMENT_ID
+            value_from: "experiment"
+          # LLM endpoint is REQUIRED (no default in code).
+          - name: LLM_ENDPOINT
+            value: ${var.llm_endpoint}
+          # current_catalog() does NOT resolve in the Apps runtime, so AKZO_CATALOG is REQUIRED here.
+          - name: AKZO_CATALOG
+            value: ${var.catalog}
+          - name: AKZO_SCHEMA
+            value: "akzo_finance"
+
+      # Resources this app's identity is granted. The serving endpoint is the chat model
+      # the LangGraph agent calls; quickstart fills in the experiment_id. The agent consumes
+      # the managed UC-functions MCP server, governed by Unity Catalog, so the app's run-as
+      # principal needs EXECUTE on the coatings_data_lookup UC function and SELECT on the
+      # akzo_finance tables it reads (granted in the workspace, not here).
+      resources:
+        - name: 'experiment'
+          experiment:
+            experiment_id: ""
+            permission: 'CAN_MANAGE'
+
+targets:
+  dev:
+    mode: development
+    default: true
+    # workspace:
+    #   host: https://...
+
+  prod:
+    mode: production
+    # workspace:
+    #   host: https://...
+    resources:
+      apps:
+        akzo_l100_agent_langgraph:
+          name: akzo-l100-agent-langgraph
