@@ -2,8 +2,8 @@
 # MAGIC %md
 # MAGIC # STARTER — AI governance & policy agent (per-user truth + gateway control + audit)
 # MAGIC
-# MAGIC *Hackathon track #4. Forkable Day-2 starter — a slim distillation of `notebooks/02_per_user_truth_uc_obo.py`
-# MAGIC + `notebooks/07_ai_gateway_govern.py`.*
+# MAGIC *Hackathon track #4. Forkable Day-2 starter — a slim distillation of `L200-capabilities/02_per_user_truth_uc_obo.py`
+# MAGIC + `L200-capabilities/07_ai_gateway_govern.py`.*
 # MAGIC
 # MAGIC A **self-contained, forkable** governance agent. Unlike the domain tracks, the act surface here is
 # MAGIC **not** a Lakebase write — it is the two governance planes themselves:
@@ -61,7 +61,7 @@ def _ai_query(prompt: str, endpoint: str = LLM_ENDPOINT) -> str:
 # MAGIC ## The personas table (the ABAC source of truth)
 # MAGIC
 # MAGIC RLS is driven by this small governed table mapping each user to a role and a region scope. Pre-staged
-# MAGIC by `notebooks/02_per_user_truth_uc_obo.py` (idempotent re-seed here keeps the starter self-contained).
+# MAGIC by `L200-capabilities/02_per_user_truth_uc_obo.py` (idempotent re-seed here keeps the starter self-contained).
 # MAGIC **`# TODO (Day-2) SPRINT 1` lives here.**
 
 # COMMAND ----------
@@ -196,7 +196,7 @@ print("Restored per-user rate limit to:", _user_limit(GATEWAY_ENDPOINT), "calls/
 # MAGIC
 # MAGIC Who is spending, on which model tier — a plain `SELECT` over UC, the same governance plane as the
 # MAGIC lakehouse data. Reads the **preseeded** `akzo_gateway.payload_logs` (real logs feed this once the ~1h
-# MAGIC lag clears). Preseeded by `notebooks/07_ai_gateway_govern.py`.
+# MAGIC lag clears). Preseeded by `L200-capabilities/07_ai_gateway_govern.py`.
 
 # COMMAND ----------
 

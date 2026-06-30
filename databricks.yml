@@ -22,7 +22,7 @@ bundle:
 # Sync only the notebooks into the bundle (keep the upload lean).
 sync:
   include:
-    - notebooks/**
+    - L200-capabilities/**
   exclude:
     - "**/node_modules/**"
     - "apps/**"
@@ -40,23 +40,23 @@ resources:
       tasks:
         - task_key: ch1_governed_supervisor
           notebook_task:
-            notebook_path: ./notebooks/01_governed_supervisor.py
+            notebook_path: ./L200-capabilities/01_governed_supervisor.py
         - task_key: ch2_agents_that_act
           depends_on: [{ task_key: ch1_governed_supervisor }]
           notebook_task:
-            notebook_path: ./notebooks/02_agents_that_act.py
+            notebook_path: ./L200-capabilities/02_agents_that_act.py
         - task_key: ch3_autonomous_loop
           depends_on: [{ task_key: ch2_agents_that_act }]
           notebook_task:
-            notebook_path: ./notebooks/03_autonomous_loop.py
+            notebook_path: ./L200-capabilities/03_autonomous_loop.py
         - task_key: ch4_trust_and_governance
           depends_on: [{ task_key: ch3_autonomous_loop }]
           notebook_task:
-            notebook_path: ./notebooks/04_trust_and_governance.py
+            notebook_path: ./L200-capabilities/04_trust_and_governance.py
         - task_key: ch5_document_intelligence
           depends_on: [{ task_key: ch4_trust_and_governance }]
           notebook_task:
-            notebook_path: ./notebooks/05_document_intelligence.py
+            notebook_path: ./L200-capabilities/05_document_intelligence.py
       queue:
         enabled: true
 
@@ -68,11 +68,11 @@ resources:
       tasks:
         - task_key: ch6_custom_agents_and_mcp
           notebook_task:
-            notebook_path: ./notebooks/06_custom_agents_and_mcp.py
+            notebook_path: ./L200-capabilities/06_custom_agents_and_mcp.py
         - task_key: ch7_custom_model_serving
           depends_on: [{ task_key: ch6_custom_agents_and_mcp }]
           notebook_task:
-            notebook_path: ./notebooks/07_custom_model_serving.py
+            notebook_path: ./L200-capabilities/07_custom_model_serving.py
       queue:
         enabled: true
 

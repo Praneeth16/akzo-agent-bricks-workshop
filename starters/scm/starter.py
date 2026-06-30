@@ -2,7 +2,7 @@
 # MAGIC %md
 # MAGIC # STARTER — SCM control-tower copilot (OTIF diagnosis -> recommended intervention)
 # MAGIC
-# MAGIC *Hackathon track #2. Forkable Day-2 starter — a slim distillation of `notebooks/03_scm_commercial_legs.py` (SCM leg).*
+# MAGIC *Hackathon track #2. Forkable Day-2 starter — a slim distillation of `L200-capabilities/03_scm_commercial_legs.py` (SCM leg).*
 # MAGIC
 # MAGIC A **self-contained, forkable** SCM copilot: a governed **text2SQL** call over
 # MAGIC `serverless_lakebase_praneeth_catalog.akzo_scm` (the Akzo SCM Genie-space pattern in code), a
@@ -162,7 +162,7 @@ print(scm_answer)
 # MAGIC `# TODO (Day-2) SPRINT 2` lives here. The intervention is staged as an audited `pending` row in
 # MAGIC Lakebase `akzo.scm_interventions` under the service identity, then a human approves it. Reads stay
 # MAGIC governed by OBO; this **write** is governed by Postgres role + approval + audit. The
-# MAGIC `scm_interventions` table already exists (created by `notebooks/05_lakebase_memory_action.py`).
+# MAGIC `scm_interventions` table already exists (created by `L200-capabilities/05_lakebase_memory_action.py`).
 
 # COMMAND ----------
 
@@ -238,7 +238,7 @@ with pg() as conn, conn.cursor() as cur:
 # MAGIC ## BEAT 3 — MEASURE: the LLM judge over the 5 golden questions
 # MAGIC
 # MAGIC `# TODO (Day-2) SPRINT 3` lives in `eval.yaml`. Same portable `ai_query` judge as
-# MAGIC `notebooks/06_mlflow_eval_judge.py`: the agent answers each golden question from text2SQL evidence, an
+# MAGIC `L200-capabilities/06_mlflow_eval_judge.py`: the agent answers each golden question from text2SQL evidence, an
 # MAGIC independent judge scores correctness + groundedness.
 
 # COMMAND ----------

@@ -144,7 +144,7 @@ print(draft)
 # MAGIC
 # MAGIC `# TODO (Day-2)` SPRINT 2 lives here. The quote lands in `akzo.quotes` as `pending` under the
 # MAGIC service identity, a `quote_approvals` row is opened, then a human approves. Tables already exist
-# MAGIC (created by `notebooks/05_lakebase_memory_action.py`). This is read -> reason -> **act -> write ->
+# MAGIC (created by `L200-capabilities/05_lakebase_memory_action.py`). This is read -> reason -> **act -> write ->
 # MAGIC approve**.
 
 # COMMAND ----------
@@ -229,7 +229,7 @@ with pg() as conn, conn.cursor() as cur:
 # MAGIC ## Eval judge over the 5 golden questions
 # MAGIC
 # MAGIC `# TODO (Day-2)` SPRINT 3 lives in `eval.yaml`. Same portable `ai_query` judge as
-# MAGIC `notebooks/06_mlflow_eval_judge.py`. The agent answers each quote golden question from the priced
+# MAGIC `L200-capabilities/06_mlflow_eval_judge.py`. The agent answers each quote golden question from the priced
 # MAGIC evidence + the staging behaviour above.
 
 # COMMAND ----------

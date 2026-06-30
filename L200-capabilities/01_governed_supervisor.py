@@ -60,7 +60,7 @@ dbutils.library.restartPython()
 # MAGIC ### Prerequisites
 # MAGIC - A **serverless** SQL warehouse / cluster, and access to a chat model serving endpoint.
 # MAGIC - The synthetic data loaded into `<catalog>.akzo_finance / akzo_scm / akzo_commercial`
-# MAGIC   (run `notebooks/00_setup_load_data.py`, or `data/load_to_uc.py`, once first).
+# MAGIC   (run `L200-capabilities/00_setup_load_data.py`, or `data/load_to_uc.py`, once first).
 # MAGIC - Permission to `CREATE SCHEMA/VIEW/FUNCTION` and `ALTER TABLE ... SET ROW FILTER` in the catalog.
 # MAGIC
 # MAGIC ### How to run (~25 min)

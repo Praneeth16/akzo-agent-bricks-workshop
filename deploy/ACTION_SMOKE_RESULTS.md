@@ -21,7 +21,7 @@ governed UC HTTP connection.
 
 **Autonomous Job:** `akzo-autonomous-scm` · **job_id `957865596190448`** · **PAUSED** ·
 serverless (no cluster) · cron `0 0 * * * ?` Europe/Amsterdam · notebook
-`/Workspace/Users/praneeth.paikray@databricks.com/akzo-apps/notebooks/10_autonomous_closed_loop`
+`/Workspace/Users/praneeth.paikray@databricks.com/akzo-apps/L200-capabilities/10_autonomous_closed_loop`
 (synced + recognized as a PYTHON notebook). Safe — paused; never auto-runs.
 
 > Databricks Apps require workspace SSO, so a raw browser hit 302-redirects to login.
@@ -194,6 +194,6 @@ cd /Users/praneeth.paikray/Documents/Code/agent-bricks-workshop
 It creates `akzo-action-center` (skips if it exists), applies the full grant recipe
 (UC read + warehouse CAN_USE + **USE CONNECTION** + Lakebase role/DML on `akzo`), syncs each app
 source (incl. `frontend/dist/**`, excluding `node_modules`), redeploys the 3 deepened apps +
-mock-systems, syncs `notebooks/` + `apps/_shared` to the workspace paths the Job/notebook import,
+mock-systems, syncs `L200-capabilities/` + `apps/_shared` to the workspace paths the Job/notebook import,
 creates the `akzo-autonomous-scm` Job if absent, waits for all deployments SUCCEEDED, and
 re-checks `/api/health` on all five apps.

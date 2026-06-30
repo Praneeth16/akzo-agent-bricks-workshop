@@ -4,7 +4,7 @@
 # MAGIC
 # MAGIC *Hackathon track #3 — the flagship. Forkable Day-2 starter.*
 # MAGIC
-# MAGIC This is a **self-contained, forkable** distillation of `notebooks/04_supervisor_agent.py`. It is
+# MAGIC This is a **self-contained, forkable** distillation of `L200-capabilities/04_supervisor_agent.py`. It is
 # MAGIC the working spine of a Multi-Agent Supervisor: an LLM **router** picks which domain legs to call,
 # MAGIC each leg is a Genie-style text2SQL call over governed Unity Catalog tables, and an LLM **fuser**
 # MAGIC produces one governed answer with a routing trace. It then **writes the session + feedback to
@@ -248,7 +248,7 @@ def pg():
 
 # COMMAND ----------
 
-# Tables agent_sessions / agent_feedback already exist (created by notebooks/05_lakebase_memory_action.py).
+# Tables agent_sessions / agent_feedback already exist (created by L200-capabilities/05_lakebase_memory_action.py).
 # TODO (Day-2) SPRINT 2 — EXTEND THE ACTION: instead of only logging the session, have the supervisor
 #   stage a governed ACTION when the fuse implies one (e.g. write a row to scm_interventions or
 #   commercial_actions with status='pending'), then approve it. See starters/forecast for the full
@@ -275,7 +275,7 @@ print("Logged agent_session id =", sid, "uuid =", session_uuid, "routed:", resul
 # MAGIC
 # MAGIC `# TODO (Day-2)` SPRINT 3 lives in `eval.yaml`. We run the supervisor on each golden question and
 # MAGIC grade the fused answer with an independent judge model (`ai_query`-based, portable across MLflow
-# MAGIC versions — same pattern as `notebooks/06_mlflow_eval_judge.py`).
+# MAGIC versions — same pattern as `L200-capabilities/06_mlflow_eval_judge.py`).
 
 # COMMAND ----------
 

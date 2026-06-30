@@ -142,7 +142,7 @@ print(forecast_reasoning)
 # MAGIC
 # MAGIC The override lands in `akzo.forecast_overrides` as `pending` under the service identity, then a
 # MAGIC human flips it to `approved` with audit. Table already exists (created by
-# MAGIC `notebooks/05_lakebase_memory_action.py`). This is the read -> reason -> **act -> write -> approve**
+# MAGIC `L200-capabilities/05_lakebase_memory_action.py`). This is the read -> reason -> **act -> write -> approve**
 # MAGIC loop.
 
 # COMMAND ----------
@@ -224,7 +224,7 @@ with pg() as conn, conn.cursor() as cur:
 # MAGIC
 # MAGIC `# TODO (Day-2)` SPRINT 3 lives in `eval.yaml`. We run the planner reasoning against each golden
 # MAGIC question and grade with an independent judge (`ai_query`-based, portable — same pattern as
-# MAGIC `notebooks/06_mlflow_eval_judge.py`).
+# MAGIC `L200-capabilities/06_mlflow_eval_judge.py`).
 
 # COMMAND ----------
 

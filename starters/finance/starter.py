@@ -2,7 +2,7 @@
 # MAGIC %md
 # MAGIC # STARTER — Finance controlling copilot (variance decomposition -> recommended action)
 # MAGIC
-# MAGIC *Hackathon track #1. Forkable Day-2 starter — a slim distillation of `notebooks/01_domain_agent_finance.py`.*
+# MAGIC *Hackathon track #1. Forkable Day-2 starter — a slim distillation of `L200-capabilities/01_domain_agent_finance.py`.*
 # MAGIC
 # MAGIC A **self-contained, forkable** Finance copilot: a governed **text2SQL** call over
 # MAGIC `serverless_lakebase_praneeth_catalog.akzo_finance` (the Akzo Finance Genie-space pattern in code),
@@ -181,7 +181,7 @@ print(recommendation)
 # MAGIC `# TODO (Day-2) SPRINT 2` lives here. The copilot's recommendation is staged as an audited `pending`
 # MAGIC row in Lakebase `akzo.forecast_overrides` under the service identity, then a human approves it. Reads
 # MAGIC stay governed by OBO; this **write** is governed by Postgres role + approval + audit — a different
-# MAGIC plane. The `forecast_overrides` table already exists (created by `notebooks/05_lakebase_memory_action.py`).
+# MAGIC plane. The `forecast_overrides` table already exists (created by `L200-capabilities/05_lakebase_memory_action.py`).
 
 # COMMAND ----------
 
@@ -255,7 +255,7 @@ with pg() as conn, conn.cursor() as cur:
 # MAGIC ## BEAT 3 — MEASURE: the LLM judge over the 5 golden questions
 # MAGIC
 # MAGIC `# TODO (Day-2) SPRINT 3` lives in `eval.yaml`. Same portable `ai_query` judge as
-# MAGIC `notebooks/06_mlflow_eval_judge.py`: the agent answers each golden question from text2SQL + reasoning,
+# MAGIC `L200-capabilities/06_mlflow_eval_judge.py`: the agent answers each golden question from text2SQL + reasoning,
 # MAGIC an independent judge scores correctness + groundedness.
 
 # COMMAND ----------

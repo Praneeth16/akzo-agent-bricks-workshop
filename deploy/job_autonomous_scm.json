@@ -1,6 +1,6 @@
 {
   "name": "akzo-autonomous-scm",
-  "description": "L4 autonomous closed-loop for AkzoNobel SCM. Hourly, serverless. Detects lanes with OTIF < 90% in akzo_scm.otif, an LLM (databricks-claude-opus-4-7) proposes a governed scm_reorder/scm_reroute intervention, the Action Plane evaluates it against akzo.action_policies, auto-approves + executes in-policy actions (PO raised on the mock ERP via the akzo_external_systems UC HTTP connection), and escalates over-cap actions to a human gate WITHOUT executing. Every action is audited in akzo.action_events. External targets are mocked for the workshop. Notebook: notebooks/10_autonomous_closed_loop.py.",
+  "description": "L4 autonomous closed-loop for AkzoNobel SCM. Hourly, serverless. Detects lanes with OTIF < 90% in akzo_scm.otif, an LLM (databricks-claude-opus-4-7) proposes a governed scm_reorder/scm_reroute intervention, the Action Plane evaluates it against akzo.action_policies, auto-approves + executes in-policy actions (PO raised on the mock ERP via the akzo_external_systems UC HTTP connection), and escalates over-cap actions to a human gate WITHOUT executing. Every action is audited in akzo.action_events. External targets are mocked for the workshop. Notebook: L200-capabilities/10_autonomous_closed_loop.py.",
   "tags": {
     "project": "akzo-agents-that-act",
     "ladder_level": "L4",
@@ -11,7 +11,7 @@
       "task_key": "autonomous_scm_loop",
       "description": "Run the detect -> decide -> guardrail-gate -> execute|escalate -> verify loop once.",
       "notebook_task": {
-        "notebook_path": "/Workspace/Users/praneeth.paikray@databricks.com/akzo-apps/notebooks/10_autonomous_closed_loop",
+        "notebook_path": "/Workspace/Users/praneeth.paikray@databricks.com/akzo-apps/L200-capabilities/10_autonomous_closed_loop",
         "source": "WORKSPACE"
       }
     }

@@ -40,7 +40,7 @@
 # MAGIC `apps/_shared/action_plane` package (`ActionPlane`, `evaluate`, `execute`, `ROUTING`). In the workspace,
 # MAGIC `apps/_shared` is synced next to your repo; add it to `sys.path` and import. Tables (`actions`,
 # MAGIC `action_events`, `action_policies`) and the UC HTTP connection are already created by
-# MAGIC `notebooks/09a_action_plane_setup.py` + `09b_uc_http_connection.py`.
+# MAGIC `L200-capabilities/09a_action_plane_setup.py` + `09b_uc_http_connection.py`.
 
 # COMMAND ----------
 
@@ -265,7 +265,7 @@ assert bexecuted.get("external_ref") is None, "escalated action must have no ext
 
 # TODO (Day-2) SPRINT 4 — BUILD/EXTEND THE AUTONOMOUS LOOP: wire this to a real trigger (e.g. OTIF < 90% on the
 #   Rotterdam lane → pick an intervention) and a verify step (re-query the effect after execute). The full
-#   detect → act → verify → escalate loop on the seeded OTIF breach is notebooks/10_autonomous_closed_loop.py.
+#   detect → act → verify → escalate loop on the seeded OTIF breach is L200-capabilities/10_autonomous_closed_loop.py.
 def act_autonomously(agent, action_type, subject, payload, region, requested_by, level=4):
     """L4: propose → evaluate → (auto-approve+execute if in-policy | escalate if breach). No human in the loop
     on the happy path; a guardrail breach is the only thing that pulls in a human."""

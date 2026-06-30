@@ -10,7 +10,7 @@ the per-domain `ROUTING_DESCRIPTION` lines below ARE the per-subagent "descripti
 fill in when registering each Genie space with a native MAS (reference endpoint in this
 workspace: `mas-f14da7dc-endpoint`). See README for the upgrade path.
 
-Verified router/fuser logic from notebooks/04_supervisor_agent.py.
+Verified router/fuser logic from L200-capabilities/04_supervisor_agent.py.
 """
 from __future__ import annotations
 

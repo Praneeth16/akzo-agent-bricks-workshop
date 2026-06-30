@@ -14,7 +14,7 @@
 #      + warehouse CAN_USE (no-op if held).
 #   3. Redeploys akzo-mock-systems (ships the lakebase fix).
 #   4. Creates the PAUSED serverless autonomous Job akzo-autonomous-scm and syncs the
-#      notebooks/ + apps/_shared to the workspace paths the job + notebook import expects.
+#      L200-capabilities/ + apps/_shared to the workspace paths the job + notebook import expects.
 #
 #   ./deploy/deploy_action_apps.sh
 set -euo pipefail
@@ -154,7 +154,7 @@ wait_active akzo-mock-systems
 sync_app mock-systems akzo-mock-systems
 
 echo "==> 4. Sync notebooks + _shared to workspace, create autonomous Job (PAUSED)"
-# The job notebook_path = $APPS_BASE/notebooks/10_autonomous_closed_loop, and the
+# The job notebook_path = $APPS_BASE/L200-capabilities/10_autonomous_closed_loop, and the
 # notebook imports apps/_shared via sys.path -> $APPS_BASE/_shared. Sync both.
 dbx sync "$REPO_ROOT/notebooks" "$APPS_BASE/notebooks" >/dev/null && echo "    synced notebooks -> $APPS_BASE/notebooks"
 dbx sync "$REPO_ROOT/apps/_shared" "$APPS_BASE/_shared" \
