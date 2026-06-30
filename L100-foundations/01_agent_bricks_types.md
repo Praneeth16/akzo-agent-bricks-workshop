@@ -50,15 +50,17 @@ How to read this ladder:
 
 ## Prerequisites
 
-Run the shared data setup first (see `../data/`). It provisions everything below into the Unity Catalog you choose. On a lab environment such as Vocareum that is your assigned catalog, so set the `catalog` widget in the notebooks to match. Shown here as `<catalog>`:
+Run the shared data setup first (`../data/load_to_uc.py`). It provisions the **tables and the document volume** below into the Unity Catalog you choose. On a lab environment such as Vocareum that is your assigned catalog, so set the `catalog` widget in the notebooks to match. Shown here as `<catalog>`:
 
-| Resource | Location |
-|---|---|
-| Finance tables | `akzo_finance` (products, margin_actuals, margin_budget, fx_rates, cost_drivers) |
-| Supply chain tables | `akzo_scm` (otif, inventory, lanes, service_levels) |
-| Commercial tables | `akzo_commercial` (accounts, pipeline, sales_actuals, churn_signals) |
-| Document volume | `/Volumes/<catalog>/akzo_docs/raw` (sds, contracts) |
-| Vector index | `<catalog>.akzo_docs.chunks_idx` on endpoint `akzo_workshop_vs` |
+| Resource | Location | Created by |
+|---|---|---|
+| Finance tables | `akzo_finance` (products, margin_actuals, margin_budget, fx_rates, cost_drivers) | `../data/load_to_uc.py` |
+| Supply chain tables | `akzo_scm` (otif, inventory, lanes, service_levels) | `../data/load_to_uc.py` |
+| Commercial tables | `akzo_commercial` (accounts, pipeline, sales_actuals, churn_signals) | `../data/load_to_uc.py` |
+| Document volume | `/Volumes/<catalog>/akzo_docs/raw` (sds, contracts) | `../data/load_to_uc.py` |
+| Vector index | `<catalog>.akzo_docs.chunks_idx` on endpoint `akzo_workshop_vs` | `../L200-capabilities/05_document_intelligence.py` (run before Section 2) |
+
+> The vector index is **not** part of `data/load_to_uc.py` — it is built in L200 chapter 5. Run that notebook first if you want to do the Knowledge Assistant (Section 2) end to end. Genie spaces are created separately too (`../genie/`).
 
 ---
 
@@ -85,7 +87,7 @@ Run the shared data setup first (see `../data/`). It provisions everything below
 
 **Type:** Chat · Unstructured. Where Genie chats with your tables, a Knowledge Assistant chats with your **documents**. It turns a pile of PDFs into an expert chatbot with citations.
 
-**How it works (RAG).** This is retrieval-augmented generation. The documents are chunked and embedded into a **vector index** (built during data setup, or in L200 chapter 5). On each question the assistant embeds the question, retrieves the most similar chunks from the index, and passes them to the chat model as grounding — so the answer comes from *your* documents, not the model's memory. The **citation** back to the source chunk is the proof the answer is grounded, not invented. This is the one type that needs a Vector Search endpoint.
+**How it works (RAG).** This is retrieval-augmented generation. The documents are chunked and embedded into a **vector index** (built in L200 chapter 5 — run it first). On each question the assistant embeds the question, retrieves the most similar chunks from the index, and passes them to the chat model as grounding — so the answer comes from *your* documents, not the model's memory. The **citation** back to the source chunk is the proof the answer is grounded, not invented. This is the one type that needs a Vector Search endpoint.
 
 ![Knowledge Assistant answer with citations](images/agent_bricks_knowledge_assistant.png)
 > *Image: `images/agent_bricks_knowledge_assistant.png` — see the [appendix](#appendix-image-prompts).*
