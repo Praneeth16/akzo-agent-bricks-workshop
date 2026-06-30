@@ -52,6 +52,6 @@ The shared data setup in the repo root `../data/` folder must run once before th
 
 ## Next
 
-The L300 use case wires the full fleet together: see the flagship multi-domain supervisor in `../apps/supervisor/` and `../starters/supervisor/`.
+The L300 use case wires the full fleet together: see the flagship multi-domain supervisor in `../apps/supervisor/`.
 
 > Note: all data is synthetic. Product names, accounts, suppliers, and documents are invented for the workshop.
