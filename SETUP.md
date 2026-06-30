@@ -149,7 +149,6 @@ See [`apps/mock-systems/README.md`](apps/mock-systems/README.md) for endpoints a
 |---|---|
 | `data/load_to_uc.py`, `genie/create_genie_spaces.py` | env vars (`AKZO_CATALOG`, `DATABRICKS_WAREHOUSE_ID`, `DATABRICKS_CONFIG_PROFILE`) |
 | L100 / L200 notebooks | `dbutils.widgets` at the top of each notebook (catalog defaults to `current_catalog()`) |
-| `starters/*` | a config block at the top of each `starter.py` (catalog via env or `current_catalog()`) |
 | `apps/*` | env vars in `app.yaml` / `.env.example` (see each app's README) |
 | `deploy/*.sh` | env vars with `<placeholder>` fallbacks (see the header of each script) |
 

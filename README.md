@@ -24,7 +24,7 @@ A practical guide to building real AI agents on Databricks, not toy demos. You c
 |---|---|---|
 | L100 Foundations | `L100-foundations/` | AI from SQL, the no code Agent Bricks types, your first coded agent, evaluation, and memory |
 | L200 Capabilities | `L200-capabilities/` | Tool calling, an MCP server you build, Lakebase memory, deployment, and the first agent that acts behind a human approval gate |
-| L300 Use case | `apps/supervisor/` + `starters/supervisor/` | The flagship multi domain supervisor across Finance, Supply Chain, and Commercial, with the full action ladder and production monitoring |
+| L300 Use case | `apps/supervisor/` | The flagship multi domain supervisor across Finance, Supply Chain, and Commercial, with the full action ladder and production monitoring |
 | Hackathon kit | `hackathon-starter-kit/` | Forkable tracks, starter prompts, ai dev kit skills |
 
 Each tier is self contained. Start at L100, or jump in where you need to.
@@ -111,7 +111,7 @@ The workshop is built tier by tier. Each tier is runnable end to end on a Databr
 | `L100-foundations/03_short_term_memory.ipynb` | Conversation memory on Lakebase |
 | `L100-foundations/L100-agent-langgraph/` | Your first coded agent: LangGraph + managed MCP, deployable on Databricks Apps |
 | `L200-capabilities/` | Tool calling, an MCP server you build, Lakebase memory, deployment, and the first agent that acts behind a human approval gate |
-| `apps/supervisor/` + `starters/supervisor/` | The L300 flagship: the multi-domain supervisor with the full action ladder and production monitoring |
+| `apps/supervisor/` | The L300 flagship: the multi-domain supervisor with the full action ladder and production monitoring |
 | `apps/` | Five deployable agent apps (finance-copilot, supervisor, action-center, quote-agent, mock-systems) + shared backend (`_shared`) |
 | `eval/` | Golden-question eval sets, one per track |
 | `hackathon-starter-kit/` | Forkable tracks, starter prompts, and ai-dev-kit skills |
@@ -144,7 +144,6 @@ SETUP.md            Provision-once checklist (start here)
 L100-foundations/   Tier 1: AI from SQL, no-code Agent Bricks types, first coded agent
 L200-capabilities/  Tier 2: tool calling, MCP server, Lakebase memory, deploy, action gate
 apps/               5 deployable agent apps + shared backend (_shared)
-starters/           8 forkable copilot starters (one per use case)
 data/               Deterministic synthetic-data generators + Unity Catalog loader (data/README.md)
 genie/              Genie space configs + creation script (finance, scm, commercial)
 eval/               Golden-question eval sets (one YAML per track)

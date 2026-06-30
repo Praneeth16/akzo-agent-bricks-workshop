@@ -171,7 +171,7 @@ Run the shared data setup first (`../data/load_to_uc.py`). It provisions the **t
 
 **Type:** Chat. The Supervisor is the top of the ladder: it does not answer directly, it **orchestrates** — given a cross-domain question, it decides which Genie Spaces, other agents, and MCP tools to consult, runs them, and fuses one answer.
 
-**How it works.** Each subagent carries a **routing description** (what it is good at). The supervisor reads the question plus those descriptions, routes to the right subagents (e.g. Finance + SCM + Commercial for a margin-and-service question), collects their structured results, and composes a single answer with a visible routing trace. You do not build it here — it reuses the Genie spaces and agents from this lab — but you assemble it in **L300** (`../apps/supervisor/` + `../starters/supervisor/`). Keeping it in view now explains *why* you ground each domain agent well: the supervisor is only as good as the agents it routes to.
+**How it works.** Each subagent carries a **routing description** (what it is good at). The supervisor reads the question plus those descriptions, routes to the right subagents (e.g. Finance + SCM + Commercial for a margin-and-service question), collects their structured results, and composes a single answer with a visible routing trace. You do not build it here — it reuses the Genie spaces and agents from this lab — but you assemble it in **L300** (`../apps/supervisor/`). Keeping it in view now explains *why* you ground each domain agent well: the supervisor is only as good as the agents it routes to.
 
 ![Supervisor Agent routing](images/agent_bricks_supervisor.png)
 > *Image: `images/agent_bricks_supervisor.png` — see the [appendix](#appendix-image-prompts).*

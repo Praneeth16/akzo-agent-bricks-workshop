@@ -1,6 +1,6 @@
 # Multi-domain Supervisor Agent — Databricks App (React + FastAPI)
 
-> **L300 use case (flagship).** This app, together with `starters/supervisor/`, is the L300
+> **L300 use case (flagship).** This app is the L300
 > tier of the workshop ladder — it wires the full fleet together on top of everything built in
 > L100 and L200. See the root `README.md` for the ladder. Set your own catalog, warehouse,
 > Lakebase instance, and Genie space ids via the env vars in `.env.example` before deploying.

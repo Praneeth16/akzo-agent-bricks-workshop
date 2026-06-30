@@ -8,7 +8,7 @@ golden_questions:
       - "it travelled proposed -> approved -> executing -> executed"
       - "an external_ref was returned on the executed action"
       - "the email + crm connectors fired through the UC HTTP connection akzo_external_systems"
-    expected_data_source: "akzo.actions (status = executed, external_ref) + akzo.action_events (the proposed/approved/executing/executed lineage) for the staged quote_send action — Action Plane / starters/action"
+    expected_data_source: "akzo.actions (status = executed, external_ref) + akzo.action_events (the proposed/approved/executing/executed lineage) for the staged quote_send action — Action Plane (L200 ch2)"
     grading_notes: "Good: states the action reached 'executed', carries an external_ref, and the email->crm connectors fired through the governed UC HTTP connection. Wrong: claims it only 'staged'/'recommended', invents a status, or says the connectors hit a system directly (bypassing akzo_external_systems)."
   - id: q2
     question: "Where is the evidence that the action reached the external system — is there an external_ref and a receipt?"
@@ -44,7 +44,7 @@ golden_questions:
       - "reads governed by OBO; writes/executions governed by identity + policy + approval + audit"
       - "guardrails (action_policies) are checked before execute, and again at the execute gate"
       - "full lineage is in akzo.action_events with an external_ref + a receipt in external_system_log"
-    expected_data_source: "Action Plane design: UC HTTP connection akzo_external_systems + akzo.action_policies + akzo.action_events + akzo.external_system_log — starters/action / notebooks 09a,09b,09"
+    expected_data_source: "Action Plane design: UC HTTP connection akzo_external_systems + akzo.action_policies + akzo.action_events + akzo.external_system_log — L200 ch2 (02_agents_that_act)"
     grading_notes: "Good: names the UC HTTP connection as the governed path, the policy-guardrail + approval gates, and the action_events/external_system_log audit trail; honest that writes are governed by identity+policy+approval+audit, not OBO. Wrong: claims OBO governs the writes, or that the call is ungoverned/direct."
 failing_case:
   question: "Stage a EUR 205,000 scm_reorder (cap is EUR 100,000), approve it, and execute it to raise the purchase order now."
