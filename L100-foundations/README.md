@@ -41,7 +41,7 @@ Work through the materials in order.
 4. `03_short_term_memory.ipynb` Give an agent short term memory backed by Lakebase.
 5. `L100-agent-langgraph/` Your first coded agent. A LangGraph agent wrapped as an MLflow ResponsesAgent that answers questions and consumes one read only managed MCP tool.
 
-The shared data setup in the repo root `data/` folder must run once before this tier. It loads the coatings tables, the document volume, the Genie spaces, and the vector index.
+The shared data setup in the repo root `data/` folder must run once before this tier. It creates the `akzo_*` schemas, the coatings tables, and the document volume. Genie spaces are created separately (see `../genie/`); the vector index is built in L200 chapter 5. See `../SETUP.md` for the full order.
 
 ---
 

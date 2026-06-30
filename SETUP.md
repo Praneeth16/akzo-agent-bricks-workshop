@@ -4,7 +4,9 @@ Everything in this workshop reads its catalog, warehouse, endpoints, and IDs fro
 environment variables. Nothing is tied to one workspace. This page is the **one ordered checklist**
 to provision your own workspace before you start the ladder.
 
-Work top to bottom. Steps 1–3 are required for L100. Steps 4–7 unlock L200/L300 and the apps.
+Work top to bottom. Steps 1–3 get you into L100; **L100 chapter 3 (short-term memory) also needs
+Lakebase (step 5)**, and the no-code Agent Bricks lab uses a Genie space (step 4). Steps 4–7 unlock
+the rest of L200/L300 and the apps.
 
 ---
 
@@ -15,7 +17,7 @@ Work top to bottom. Steps 1–3 are required for L100. Steps 4–7 unlock L200/L
 | 1 | Unity Catalog + SQL warehouse | everything | you create / are granted them |
 | 2 | Load the data | everything | `data/load_to_uc.py` |
 | 3 | A Foundation Model endpoint | every LLM call | enable FM API; note the endpoint name |
-| 4 | Genie spaces (3) | L200 ch1, supervisor app | `genie/create_genie_spaces.py` or the UI |
+| 4 | Genie spaces (3) | L100 no-code lab, L200 ch1, supervisor app | `genie/create_genie_spaces.py` or the UI |
 | 5 | Lakebase instance | L100 ch3, L200 ch2–3, apps | enable Lakebase; note the instance name |
 | 6 | Vector Search endpoint | L200 ch5 | enable Vector Search; note the endpoint name |
 | 7 | Mock Systems app + UC HTTP connection | L200 ch2–3, action apps | `deploy/deploy_mock_systems.sh` |
