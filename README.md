@@ -81,9 +81,9 @@ databricks repos create \
 
 ### 2. Run the workshop
 
-1. Follow the **[provision-once checklist](SETUP.md)** to set up your workspace: catalog + warehouse, the data load, a model endpoint, and (for L200/L300) Genie spaces, Lakebase, Vector Search, and the mock-systems app.
+1. Follow the **[provision-once checklist](SETUP.md)** to set up your workspace: catalog + warehouse, the data load, a model endpoint, then Genie spaces, Lakebase, Vector Search, and the mock-systems app as each tier needs them. (`SETUP.md` flags which step each chapter requires — e.g. L100's no-code lab uses a Genie space and L100 chapter 3 uses Lakebase.)
 2. At minimum, run the shared data setup once: see **[`data/`](data/README.md)**. It creates the `akzo_*` schemas, the coatings tables, and the document volume in your Unity Catalog. Set `AKZO_CATALOG` and `DATABRICKS_WAREHOUSE_ID` first.
-3. Open **[`L100-foundations/`](L100-foundations/README.md)** and follow its README. The notebooks default the catalog to your current catalog. You paste your Genie space IDs from the UI in the no-code Agent Bricks lab and at L200 (the supervisor), where prompted.
+3. Open **[`L100-foundations/`](L100-foundations/README.md)** and follow its README. The notebooks default the catalog to your current catalog. The no-code Agent Bricks lab builds a Genie space in the UI; later, at L200 (the supervisor), you paste each space's ID into the notebook widgets.
 4. Climb the ladder.
 
 ---
