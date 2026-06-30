@@ -81,9 +81,10 @@ databricks repos create \
 
 ### 2. Run the workshop
 
-1. Run the shared data setup once. See `data/`. It loads the coatings tables, the document volume, the Genie spaces, and the vector index into your Unity Catalog. Set `AKZO_CATALOG` and `DATABRICKS_WAREHOUSE_ID` to your own values first.
-2. Open `L100-foundations/` and follow its README. The notebooks default the catalog to your current catalog; you paste your Genie space IDs from the UI where prompted.
-3. Climb the ladder.
+1. Follow the **[provision-once checklist](SETUP.md)** to set up your workspace: catalog + warehouse, the data load, a model endpoint, and (for L200/L300) Genie spaces, Lakebase, Vector Search, and the mock-systems app.
+2. At minimum, run the shared data setup once: see **[`data/`](data/README.md)**. It creates the `akzo_*` schemas, the coatings tables, and the document volume in your Unity Catalog. Set `AKZO_CATALOG` and `DATABRICKS_WAREHOUSE_ID` first.
+3. Open **[`L100-foundations/`](L100-foundations/README.md)** and follow its README. The notebooks default the catalog to your current catalog; you paste your Genie space IDs from the UI where prompted.
+4. Climb the ladder.
 
 ---
 
@@ -119,14 +120,32 @@ To deploy a coded agent on Databricks Apps, pass your catalog at deploy time and
 
 ---
 
+## Where to find things
+
+Start with the setup checklist, then each tier's own README. Every guide below is runnable in your
+own workspace.
+
+| Guide | What it covers |
+|---|---|
+| [`SETUP.md`](SETUP.md) | **Provision once** — the ordered checklist: catalog, warehouse, data, model endpoint, Genie, Lakebase, Vector Search, mock-systems |
+| [`data/README.md`](data/README.md) | The synthetic dataset + the `load_to_uc.py` loader (env vars, what it creates, the connected narrative) |
+| [`genie/README.md`](genie/README.md) | Creating the three Genie spaces (from code or UI), getting each space id, and the prebuilt configs |
+| [`L100-foundations/README.md`](L100-foundations/README.md) | Tier 1 walkthrough + which IDs to paste where |
+| [`L200-capabilities/README.md`](L200-capabilities/README.md) | Tier 2 walkthrough + per-chapter config |
+| [`apps/supervisor/README.md`](apps/supervisor/README.md) | The L300 flagship app + the upgrade path to a managed Multi-Agent Supervisor |
+| [`hackathon-starter-kit/README.md`](hackathon-starter-kit/README.md) | Forkable tracks, starter prompts, ai-dev-kit skills |
+
+---
+
 ## Repository layout
 
 ```
+SETUP.md            Provision-once checklist (start here)
 L100-foundations/   Tier 1: AI from SQL, no-code Agent Bricks types, first coded agent
 L200-capabilities/  Tier 2: tool calling, MCP server, Lakebase memory, deploy, action gate
 apps/               5 deployable agent apps + shared backend (_shared)
 starters/           8 forkable copilot starters (one per use case)
-data/               Deterministic synthetic-data generators + Unity Catalog loader
+data/               Deterministic synthetic-data generators + Unity Catalog loader (data/README.md)
 genie/              Genie space configs + creation script (finance, scm, commercial)
 eval/               Golden-question eval sets (one YAML per track)
 demo/               Demo talk tracks
