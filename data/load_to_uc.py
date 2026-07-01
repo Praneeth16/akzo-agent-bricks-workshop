@@ -55,7 +55,19 @@ def _retryable(text):
     return "REQUEST_LIMIT_EXCEEDED" in text or "rate limit" in text.lower()
 
 
+FAILURES = []  # (label, message) accumulated across the run
+
+
+def _hint_for(message):
+    if "PERMISSION_DENIED" in message and "CREATE SCHEMA" in message.upper():
+        return "hint: this catalog may not grant CREATE SCHEMA — try AKZO_CATALOG=dbacademy (see data/README.md)"
+    if "PERMISSION_DENIED" in message:
+        return "hint: check the catalog/warehouse permissions for this identity (see data/README.md)"
+    return None
+
+
 def run_sql(stmt, label=None):
+    tag = label or stmt[:60]
     payload = {"warehouse_id": WAREHOUSE_ID, "statement": stmt, "wait_timeout": "50s"}
     for attempt in range(6):
         r = cli(["api", "post", "/api/2.0/sql/statements", "--json", json.dumps(payload)])
@@ -63,7 +75,9 @@ def run_sql(stmt, label=None):
             time.sleep(5 * (attempt + 1)); continue
         break
     if r.returncode != 0:
-        print(f"  ! CLI error: {r.stderr[:300]}")
+        msg = r.stderr[:300]
+        print(f"  ! CLI error: {msg}")
+        FAILURES.append((tag, msg))
         return False
     d = json.loads(r.stdout)
     sid = d.get("statement_id")
@@ -74,12 +88,16 @@ def run_sql(stmt, label=None):
         d = json.loads(r.stdout)
         state = d.get("status", {}).get("state")
     ok = state == "SUCCEEDED"
-    tag = label or stmt[:60]
     if ok:
         print(f"  ok  {tag}")
     else:
         err = d.get("status", {}).get("error", {})
-        print(f"  FAIL {tag}: {err.get('message','')[:300]}")
+        msg = err.get("message", "")[:300]
+        print(f"  FAIL {tag}: {msg}")
+        hint = _hint_for(msg)
+        if hint:
+            print(f"      {hint}")
+        FAILURES.append((tag, msg))
     return ok if ok else d
 
 
@@ -94,7 +112,9 @@ def upload(local, dest):
     ok = r.returncode == 0
     print(f"  {'ok ' if ok else 'FAIL'} upload {os.path.basename(local)} -> {dest}")
     if not ok:
-        print(f"      {r.stderr[:200]}")
+        msg = r.stderr[:200]
+        print(f"      {msg}")
+        FAILURES.append((f"upload {os.path.basename(local)}", msg))
     time.sleep(1)  # gentle pacing between uploads
     return ok
 
@@ -141,6 +161,13 @@ def main():
         for t in tables:
             run_sql(f"SELECT '{PFX}{domain}.{t}' AS tbl, count(*) AS n FROM {CATALOG}.{PFX}{domain}.{t}",
                     label=f"count {PFX}{domain}.{t}")
+
+    if FAILURES:
+        print(f"\n== FAILED ({len(FAILURES)} step(s)) ==")
+        for tag, msg in FAILURES:
+            print(f"  - {tag}: {msg}")
+        sys.exit(1)
+    print("\n== all steps succeeded ==")
 
 
 if __name__ == "__main__":

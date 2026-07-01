@@ -622,9 +622,13 @@ for chk in tv["checks"]:
 # MAGIC
 # MAGIC Same governed plane as L1-L3 — identity, guardrails, approval, audit — with the approval gate made
 # MAGIC *conditional on the policy verdict*. That is L4: **autonomous within policy, human-on-the-loop on
-# MAGIC breach, only ever calling the mock systems.** Schedule it
-# MAGIC (`deploy/job_autonomous_scm.json`, hourly on serverless) and the agent watches the lanes and acts on
-# MAGIC its own — within the bounds an exec signed off on.
+# MAGIC breach, only ever calling the mock systems.**
+# MAGIC
+# MAGIC `deploy/job_autonomous_scm.json` sketches an hourly serverless schedule for this loop — for
+# MAGIC illustration only, ships `PAUSED`, **do not unpause it in this workshop.** The same job-token
+# MAGIC 403 that hits ch2/ch3 in headless runs applies here too: a scheduled run has no U2M identity, so
+# MAGIC the mock app's SSO gate rejects it unless you wire a real `bearer_token` into the job's
+# MAGIC `base_parameters` first. Run this loop interactively to see the autonomy in action.
 
 # COMMAND ----------
 
