@@ -289,8 +289,18 @@ qvec = spark.sql("SELECT ai_query(:ep, :q, returnType => 'ARRAY<FLOAT>') AS v",
                  args={"ep": EMBED_ENDPOINT, "q": QUESTION}).collect()[0]["v"]
 
 idx = vsc.get_index(endpoint_name=VS_ENDPOINT, index_name=VS_INDEX)
-res = idx.similarity_search(query_vector=list(qvec),
-                            columns=["chunk_id", "doc_id", "doc_type", "chunk_text"], num_results=5)
+# The index can report ready=True from describe() a few seconds before the query path
+# accepts requests, so the first search may raise "index ... is not ready". Retry briefly.
+for attempt in range(8):
+    try:
+        res = idx.similarity_search(query_vector=list(qvec),
+                                    columns=["chunk_id", "doc_id", "doc_type", "chunk_text"], num_results=5)
+        break
+    except Exception as e:
+        if "not ready" not in str(e) or attempt == 7:
+            raise
+        print("index not queryable yet, retrying...")
+        time.sleep(15)
 rows = res["result"]["data_array"]
 print("Top-k retrieved chunks:")
 for r in rows:

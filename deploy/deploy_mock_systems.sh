@@ -74,6 +74,9 @@ conn = psycopg.connect(host=inst.read_write_dns, port=5432, dbname="databricks_p
                        user=me, password=tok, sslmode="require", autocommit=True)
 with conn.cursor() as cur:
     r = f'"{sp}"'
+    # The notebooks create schema akzo on first run; create it here too so the grants
+    # below succeed even when this deploy runs before any notebook has.
+    cur.execute("CREATE SCHEMA IF NOT EXISTS akzo")
     cur.execute(f"GRANT USAGE, CREATE ON SCHEMA akzo TO {r}")
     cur.execute(f"GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA akzo TO {r}")
     cur.execute(f"GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA akzo TO {r}")
