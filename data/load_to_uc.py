@@ -3,13 +3,15 @@
 Uses spark.sql() and dbutils.fs - no CLI or SQL warehouse required.
 Idempotent: safe to re-run.
 
-Most lab workspaces do not grant CREATE SCHEMA, so all tables are loaded into the
-pre-provisioned personal schema (local part of current_user()'s email) inside
-the shared dbacademy catalog. The staging volume in dbacademy.ops is also
-pre-provisioned per user.
+Most lab workspaces do not grant CREATE SCHEMA, so on Vocareum labs all tables load into
+the pre-provisioned personal schema (local part of current_user()'s email) inside the
+shared dbacademy catalog, with a pre-provisioned staging volume in dbacademy.ops.
+
+Free Edition: no dbacademy catalog exists — AKZO_CATALOG defaults to current_catalog()
+(your own catalog) instead, and the personal schema/staging volume are created if missing.
 
 Configure with environment variables (all optional):
-  AKZO_CATALOG   Unity Catalog name    (default: dbacademy)
+  AKZO_CATALOG   Unity Catalog name    (default: current_catalog(), or dbacademy on Vocareum)
   AKZO_SCHEMA    Target schema         (default: auto-detected from current_user())
   AKZO_STAGING   Staging volume path   (default: auto-detected from current_user())
 
@@ -28,7 +30,8 @@ except NameError:
 ROOT = os.path.dirname(_here)
 OUT = os.path.join(_here, "output")
 
-CATALOG = os.environ.get("AKZO_CATALOG", "dbacademy")
+# Free Edition has no dbacademy catalog, so fall back to the caller's own catalog.
+CATALOG = os.environ.get("AKZO_CATALOG") or spark.sql("SELECT current_catalog()").collect()[0][0]
 
 
 def _current_user():
@@ -44,12 +47,15 @@ def _default_schema():
 
 
 def _default_staging():
-    """Pre-provisioned ops volume: email with '.' replaced by '_', '@' preserved.
-    e.g. user@vocareum.com -> /Volumes/dbacademy/ops/user@vocareum_com
+    """Vocareum: pre-provisioned ops volume, email with '.' replaced by '_', '@' preserved
+    (e.g. user@vocareum.com -> /Volumes/dbacademy/ops/user@vocareum_com). Free Edition has
+    no dbacademy.ops, so stage under the user's own schema instead.
     """
     try:
-        vol = _current_user().replace(".", "_")
-        return f"/Volumes/{CATALOG}/ops/{vol}"
+        if CATALOG == "dbacademy":
+            vol = _current_user().replace(".", "_")
+            return f"/Volumes/{CATALOG}/ops/{vol}"
+        return f"/Volumes/{CATALOG}/{USER_SCHEMA}/staging"
     except Exception:
         return None
 
@@ -118,8 +124,11 @@ def main():
     print(f"  staging  : {STAGING}")
     print(f"  docs_raw : {DOCS_RAW}")
 
-    print("\n== volumes ==")
+    print("\n== schema + volumes ==")
+    run_sql(f"CREATE SCHEMA IF NOT EXISTS {CATALOG}.{USER_SCHEMA}")
     run_sql(f"CREATE VOLUME IF NOT EXISTS {CATALOG}.{USER_SCHEMA}.docs_raw")
+    if CATALOG != "dbacademy":
+        run_sql(f"CREATE VOLUME IF NOT EXISTS {CATALOG}.{USER_SCHEMA}.staging")
 
     print("== upload parquet ==")
     for domain, tables in TABLES.items():

@@ -177,6 +177,16 @@ mlflow.register_model(logged.model_uri, "<catalog>.<schema>.akzo_l100_langgraph_
 | "App already exists" on deploy | Bind the bundle: `databricks bundle deployment bind <key> <app-name> --auto-approve` |
 | Permission errors after deploy | Ensure the app principal has `SELECT` on your schema and access to the LLM endpoint |
 
+## Free Edition Notes
+
+Databricks Apps cap at **3 per account**, **24h max runtime** after each start/update/redeploy.
+This app plus L200 ch2/ch3's `mock-systems` app = 2 of 3 slots — leaves 1 free for whatever
+else you deploy in this workshop.
+
+Alternative/guidance: stop or delete apps you are not actively demoing before deploying the
+next one (`databricks apps delete <name>`, or via the Apps UI), and redeploy right before a
+demo (resets the 24h clock) rather than leaving it running the whole workshop.
+
 ## Next
 
 `02_simple_agent_evaluation.ipynb` and `03_short_term_memory.ipynb` — evaluate this agent with

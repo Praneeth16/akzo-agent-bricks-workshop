@@ -89,6 +89,20 @@ Nothing in this tier is tied to one workspace. Set these before you run, all fro
 
 ---
 
+## Free Edition Notes
+
+Databricks Free Edition ships Genie, Genie Code, Agent Bricks (Beta), Lakebase, and Vector
+Search natively — this tier's Genie space, Extraction, Parsing, and Classification agents
+build there with no changes.
+
+**Knowledge Assistant is unsupported on Free Edition.** See the callout in
+`01_agent_bricks_types.md` Section 2 for the code-only alternative (Vector Search index +
+manual `ai_query` retrieval, no no-code wizard).
+
+Free Edition is single-user: no enterprise SSO, no account groups, no native multi-user
+row-level security. Nothing in this tier needs those — everything here runs under your own
+identity.
+
 ## Next
 
 Move up to `../L200-capabilities/` to add tools, memory, an MCP server you build yourself, and the first agent that takes an action behind a human approval gate.

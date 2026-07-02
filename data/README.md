@@ -56,9 +56,12 @@ Override any of these with environment variables if the defaults don't fit your 
 
 | Variable | Required | What it is |
 |---|---|---|
-| `AKZO_CATALOG` | no | Unity Catalog name (default: `dbacademy`) |
+| `AKZO_CATALOG` | no | Unity Catalog name (default: `current_catalog()` — `dbacademy` on Vocareum labs) |
 | `AKZO_SCHEMA` | no | Target schema (default: local part of your email, e.g. `jane_doe`) |
-| `AKZO_STAGING` | no | Staging volume path for the parquet upload (default: auto-detected `/Volumes/<catalog>/ops/<you>`) |
+| `AKZO_STAGING` | no | Staging volume path for the parquet upload (default: auto-detected — `/Volumes/<catalog>/ops/<you>` on Vocareum, `/Volumes/<catalog>/<schema>/staging` on Free Edition) |
+
+> **Free Edition:** no `dbacademy` catalog exists there — the loader falls back to your own
+> catalog and creates your personal schema + staging volume if missing.
 
 If it can't determine your schema or staging volume, the loader stops with:
 

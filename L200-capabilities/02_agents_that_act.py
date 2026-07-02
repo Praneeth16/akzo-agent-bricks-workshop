@@ -80,6 +80,9 @@ dbutils.library.restartPython()
 # MAGIC The write identity is a **short-lived (~1h) DB credential** minted via the SDK — nothing long-lived
 # MAGIC sits in the notebook. The `pg()` context manager mints a fresh token per connection and pins
 # MAGIC `search_path` to our schema. Every later cell reuses the `pg_query` / `pg_exec` helpers.
+# MAGIC
+# MAGIC **Free Edition:** one Lakebase project per account. Set `lakebase_instance` to that one instance —
+# MAGIC fits the cap as-is.
 
 # COMMAND ----------
 

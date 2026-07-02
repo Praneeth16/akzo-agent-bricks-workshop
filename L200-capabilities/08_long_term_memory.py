@@ -74,6 +74,9 @@ dbutils.library.restartPython()
 # MAGIC Widgets keep the notebook portable. Leave `lakebase_instance` blank to auto-pick the first AVAILABLE
 # MAGIC instance. `user_id` is whose memory we read/write — the namespace key that keeps one user's memories from
 # MAGIC leaking into another's. We default it to **you** so the notebook runs end-to-end.
+# MAGIC
+# MAGIC **Free Edition:** one Lakebase project per account. Auto-pick-first-AVAILABLE below already
+# MAGIC assumes exactly one instance — fits the cap as-is.
 
 # COMMAND ----------
 

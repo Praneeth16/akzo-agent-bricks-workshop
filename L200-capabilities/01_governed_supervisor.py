@@ -86,7 +86,9 @@ dbutils.library.restartPython()
 
 import re
 
-dbutils.widgets.text("catalog", "dbacademy", "Unity Catalog")
+# Free Edition: "dbacademy" assumes a Vocareum lab catalog. Blank default + current_catalog()
+# fallback below works on both Free Edition (your own catalog) and Vocareum.
+dbutils.widgets.text("catalog", "", "Unity Catalog (blank = current_catalog())")
 dbutils.widgets.text("llm_endpoint", "databricks-claude-opus-4-8", "Router/fuser model endpoint")
 # Paste your Genie space ids from the UI (open each space; the id is the last URL segment
 # of /genie/rooms/<space_id>), or run genie/create_genie_spaces.py to create them.
@@ -565,6 +567,10 @@ print(reason(REASONING_PROMPT))
 # MAGIC **Honest scope:** OBO + RLS govern **reads**. They do **not** automatically govern writes — those use
 # MAGIC Postgres roles + approval + audit (Chapter 2). Keeping the two planes distinct is the honest answer to
 # MAGIC a 2,000-user rollout.
+# MAGIC
+# MAGIC **Free Edition:** single-user workspace, no native multi-user RLS/SSO. The `personas` table +
+# MAGIC `fn_region_rls` below already simulate per-user scope in code — same technique documented in
+# MAGIC `../hackathon-starter-kit/README.md`'s governance-simulation section.
 
 # COMMAND ----------
 

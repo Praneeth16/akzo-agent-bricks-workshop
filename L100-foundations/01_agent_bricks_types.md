@@ -81,6 +81,8 @@ Run the shared data setup first (`../data/load_to_uc.py`). It provisions the **t
 
 **Type:** Chat · Unstructured. Where Genie chats with your tables, a Knowledge Assistant chats with your **documents**. It turns a pile of PDFs into an expert chatbot with citations.
 
+> **Free Edition:** Knowledge Assistant is on Databricks' unsupported-features list for Free Edition. Alternative: build the same retrieval-and-answer loop in code using [`../L200-capabilities/05_document_intelligence.py`](../L200-capabilities/05_document_intelligence.py)'s Vector Search index (`<catalog>.<schema>.chunks_idx`) plus a manual `ai_query` call over the top-k retrieved chunks — same governed-citation outcome, no no-code UI wizard required.
+
 **How it works (RAG).** This is retrieval-augmented generation. The documents are chunked and embedded into a **vector index** (built in L200 chapter 5 — run it first). On each question the assistant embeds the question, retrieves the most similar chunks from the index, and passes them to the chat model as grounding — so the answer comes from *your* documents, not the model's memory. The **citation** back to the source chunk is the proof the answer is grounded, not invented. This is the one type that needs a Vector Search endpoint.
 
 1. In the Create new Agent dialog, choose **Knowledge Assistant**.
@@ -172,7 +174,7 @@ Paste each printed id into the L200 supervisor widgets, or use the space directl
 
 ### Knowledge Assistant backbone from code
 
-The document **vector index** a Knowledge Assistant reads is built in [`../L200-capabilities/05_document_intelligence.py`](../L200-capabilities/05_document_intelligence.py): it parses the PDFs (`ai_parse_document`), chunks + embeds them, and creates the Vector Search index on endpoint `akzo_workshop_vs`. Run that notebook once (it needs Vector Search enabled), then point a Knowledge Assistant at the resulting `<catalog>.<schema>.chunks_idx`.
+The document **vector index** a Knowledge Assistant reads is built in [`../L200-capabilities/05_document_intelligence.py`](../L200-capabilities/05_document_intelligence.py): it parses the PDFs (`ai_parse_document`), chunks + embeds them, and creates the Vector Search index on endpoint `akzo_workshop_vs`. Run that notebook once (it needs Vector Search enabled), then point a Knowledge Assistant at the resulting `<catalog>.<schema>.chunks_idx`. On Free Edition, where Knowledge Assistant itself is unsupported (Section 2), this same notebook plus a manual `ai_query` retrieval step is the code-only alternative.
 
 **Checkpoint:** you created the Genie spaces from code and know where the Knowledge Assistant's vector index comes from. This is the repeatable pattern the L300 supervisor builds on.
 

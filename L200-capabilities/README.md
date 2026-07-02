@@ -52,6 +52,23 @@ The shared data setup in the repo root `../data/` folder must run once before th
 
 ---
 
+## Free Edition Notes
+
+Same base constraints as L100: Genie, Agent Bricks, Lakebase, and Vector Search ship
+natively; single-user workspace, no SSO or native RLS (ch1 Part B's persona-column
+RLS-style view is the single-user-safe simulation, already how it's built).
+
+**Databricks Apps cap at 3/account, 24h max runtime.** `L100-agent-langgraph/` plus this
+tier's `mock-systems` app (ch2/ch3) = 2 of 3 slots — see the Free Edition Notes section in
+`../L100-foundations/L100-agent-langgraph/README.md` for teardown/redeploy guidance.
+
+**No GPU serving / Provisioned Throughput / custom GPU batch inference.** `07_custom_model_serving.py`
+already defaults to CPU-only serving (`workload_type=CPU`, `create_endpoint=false`) — see
+the Free Edition callouts in that chapter for the guarded routes.
+
+**Jobs cap at 5 concurrent tasks/account.** `03_autonomous_loop.py`'s scheduled job ships
+as a single task — well within the cap, no action needed.
+
 ## Next
 
 The L300 use case wires the full fleet together: see the flagship multi-domain supervisor in `../apps/supervisor/`.

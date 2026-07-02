@@ -60,6 +60,9 @@ dbutils.library.restartPython()
 # MAGIC Same compact Action Plane as Chapter 2 (state machine + guardrails + governed executor), plus the
 # MAGIC SCM catalog for the DETECT query and the chat endpoint for the DECIDE step. The production module is
 # MAGIC `apps/_shared/action_plane/`; we inline a compact version so the notebook is self-contained.
+# MAGIC
+# MAGIC **Free Edition:** one Lakebase project per account. Set `lakebase_instance` to that one instance —
+# MAGIC fits the cap as-is.
 
 # COMMAND ----------
 

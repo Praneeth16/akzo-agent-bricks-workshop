@@ -245,6 +245,9 @@ display(spark.sql(f"SELECT count(*) AS n_rows, min(size(embedding)) AS min_dim, 
 # MAGIC A self-managed-embeddings delta-sync index over `chunks_embedded`, pointing at the `embedding`
 # MAGIC column (so Vector Search stores our Qwen vectors rather than re-embedding). Idempotent: creates the
 # MAGIC endpoint + index if missing, then blocks until the index reports `ready=True`.
+# MAGIC
+# MAGIC **Free Edition:** one Vector Search endpoint / one search unit per account. This notebook
+# MAGIC already creates exactly one endpoint (`VS_ENDPOINT`) and one index — fits the cap as-is.
 
 # COMMAND ----------
 

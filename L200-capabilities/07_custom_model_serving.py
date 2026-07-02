@@ -40,6 +40,12 @@ dbutils.library.restartPython()
 # MAGIC false) so the notebook runs green without provisioning compute. GPU / Provisioned Throughput add
 # MAGIC cost + region-availability gates, so they default to walkthrough.
 # MAGIC
+# MAGIC **Free Edition:** GPU serving, Provisioned Throughput, and custom models on GPU/batch inference are
+# MAGIC unavailable. The `workload_type=CPU` route below (default) is the Free Edition-safe path; route (c)
+# MAGIC External Models via AI Gateway also works since it proxies to an external provider rather than
+# MAGIC provisioning Databricks compute. No code change needed here — the existing CPU-default guard already
+# MAGIC *is* the Free Edition alternative.
+# MAGIC
 # MAGIC ### Grounded in docs (reference)
 # MAGIC - Create custom model serving endpoints (SDK, `workload_type` GPU): `.../model-serving/create-manage-serving-endpoints`
 # MAGIC - Provisioned Throughput FM APIs: `.../foundation-model-apis/deploy-prov-throughput-foundation-model-apis`
@@ -152,6 +158,9 @@ print(loaded.predict(pd.DataFrame({"prompt": ["What changed in Q2?", "Which lane
 # MAGIC Stand up a serving endpoint for the registered model with the Workspace Client SDK. CPU by default;
 # MAGIC set the `workload_type` widget to `GPU_SMALL`/`GPU_MEDIUM` for a GPU model (adds cost + availability
 # MAGIC gates). Behind `create_endpoint` (default false) so verification does not provision compute.
+# MAGIC
+# MAGIC **Free Edition:** leave `workload_type=CPU` (the default) — `GPU_SMALL`/`GPU_MEDIUM` are not
+# MAGIC available on Free Edition.
 
 # COMMAND ----------
 
@@ -185,6 +194,9 @@ else:
 # MAGIC with `min/max_provisioned_throughput` (multiples of the model's `throughput_chunk_size`). The
 # MAGIC stand-in pyfunc above is **not** an optimizable FM, so this is shown as the exact code to run against
 # MAGIC a real FM, guarded so it never errors here.
+# MAGIC
+# MAGIC **Free Edition:** Provisioned Throughput is unavailable — `RUN_PT` stays `False`; use route (b) CPU
+# MAGIC serving or route (c) External Models instead.
 
 # COMMAND ----------
 
