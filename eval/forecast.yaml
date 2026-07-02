@@ -8,7 +8,7 @@ golden_questions:
       - "Q2 actual margin ~30.7% vs budget/plan ~39.6%"
       - "~8.9pp miss"
       - "plan assumed no shocks; actuals hit price erosion, FX, and a raw-material spike"
-    expected_data_source: "<catalog>.akzo_finance.margin_actuals vs <catalog>.akzo_finance.margin_budget (Decorative Paints x EMEA, Q2 2026) — Akzo Finance Genie space / forecast starter"
+    expected_data_source: "<catalog>.<schema>.margin_actuals vs <catalog>.<schema>.margin_budget (Decorative Paints x EMEA, Q2 2026) — Akzo Finance Genie space / forecast starter"
     grading_notes: "Good: contrasts actual vs budget for the segment, quantifies the ~8.9pp miss, and explains the budget did not anticipate the Q2 shocks. Wrong: compares the wrong segment, ignores the budget table, or treats actuals as the forecast."
   - id: q2
     question: "Decompose the forecast delta into demand, price, and cost components."
@@ -26,7 +26,7 @@ golden_questions:
       - "backorders ~2,258 units in EMEA"
       - "fulfillment-constrained, not demand-constrained"
       - "forecast should reflect a service/supply constraint"
-    expected_data_source: "<catalog>.akzo_scm.inventory/otif/service_levels (EMEA May 2026) cross-referenced with finance volume — Akzo SCM + Akzo Finance"
+    expected_data_source: "<catalog>.<schema>.inventory/otif/service_levels (EMEA May 2026) cross-referenced with finance volume — Akzo SCM + Akzo Finance"
     grading_notes: "Good: reframes the volume assumption around a supply constraint (stockout/backorders), not weak demand. Wrong: assumes a demand decline with no reference to the supply disruption."
   - id: q4
     question: "Propose a forecast override for Paints EMEA for the next period and quantify it."
@@ -44,7 +44,7 @@ golden_questions:
       - "step the volume/service assumption back toward baseline"
       - "keep the raw-material/FX adjustment until cost normalizes"
       - "revisit the override as data confirms recovery"
-    expected_data_source: "<catalog>.akzo_scm.otif/service_levels (Jun 2026 recovery) + finance cost trend — forecast starter"
+    expected_data_source: "<catalog>.<schema>.otif/service_levels (Jun 2026 recovery) + finance cost trend — forecast starter"
     grading_notes: "Good: separates the service recovery (relax volume constraint as June improves) from the cost/FX drivers (hold until they normalize). Wrong: snaps everything back to baseline at once, or ignores the June recovery signal."
 failing_case:
   question: "Just give me the exact, guaranteed Paints EMEA margin number for December 2026."

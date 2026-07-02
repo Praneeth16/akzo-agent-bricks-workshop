@@ -3,7 +3,7 @@
 Paste this into Databricks Genie code or your ai-dev-kit coding assistant.
 
 ```text
-We are a hackathon team building Track 10: Enterprise Knowledge Assistant in Vocareum.
+We are a hackathon team building Track 10: Enterprise Knowledge Assistant on Databricks Free Edition (or in Vocareum, if that is your assigned lab environment).
 
 Use these values:
 - catalog: <TEAM_CATALOG>
@@ -16,8 +16,8 @@ Use ai-dev-kit skills in this order:
 2. add-mcp-tool only for document metadata lookup if useful
 3. deploy after citation eval passes
 
-Provided documents in /Volumes/<TEAM_CATALOG>/akzo_docs/raw: 8 safety data sheets (sds/)
-and 6 supplier contracts (contracts/), indexed by akzo_docs.chunks_idx on endpoint akzo_workshop_vs.
+Provided documents in /Volumes/<TEAM_CATALOG>/<your-personal-schema>/docs_raw: 8 safety data sheets (sds/)
+and 6 supplier contracts (contracts/), indexed by <your-personal-schema>.chunks_idx on endpoint akzo_workshop_vs.
 SOPs and policies are not provided; add and re-index them only if your demo needs them.
 
 Build the first runnable loop: a Knowledge Assistant over the provided safety sheets and contracts.

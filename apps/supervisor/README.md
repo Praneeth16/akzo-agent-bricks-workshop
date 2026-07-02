@@ -105,7 +105,7 @@ databricks apps deploy supervisor --source-code-path /Workspace/Users/<you>/supe
 `app.yaml` runs `uvicorn main:app --app-dir backend` on `$DATABRICKS_APP_PORT` and sets the
 warehouse / chat endpoint / Lakebase env. The app service principal needs: `CAN USE` on warehouse
 `<your-warehouse-id>`, `CAN QUERY` on your chat endpoint (e.g. `databricks-claude-opus-4-8`), SELECT on
-`<catalog>.akzo_finance.*`, `.akzo_scm.*`, and `.akzo_commercial.*`,
+`<catalog>.<schema>.*` (all three domains share one flat schema),
 and a Postgres role on the `<your-lakebase-instance>` Lakebase instance for the `akzo` schema.
 
 ## Upgrade path: this router → a native Agent Bricks Multi-Agent Supervisor

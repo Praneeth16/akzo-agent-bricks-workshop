@@ -50,8 +50,9 @@ dbutils.library.restartPython()
 # MAGIC - Deploy an agent (Model Serving): `agents.deploy`, `mlflow.pyfunc.log_model(resources=...)`
 # MAGIC
 # MAGIC ### Prerequisites
-# MAGIC Serverless enabled; a chat model serving endpoint; the `akzo_finance` data (CH1) for the agent's tool;
-# MAGIC permission to register a UC model. Managed MCP + agent serving are optional (guarded).
+# MAGIC Serverless enabled; a chat model serving endpoint; the finance data (CH1) loaded flat in your one
+# MAGIC personal schema, for the agent's tool; permission to register a UC model (no `CREATE SCHEMA` needed).
+# MAGIC Managed MCP + agent serving are optional (guarded).
 # MAGIC
 # MAGIC ### How to run (~20 min)
 # MAGIC Top to bottom. The always-run core (build the agent, in-process `predict`, log + register to UC) runs
@@ -67,19 +68,24 @@ dbutils.library.restartPython()
 
 dbutils.widgets.text("catalog", "", "Unity Catalog (blank = current_catalog())")
 dbutils.widgets.text("llm_endpoint", "databricks-claude-opus-4-8", "Chat model endpoint")
-dbutils.widgets.text("uc_model_name", "", "UC model name (blank = <catalog>.akzo_ops.akzo_langgraph_agent)")
+dbutils.widgets.text("uc_model_name", "", "UC model name (blank = <catalog>.<schema>.akzo_langgraph_agent)")
 dbutils.widgets.text("genie_space_id", "", "Genie Space id for MCP (optional)")
 dbutils.widgets.dropdown("deploy", "false", ["true", "false"], "Deploy to Model Serving (slow)")
 
+import json, os, re
+from databricks.sdk import WorkspaceClient
+
 CATALOG = dbutils.widgets.get("catalog") or spark.sql("SELECT current_catalog()").first()[0]
-FIN = f"{CATALOG}.akzo_finance"
+SCHEMA = spark.sql("SELECT current_user() AS user").first()["user"].split("@")[0].replace(".", "_").replace("-", "_")
+if not re.fullmatch(r"[A-Za-z0-9_]+", CATALOG):
+    raise ValueError(f"Unsafe catalog name: {CATALOG!r}. Use only letters, digits, and underscore.")
+if not re.fullmatch(r"[A-Za-z0-9_]+", SCHEMA):
+    raise ValueError(f"Unsafe schema name: {SCHEMA!r}.")
+FIN = f"{CATALOG}.{SCHEMA}"
 LLM_ENDPOINT = dbutils.widgets.get("llm_endpoint")
-UC_MODEL_NAME = dbutils.widgets.get("uc_model_name") or f"{CATALOG}.akzo_ops.akzo_langgraph_agent"
+UC_MODEL_NAME = dbutils.widgets.get("uc_model_name") or f"{CATALOG}.{SCHEMA}.akzo_langgraph_agent"
 GENIE_SPACE_ID = dbutils.widgets.get("genie_space_id").strip()
 DEPLOY = dbutils.widgets.get("deploy") == "true"
-
-import json, os
-from databricks.sdk import WorkspaceClient
 
 w = WorkspaceClient()
 HOST = w.config.host
@@ -157,7 +163,7 @@ else:
 # MAGIC Evaluation, tracing, and serving for free.
 # MAGIC
 # MAGIC The agent: a LangGraph ReAct agent (`create_react_agent(ChatDatabricks(...), tools=[...])`) with one
-# MAGIC governed tool — `finance_sql`, the CH1 text2SQL leg (read-only over `akzo_finance`). We author it as a
+# MAGIC governed tool — `finance_sql`, the CH1 text2SQL leg (read-only over your schema's finance tables). We author it as a
 # MAGIC **file** (`agent.py`) so the same code is both imported here for an in-process smoke test and logged
 # MAGIC via MLflow models-from-code for serving.
 
@@ -185,7 +191,7 @@ mlflow.langchain.autolog()
 
 @tool
 def finance_sql(question: str) -> str:
-    """Answer an AkzoNobel finance question by generating governed Spark SQL over the akzo_finance
+    """Answer an AkzoNobel finance question by generating governed Spark SQL over the finance
     tables and running it. Use for gross margin, price, FX, and cost questions."""
     from pyspark.sql import SparkSession
     spark = SparkSession.builder.getOrCreate()
@@ -253,7 +259,7 @@ def answer_text(r) -> str:
 
 resp = AGENT.predict(ResponsesAgentRequest(
     input=[{"role": "user", "content": "What was Paints EMEA gross margin in Q1 vs Q2 2026?"}]))
-# Expect: the ReAct agent calls finance_sql, which generates + runs governed SQL over akzo_finance,
+# Expect: the ReAct agent calls finance_sql, which generates + runs governed SQL over your schema,
 # then answers with ~39.6% (Q1) vs ~30.7% (Q2). A "SQL failed" string means the data/CH1 setup is missing.
 print(answer_text(resp)[:800])
 

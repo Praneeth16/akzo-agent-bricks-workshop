@@ -11,28 +11,30 @@ lands it in **your** Unity Catalog. Run the loader once before any notebook, sta
 
 ## What you get
 
-The loader creates **6 schemas** (all prefixed `akzo_`) in your catalog, plus **13 tables**, **2
-volumes**, and **14 PDFs**:
+The loader lands everything **flat inside your one personal schema** — no `CREATE SCHEMA`
+required. That's **13 tables**, **1 volume**, and **14 PDFs**:
 
-| Schema | Tables | Holds |
-|---|---|---|
-| `akzo_finance` | `products`, `margin_actuals`, `margin_budget`, `fx_rates`, `cost_drivers` | SKU master + monthly P&L, budget, FX, COGS decomposition |
-| `akzo_scm` | `otif`, `inventory`, `lanes`, `service_levels` | On-time-in-full, stock, lanes, regional service |
-| `akzo_commercial` | `accounts`, `pipeline`, `sales_actuals`, `churn_signals` | Accounts, opportunities, realized sales, churn risk |
-| `akzo_docs` | (volume `raw`) | 8 safety data sheets + 6 supplier contracts (PDFs) |
-| `akzo_ops` | (volume `staging`) | Staging for parquet upload; your own eval/output tables later |
-| `akzo_gateway` | — | Empty schema for AI Gateway payload logs (L200 chapter 4) |
+| Tables | Holds |
+|---|---|
+| `products`, `margin_actuals`, `margin_budget`, `fx_rates`, `cost_drivers` | SKU master + monthly P&L, budget, FX, COGS decomposition |
+| `otif`, `inventory`, `lanes`, `service_levels` | On-time-in-full, stock, lanes, regional service |
+| `accounts`, `pipeline`, `sales_actuals`, `churn_signals` | Accounts, opportunities, realized sales, churn risk |
+| (volume `docs_raw`) | 8 safety data sheets + 6 supplier contracts (PDFs) |
 
-Per-table column docs live in `output/<domain>/README.md` (finance, scm, commercial, docs).
+Table names are globally unique across the three domains, so they all live side by side in one
+schema with no prefix. Per-table column docs live in `output/<domain>/README.md` (finance, scm,
+commercial, docs).
 
 ---
 
 ## Prerequisites
 
-- **Databricks CLI** installed and authenticated (`databricks auth login`, or a configured
-  profile). The loader drives the CLI's statement-execution + `fs cp` APIs — no SDK needed.
-- **A Unity Catalog you can write to**, and a **serverless SQL warehouse**. You need permission to
-  `CREATE SCHEMA` and `CREATE VOLUME` in that catalog.
+- **A Databricks notebook** (or a serverless/cluster session) — the loader uses `spark.sql()` and
+  `dbutils.fs`, which only exist inside a notebook. No CLI, no SQL warehouse, no SDK.
+- **A Unity Catalog with a pre-provisioned personal schema** you can write to — the schema itself,
+  and `CREATE VOLUME`/`CREATE TABLE` inside it. You do **not** need `CREATE SCHEMA` on the catalog;
+  most lab workspaces (e.g. vocareum) only grant one schema per user, named after your email's
+  local part, and that's exactly what this loader targets by default.
 - **Python 3** with the standard library. The loader itself has no third-party deps.
 
 The parquet and PDF files are **already committed** under `output/`, so you do not need to
@@ -42,38 +44,31 @@ generate them. (Regeneration is optional — see [below](#optional-regenerate-th
 
 ## Run the loader
 
-Set two required environment variables, then run from the repo root:
+Paste `data/load_to_uc.py` into a notebook cell (or `%run data/load_to_uc.py` if the repo is
+checked out in your workspace) and run it. No environment variables are required — it
+auto-detects your catalog, schema, and staging volume from `current_user()`:
 
-```bash
-AKZO_CATALOG=<your_catalog> \
-DATABRICKS_WAREHOUSE_ID=<your_warehouse_id> \
-python3 data/load_to_uc.py
+```python
+%run ./data/load_to_uc
 ```
 
-If you use a named CLI profile, add it:
-
-```bash
-AKZO_CATALOG=<your_catalog> \
-DATABRICKS_WAREHOUSE_ID=<your_warehouse_id> \
-DATABRICKS_CONFIG_PROFILE=<your_profile> \
-python3 data/load_to_uc.py
-```
+Override any of these with environment variables if the defaults don't fit your workspace:
 
 | Variable | Required | What it is |
 |---|---|---|
-| `AKZO_CATALOG` | yes | Your Unity Catalog name (schemas are created as `akzo_*` inside it) |
-| `DATABRICKS_WAREHOUSE_ID` | yes | SQL warehouse id (Compute → SQL Warehouses → your warehouse → copy the id) |
-| `DATABRICKS_CONFIG_PROFILE` | no | A named CLI profile. Omit to use the CLI's default auth chain. |
+| `AKZO_CATALOG` | no | Unity Catalog name (default: `dbacademy`) |
+| `AKZO_SCHEMA` | no | Target schema (default: local part of your email, e.g. `jane_doe`) |
+| `AKZO_STAGING` | no | Staging volume path for the parquet upload (default: auto-detected `/Volumes/<catalog>/ops/<you>`) |
 
-If you forget the required vars, the loader stops with:
+If it can't determine your schema or staging volume, the loader stops with:
 
 ```
-Set AKZO_CATALOG and DATABRICKS_WAREHOUSE_ID (and optionally DATABRICKS_CONFIG_PROFILE) before running this loader.
+Could not determine user schema. Set AKZO_SCHEMA env var.
 ```
 
-The loader is **idempotent** — safe to re-run. It creates schemas/volumes if missing, re-uploads
-the parquet, recreates the tables (`CREATE OR REPLACE`), uploads the PDFs, and prints row counts
-at the end so you can confirm the load.
+The loader is **idempotent** — safe to re-run. It creates the `docs_raw` volume if missing,
+re-uploads the parquet, recreates the tables (`CREATE OR REPLACE`), uploads the PDFs, and prints
+row counts at the end so you can confirm the load. It never calls `CREATE SCHEMA`.
 
 ---
 

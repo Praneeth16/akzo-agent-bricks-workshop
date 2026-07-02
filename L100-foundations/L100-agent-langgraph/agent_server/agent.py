@@ -4,12 +4,12 @@ A minimal LangGraph ReAct agent — ``create_react_agent(ChatDatabricks(...), to
 — wrapped in the MLflow ``ResponsesAgent`` interface so it gets tracing, evaluation, and
 serving for free. It CONSUMES exactly ONE read-only managed MCP tool: the
 ``coatings_data_lookup`` UC function exposed by the Databricks managed UC-functions MCP
-server over the governed ``akzo_finance`` schema. Read-only — no actions.
+server over the governed finance schema (``AKZO_SCHEMA``). Read-only — no actions.
 
 How the one tool is wired
 -------------------------
 Default (managed MCP, the path the workshop teaches): the workshop registers a single
-read-only Unity Catalog function ``{catalog}.akzo_finance.coatings_data_lookup(question
+read-only Unity Catalog function ``{catalog}.{schema}.coatings_data_lookup(question
 STRING)`` — see ``scripts/register_uc_function.sql``. At start-up the agent connects a
 ``DatabricksMCPClient`` to ``{host}/api/2.0/mcp/functions/{catalog}/{schema}``, lists the
 tools that server exposes, picks the ``coatings_data_lookup`` tool, and binds a thin
@@ -107,7 +107,7 @@ def _build_mcp_tool() -> StructuredTool:
         name="coatings_data_lookup",
         description=(
             "Look up AkzoNobel coatings finance data (gross margin, price, FX, cost, product "
-            "performance) over the akzo_finance tables. Read-only. Pass a natural-language "
+            "performance) over the finance tables. Read-only. Pass a natural-language "
             "question; returns the grounded data."
         ),
     )
@@ -119,9 +119,9 @@ def _build_mcp_tool() -> StructuredTool:
 @tool
 def coatings_data_lookup_local(question: str) -> str:
     """LOCAL-DEV ONLY. Look up AkzoNobel coatings finance data by generating governed
-    read-only Spark SQL over the akzo_finance tables and running it in-process. Use for
+    read-only Spark SQL over the finance tables and running it in-process. Use for
     gross margin, price, FX, cost, and product-performance questions. Read-only: a single
-    SELECT statement, validated and scoped to the akzo_finance schema; never writes."""
+    SELECT statement, validated and scoped to the finance schema; never writes."""
     from pyspark.sql import SparkSession
 
     spark = SparkSession.builder.getOrCreate()
@@ -145,7 +145,7 @@ def coatings_data_lookup_local(question: str) -> str:
         sql = sql.strip("`").lstrip("sql").strip()
     try:
         # Real guard: exactly one statement, root is a SELECT, every table ref is inside
-        # the akzo_finance schema. Raises ValueError otherwise.
+        # the finance schema. Raises ValueError otherwise.
         assert_read_only_select(sql, FINANCE_SCHEMA)
     except ValueError as e:
         return f"Refused (read-only guard): {e} | SQL was: {sql}"

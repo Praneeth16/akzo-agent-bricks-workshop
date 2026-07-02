@@ -21,7 +21,7 @@ Do not use it to recreate Finance, SCM, or Commercial data that already exists. 
 
 - Track folder and the specific tables or documents needed
 - Team catalog
-- Target schema: reuse `akzo_ops` or `akzo_gateway` for team tables, or a new `akzo_<track>` schema
+- Target schema: reuse your own personal schema for team tables
 - Columns, types, and grain for each table
 - Row volume and any narrative anchors the demo needs
 - Whether documents are needed and in what format (PDF or text)
@@ -55,7 +55,7 @@ Return:
 
 - Keep all data synthetic and clearly labeled synthetic.
 - Use a fixed seed so the demo is reproducible.
-- Reuse `akzo_ops` and `akzo_gateway` for team tables; do not collide with the provided schemas.
+- Reuse your own personal schema for team tables; do not collide with the provided tables.
 - Never overwrite the provided Finance, SCM, or Commercial tables.
 - Validate the catalog name with the same rule the loader uses: letters, digits, and underscore only.
 - Tie generated values to the shared narrative where it helps the demo: Paints EMEA margin drop, Rotterdam OTIF drop in May 2026, and accounts ACC0001/0002/0003 churn risk.

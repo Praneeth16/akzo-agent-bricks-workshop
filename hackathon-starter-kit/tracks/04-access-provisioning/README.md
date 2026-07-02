@@ -20,16 +20,18 @@ Build an entitlement agent that receives an access request, checks policy and us
 
 ## Data And Resources
 
-- **Team-built tables (in `akzo_ops`):** users, groups, domains, entitlement requests, audit log. Create these with `generate-synthetic-data`; they are not in the shared setup.
+- **Team-built tables (in your own personal schema):** users, groups, domains, entitlement requests, audit log. Create these with `generate-synthetic-data`; they are not in the shared setup.
 - **Team-built documents:** access policy and data classification policy. Generate as text or PDF, then index for retrieval.
-- **Provided tables:** the three domain schemas (`akzo_finance`, `akzo_scm`, `akzo_commercial`) serve as the access targets to validate domain scope.
+- **Provided tables:** the finance, SCM, and commercial tables (flat in your personal schema) serve as the access targets to validate domain scope.
 - **Genie spaces:** optional Akzo Finance, SCM, Commercial to validate domain scope
 - **Vector Search:** index your generated policy documents if you want retrieval
+- **Environment:** Free Edition ships Genie, Genie Code, and Agent Bricks natively — no Vocareum needed. Follow `../../../SETUP.md` steps 1-4 to provision.
+- **Free Edition note (multi-persona simulation):** Free Edition is single-user with no Automatic Identity Management or account groups, so you cannot demo real multi-user RLS. Simulate governance instead with a persona-parameter RLS-style view, or two scoped Genie spaces/tables routed by a Supervisor — pick whichever this track's demo script needs.
 
 ## Agent Bricks Build Path
 
-1. Start from the action-plane pattern described in `../../WORKSHOP_MASTER_PLAN.md`.
-2. Generate the entitlement and audit tables with `generate-synthetic-data` into `akzo_ops`.
+1. Start from the action-plane pattern in `../../../apps/action-center/README.md` and `../../../L200-capabilities/02_agents_that_act.py`.
+2. Generate the entitlement and audit tables with `generate-synthetic-data` into your own personal schema.
 3. Create a request classifier: new access, change access, revoke access.
 4. Add a policy retrieval step for domain and privilege rules.
 5. Propose a least-privilege grant with justification.

@@ -14,21 +14,22 @@ Build a finance assistant that answers one margin or variance question over the 
 ## Starter Architecture
 
 - **Agent pattern:** Genie Space plus optional code-your-own wrapper
-- **Data plane:** `akzo_finance` tables and Finance Genie space
+- **Data plane:** finance tables (flat in your personal schema) and Finance Genie space
 - **Tool plane:** `ai_query`, `ai_summarize`, optional finance KPI lookup MCP tool
 - **Control plane:** MLflow trace, groundedness judge, UC table permissions
 
 ## Data And Resources
 
-- **Provided tables (`<catalog>.akzo_finance`):** `products` (incl. `list_price_eur`, `standard_cost_eur`), `margin_actuals`, `margin_budget`, `fx_rates`, `cost_drivers`
+- **Provided tables (`<catalog>.<your-personal-schema>`):** `products` (incl. `list_price_eur`, `standard_cost_eur`), `margin_actuals`, `margin_budget`, `fx_rates`, `cost_drivers`
 - **Documents:** none required; the document volume holds safety sheets and contracts, not finance policy
 - **Genie spaces:** Akzo Finance
 - **Vector Search:** not needed for this track
+- **Environment:** Free Edition ships Genie, Genie Code, and Agent Bricks natively — no Vocareum needed. Follow `../../../SETUP.md` steps 1-4 to provision.
 
 ## Agent Bricks Build Path
 
-1. Start from `../../L100-foundations/01_agent_bricks_types.md`.
-2. Reuse the Finance Genie space created by `../../data/setup/setup_genie_spaces.py`.
+1. Start from `../../../L100-foundations/01_agent_bricks_types.md`.
+2. Reuse the Finance Genie space created by `../../../genie/create_genie_spaces.py` (see `../../../genie/README.md`).
 3. Add instructions for variance decomposition, driver ranking, and confidence language.
 4. Add 5 sample questions covering price, volume, mix, cost, and FX.
 5. Evaluate answers with correctness and groundedness questions in MLflow.

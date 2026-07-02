@@ -20,15 +20,16 @@ Build a planner copilot that explains forecast movement, uses `ai_forecast` for 
 
 ## Data And Resources
 
-- **Provided tables (`<catalog>.akzo_scm`):** `otif`, `inventory`, `service_levels` give monthly series to forecast; `lanes` for lead-time context
-- **Team-built tables (in `akzo_ops`):** demand history, forecast versions, and exogenous signals are not provided. Create them with `generate-synthetic-data`, or derive a baseline series from the SCM tables above.
+- **Provided tables (`<catalog>.<your-personal-schema>`):** `otif`, `inventory`, `service_levels` give monthly series to forecast; `lanes` for lead-time context
+- **Team-built tables (in your own personal schema):** demand history, forecast versions, and exogenous signals are not provided. Create them with `generate-synthetic-data`, or derive a baseline series from the SCM tables above.
 - **Genie spaces:** Akzo SCM
 - **Vector Search:** not needed for this track
+- **Environment:** Free Edition ships Genie, Genie Code, and Agent Bricks natively — no Vocareum needed. Follow `../../../SETUP.md` steps 1-4 to provision.
 
 ## Agent Bricks Build Path
 
-1. Start from `../../L100-foundations/00_sql_ai_functions.ipynb`.
-2. Build a monthly series from `akzo_scm.service_levels` or `otif`, or generate a demand series with `generate-synthetic-data`.
+1. Start from `../../../L100-foundations/00_sql_ai_functions.ipynb`.
+2. Build a monthly series from `<your-personal-schema>.service_levels` or `otif`, or generate a demand series with `generate-synthetic-data`.
 3. Use `ai_forecast` on that series.
 4. Compare baseline forecast, latest forecast version, and actuals.
 5. Add explanation instructions for bias, accuracy, and exogenous drivers.

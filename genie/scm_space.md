@@ -2,7 +2,7 @@
 
 > Paste the **Instructions** block into the Genie space's *Instructions* field, and add the
 > **example SQL** pairs as *Sample / Trusted Questions*. All SQL is Spark SQL against
-> `<catalog>.akzo_scm.*`. Every column below exists in `data/output/scm/README.md` — do not invent columns.
+> `<catalog>.<schema>.*`. Every column below exists in `data/output/scm/README.md` — do not invent columns.
 
 ---
 
@@ -20,14 +20,14 @@ stockouts, backorders). Distances/costs are in **EUR**; current month is **2026-
 
 ## 2. Tables in scope
 
-All tables fully-qualified under `<catalog>.akzo_scm`.
+All tables fully-qualified under `<catalog>.<schema>`.
 
 | Table | Purpose | Key columns | Grain |
 |---|---|---|---|
-| `<catalog>.akzo_scm.otif` | On-Time-In-Full delivery performance | `plant`, `region` (EMEA/Americas/APAC/China), `lane`, `sku`, `month` (DATE), `orders`, `on_time`, `in_full`, `otif_pct` | plant × region × lane × sku × month |
-| `<catalog>.akzo_scm.inventory` | Inventory health & stockouts | `plant`, `sku`, `month`, `on_hand_units`, `safety_stock`, `days_of_supply`, `stockout_flag` (1=stockout) | plant × sku × month |
-| `<catalog>.akzo_scm.lanes` | Lane master (current values) | `lane_id`, `origin_plant`, `dest_region`, `mode` (road/sea/air), `lead_time_days` (current/Q2 2026), `cost_per_unit` (EUR) | one row per lane |
-| `<catalog>.akzo_scm.service_levels` | Regional customer service | `region`, `month`, `service_pct`, `backorder_units` | region × month |
+| `<catalog>.<schema>.otif` | On-Time-In-Full delivery performance | `plant`, `region` (EMEA/Americas/APAC/China), `lane`, `sku`, `month` (DATE), `orders`, `on_time`, `in_full`, `otif_pct` | plant × region × lane × sku × month |
+| `<catalog>.<schema>.inventory` | Inventory health & stockouts | `plant`, `sku`, `month`, `on_hand_units`, `safety_stock`, `days_of_supply`, `stockout_flag` (1=stockout) | plant × sku × month |
+| `<catalog>.<schema>.lanes` | Lane master (current values) | `lane_id`, `origin_plant`, `dest_region`, `mode` (road/sea/air), `lead_time_days` (current/Q2 2026), `cost_per_unit` (EUR) | one row per lane |
+| `<catalog>.<schema>.service_levels` | Regional customer service | `region`, `month`, `service_pct`, `backorder_units` | region × month |
 
 > SKUs are finance-aligned (`DEC-####` Decorative Paints, `PFC-####` Performance Coatings).
 > Plants: Rotterdam-NL, Felling-UK (EMEA); Houston-US, Sao-Paulo-BR (Americas); Shanghai-CN (China); Pune-IN (APAC).
@@ -39,7 +39,7 @@ All tables fully-qualified under `<catalog>.akzo_scm`.
 - `otif.lane = lanes.lane_id` — bring in `mode`, `lead_time_days`, `cost_per_unit`, `origin_plant`, `dest_region`.
 - `otif.plant = inventory.plant` and `otif.sku = inventory.sku` (and `month`) — connect a service dip to a stockout.
 - `service_levels` is region×month only — join to `otif`/`inventory` on `region` + `month` for the regional rollup.
-- To make this **"Paints EMEA"**, filter `otif.region = 'EMEA'` and SKUs that are Decorative Paints. The Decorative EMEA SKUs are `DEC-1000, DEC-1004, DEC-1008, DEC-1012, DEC-1016, DEC-1020, DEC-1024, DEC-1028`; or join to `<catalog>.akzo_finance.products` on `sku` and filter `product_line='Decorative Paints'` for the authoritative list (cross-catalog read, same SKU ids).
+- To make this **"Paints EMEA"**, filter `otif.region = 'EMEA'` and SKUs that are Decorative Paints. The Decorative EMEA SKUs are `DEC-1000, DEC-1004, DEC-1008, DEC-1012, DEC-1016, DEC-1020, DEC-1024, DEC-1028`; or join to `<catalog>.<schema>.products` on `sku` and filter `product_line='Decorative Paints'` for the authoritative list (cross-catalog read, same SKU ids).
 - The narrative EMEA lane is **`Rotterdam-NL->EMEA-DACH`**.
 
 ---
@@ -78,7 +78,7 @@ WITH o AS (
   SELECT month,
          SUM(ROUND(otif_pct * orders)) AS perfect,
          SUM(orders)                   AS orders
-  FROM <catalog>.akzo_scm.otif
+  FROM <catalog>.<schema>.otif
   WHERE region = 'EMEA' AND sku LIKE 'DEC-%'
     AND month BETWEEN DATE'2026-03-01' AND DATE'2026-06-01'
   GROUP BY month
@@ -88,7 +88,7 @@ SELECT o.month,
        s.service_pct,
        s.backorder_units
 FROM o
-JOIN <catalog>.akzo_scm.service_levels s
+JOIN <catalog>.<schema>.service_levels s
   ON s.region = 'EMEA' AND s.month = o.month
 ORDER BY o.month;
 ```
@@ -101,13 +101,13 @@ ORDER BY o.month;
 -- (sea lanes are naturally long; the disruption shows as a road lane that's elevated).
 WITH mode_norm AS (
   SELECT mode, AVG(lead_time_days) AS mode_avg_days
-  FROM <catalog>.akzo_scm.lanes GROUP BY mode
+  FROM <catalog>.<schema>.lanes GROUP BY mode
 )
 SELECT l.lane_id, l.origin_plant, l.dest_region, l.mode,
        l.lead_time_days,
        ROUND(n.mode_avg_days, 1)                AS mode_avg_days,
        ROUND(l.lead_time_days - n.mode_avg_days, 1) AS days_above_mode_avg
-FROM <catalog>.akzo_scm.lanes l
+FROM <catalog>.<schema>.lanes l
 JOIN mode_norm n ON l.mode = n.mode
 ORDER BY days_above_mode_avg DESC;
 ```
@@ -118,7 +118,7 @@ ORDER BY days_above_mode_avg DESC;
 ```sql
 SELECT i.plant, i.sku, i.on_hand_units, i.safety_stock,
        ROUND(i.days_of_supply, 1) AS days_of_supply
-FROM <catalog>.akzo_scm.inventory i
+FROM <catalog>.<schema>.inventory i
 WHERE i.month = DATE'2026-05-01'
   AND i.stockout_flag = 1
   AND i.plant IN ('Rotterdam-NL','Felling-UK')   -- EMEA plants
@@ -130,7 +130,7 @@ ORDER BY i.days_of_supply ASC;
 
 ```sql
 SELECT month, service_pct, backorder_units
-FROM <catalog>.akzo_scm.service_levels
+FROM <catalog>.<schema>.service_levels
 WHERE region = 'EMEA' AND month >= DATE'2026-01-01'
 ORDER BY month;
 ```
@@ -142,7 +142,7 @@ ORDER BY month;
 SELECT month,
        ROUND(SUM(ROUND(otif_pct * orders)) / SUM(orders) * 100, 1) AS lane_otif_pct,
        SUM(orders) AS orders
-FROM <catalog>.akzo_scm.otif
+FROM <catalog>.<schema>.otif
 WHERE lane = 'Rotterdam-NL->EMEA-DACH' AND month >= DATE'2026-01-01'
 GROUP BY month
 ORDER BY month;
@@ -155,7 +155,7 @@ ORDER BY month;
 SELECT region,
        ROUND(SUM(ROUND(otif_pct * orders)) / SUM(orders) * 100, 1) AS otif_pct,
        SUM(orders) AS orders
-FROM <catalog>.akzo_scm.otif
+FROM <catalog>.<schema>.otif
 WHERE month = DATE'2026-05-01'
 GROUP BY region
 ORDER BY otif_pct;
@@ -166,7 +166,7 @@ ORDER BY otif_pct;
 
 ```sql
 SELECT lane_id, mode, lead_time_days, cost_per_unit
-FROM <catalog>.akzo_scm.lanes
+FROM <catalog>.<schema>.lanes
 WHERE dest_region LIKE 'EMEA%'
 ORDER BY lead_time_days DESC, cost_per_unit DESC;
 ```
@@ -175,7 +175,7 @@ ORDER BY lead_time_days DESC, cost_per_unit DESC;
 
 ```sql
 SELECT plant, sku, SUM(stockout_flag) AS stockout_months
-FROM <catalog>.akzo_scm.inventory
+FROM <catalog>.<schema>.inventory
 WHERE month >= DATE'2026-01-01'
 GROUP BY plant, sku
 HAVING SUM(stockout_flag) > 0
@@ -188,7 +188,7 @@ LIMIT 20;
 ```sql
 SELECT month, on_hand_units, safety_stock,
        ROUND(days_of_supply, 1) AS days_of_supply, stockout_flag
-FROM <catalog>.akzo_scm.inventory
+FROM <catalog>.<schema>.inventory
 WHERE plant = 'Rotterdam-NL' AND sku = 'DEC-1000'
   AND month >= DATE'2026-01-01'
 ORDER BY month;
@@ -202,7 +202,7 @@ SELECT
   SUM(orders)                              AS total_orders,
   SUM(ROUND(otif_pct * orders))            AS perfect_orders,
   SUM(orders) - SUM(ROUND(otif_pct * orders)) AS non_perfect_orders
-FROM <catalog>.akzo_scm.otif
+FROM <catalog>.<schema>.otif
 WHERE region = 'EMEA' AND sku LIKE 'DEC-%' AND month = DATE'2026-05-01';
 ```
 *Answer:* Quantifies the May service gap that fed backorders and the downstream churn risk.

@@ -7,7 +7,7 @@ write the agent yourself: a small LangGraph ReAct agent, wrapped in the MLflow
 one read-only tool.
 
 The agent is deliberately minimal. It has a single tool, `coatings_data_lookup`, that turns a
-question into governed read-only SQL over the `akzo_finance` tables and runs it. No actions,
+question into governed read-only SQL over your personal schema's tables and runs it. No actions,
 no writes — read-only by construction. The point is the shape, not the surface area: the same
 `ResponsesAgent` wrapper carries any framework, so the OpenAI Agents SDK in L200 and the
 LangGraph supervisor in L300 plug into the identical serving, tracing, and evaluation plane.
@@ -23,28 +23,28 @@ MLflow `ResponsesAgent`. The mix is on purpose: it shows the wrapper is framewor
 Like the L100 notebooks, this template is portable across workspaces. The catalog resolves
 from `AKZO_CATALOG`, falling back to `current_catalog()` (your assigned catalog on a lab such
 as Vocareum) — there is no silent `main` fallback, so a mis-set catalog fails loudly instead
-of reading the wrong data. The schema defaults to `akzo_finance`. `LLM_ENDPOINT` is **required**
+of reading the wrong data. The schema has no default — set `AKZO_SCHEMA` to your personal schema (labs that restrict `CREATE SCHEMA` provision one flat schema per user). `LLM_ENDPOINT` is **required**
 (no default), so the agent never silently calls a model you did not choose. No workspace URL,
 profile, warehouse, or Lakebase instance is baked in anywhere.
 
 ## The one tool: a read-only managed MCP function
 
 The agent **consumes** exactly one read-only tool through the Databricks managed UC-functions
-MCP server: the `coatings_data_lookup` Unity Catalog function over `akzo_finance`. The workshop
+MCP server: the `coatings_data_lookup` Unity Catalog function over your personal schema (`AKZO_SCHEMA`). The workshop
 registers it once with `scripts/register_uc_function.sql`. At start-up the agent connects a
-`DatabricksMCPClient` to `{host}/api/2.0/mcp/functions/{catalog}/akzo_finance`, lists the tools
+`DatabricksMCPClient` to `{host}/api/2.0/mcp/functions/{catalog}/{schema}`, lists the tools
 the server exposes, picks `coatings_data_lookup`, and binds it into `create_react_agent`. The
 call is governed by Unity Catalog + the AI Gateway — no client-side SQL, no actions, read-only.
 
 For local iteration without a live managed-MCP server, set `AKZO_LOCAL_TOOL=1` to use an
 in-process Spark fallback of the same lookup. That path runs model-generated SQL through a real
 read-only guard (`agent_server/sql_guard.py`, sqlglot): it rejects anything that is not a single
-SELECT statement and rejects any table reference outside the `akzo_finance` schema. The fallback
+SELECT statement and rejects any table reference outside the configured schema. The fallback
 is off by default — managed-MCP consumption is the default path.
 
 ## Prerequisites
 
-1. A Databricks workspace with the **L100 coatings data** loaded (the `akzo_finance` tables
+1. A Databricks workspace with the **L100 coatings data** loaded (the tables
    from the shared data setup).
 2. The `coatings_data_lookup` UC function registered — run `scripts/register_uc_function.sql`
    once (skip if you only run locally with `AKZO_LOCAL_TOOL=1`).
@@ -94,7 +94,7 @@ AkzoLangGraphAgent (MLflow ResponsesAgent)
 create_react_agent(ChatDatabricks(LLM_ENDPOINT), [coatings_data_lookup])
   │
   └── coatings_data_lookup ──► managed UC-functions MCP server (default)
-                               {host}/api/2.0/mcp/functions/{catalog}/akzo_finance
+                               {host}/api/2.0/mcp/functions/{catalog}/{schema}
                                governed by Unity Catalog + AI Gateway
                                (AKZO_LOCAL_TOOL=1 → in-process Spark fallback w/ SQL guard)
 ```
@@ -107,7 +107,7 @@ create_react_agent(ChatDatabricks(LLM_ENDPOINT), [coatings_data_lookup])
 |------|--------------|
 | `agent_server/agent.py` | The LangGraph ReAct agent, wrapped as a `ResponsesAgent`. Consumes the one read-only MCP tool (default) or the local Spark fallback. Models-from-code entry point. |
 | `agent_server/utils.py` | Portable config: catalog (no `main` fallback), schema, required LLM endpoint, MCP URL, local-tool flag — all from env. |
-| `agent_server/sql_guard.py` | sqlglot read-only guard for the local fallback: single SELECT only, table refs confined to `akzo_finance`. |
+| `agent_server/sql_guard.py` | sqlglot read-only guard for the local fallback: single SELECT only, table refs confined to the configured schema. |
 | `agent_server/start_server.py` | FastAPI server (`/health`, `/invocations`) that delegates to the agent, with MLflow tracing. |
 | `scripts/register_uc_function.sql` | Registers the one read-only `coatings_data_lookup` UC function the MCP server exposes. |
 | `scripts/quickstart.py` | First-time setup: auth, MLflow experiment, `.env`. |
@@ -136,7 +136,7 @@ databricks bundle deploy
 databricks bundle run akzo_l100_agent_langgraph
 ```
 
-The deployed app's run-as principal needs `SELECT` on the `akzo_finance` tables (and access to
+The deployed app's run-as principal needs `SELECT` on the finance tables (and access to
 the LLM endpoint). Grant these in Unity Catalog — they are not baked into this template.
 
 ## Logging the agent as a model (optional)
@@ -173,9 +173,9 @@ mlflow.register_model(logged.model_uri, "<catalog>.<schema>.akzo_l100_langgraph_
 |---------|----------|
 | `uv run quickstart` fails on auth | Run `databricks auth login` manually, then retry |
 | Port 8000 / 3000 already in use | `lsof -ti :8000 \| xargs kill -9` (or use `--port`) |
-| Tool returns no rows or SQL errors | Confirm the `akzo_finance` tables exist; set `AKZO_CATALOG` if the data is in another catalog |
+| Tool returns no rows or SQL errors | Confirm the finance tables exist in your schema; set `AKZO_CATALOG` if the data is in another catalog |
 | "App already exists" on deploy | Bind the bundle: `databricks bundle deployment bind <key> <app-name> --auto-approve` |
-| Permission errors after deploy | Ensure the app principal has `SELECT` on `akzo_finance` and access to the LLM endpoint |
+| Permission errors after deploy | Ensure the app principal has `SELECT` on your schema and access to the LLM endpoint |
 
 ## Next
 

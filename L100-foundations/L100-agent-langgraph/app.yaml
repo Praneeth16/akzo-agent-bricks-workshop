@@ -23,4 +23,4 @@ env:
   # - name: AKZO_CATALOG
   #   value: "<your_catalog>"
   - name: AKZO_SCHEMA
-    value: "akzo_finance"
+    value: "<your-personal-schema>"

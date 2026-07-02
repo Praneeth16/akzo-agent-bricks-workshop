@@ -2,11 +2,14 @@ bundle:
   name: akzo_l100_agent_langgraph
 
 # Nothing workspace-specific is hardcoded. Set at deploy:
-#   databricks bundle deploy --var catalog=<your_catalog> [--var llm_endpoint=<endpoint>]
-# current_catalog() does NOT resolve in the Apps runtime, so catalog is required.
+#   databricks bundle deploy --var catalog=<your_catalog> --var schema=<your_personal_schema> [--var llm_endpoint=<endpoint>]
+# current_catalog() does NOT resolve in the Apps runtime, so catalog and schema are required.
 variables:
   catalog:
-    description: Unity Catalog holding the coatings data (akzo_finance etc.). Required for Apps deploy.
+    description: Unity Catalog holding the coatings data. Required for Apps deploy.
+    default: ""
+  schema:
+    description: Your personal schema holding the finance tables (labs that restrict CREATE SCHEMA provision one flat schema per user). Required for Apps deploy.
     default: ""
   llm_endpoint:
     description: Foundation Model serving endpoint the agent calls.
@@ -40,13 +43,13 @@ resources:
           - name: AKZO_CATALOG
             value: ${var.catalog}
           - name: AKZO_SCHEMA
-            value: "akzo_finance"
+            value: ${var.schema}
 
       # Resources this app's identity is granted. The serving endpoint is the chat model
       # the LangGraph agent calls; quickstart fills in the experiment_id. The agent consumes
       # the managed UC-functions MCP server, governed by Unity Catalog, so the app's run-as
       # principal needs EXECUTE on the coatings_data_lookup UC function and SELECT on the
-      # akzo_finance tables it reads (granted in the workspace, not here).
+      # finance tables it reads (granted in the workspace, not here).
       resources:
         - name: 'experiment'
           experiment:

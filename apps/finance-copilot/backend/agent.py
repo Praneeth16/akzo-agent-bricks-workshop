@@ -1,7 +1,7 @@
 """The Finance controlling copilot workflow — read -> reason -> recommend -> save.
 
 This is the finance-SPECIFIC layer. It composes the shared modules:
-  - text2sql / databricks_client  -> governed NL->SQL reads over akzo_finance
+  - text2sql / databricks_client  -> governed NL->SQL reads over the finance tables
   - databricks_client.chat        -> the LLM reasoning step (number -> narrative + action)
   - lakebase                      -> the save/write-back plane (saved analyses)
 
@@ -17,14 +17,16 @@ panel shows exactly which certified metric view / tables were used.
 from __future__ import annotations
 
 import json
+import os
 import re
 
 import databricks_client as dbx
 import lakebase as lb
 import text2sql
 
-CATALOG = "<catalog>"
-FINANCE = f"{CATALOG}.akzo_finance"
+CATALOG = os.environ.get("AKZO_CATALOG", "<catalog>")
+SCHEMA = os.environ.get("AKZO_SCHEMA", "<schema>")
+FINANCE = f"{CATALOG}.{SCHEMA}"
 METRIC_VIEW = f"{FINANCE}.mv_gross_margin"  # certified gross-margin metric view
 
 SERVICE_IDENTITY = "finance-copilot@service"  # the app/service write identity in the audit trail
@@ -66,7 +68,7 @@ def ask(question: str) -> dict:
     if sql.strip().lower().startswith("select 'out_of_scope'"):
         answer = (
             "That question is outside the finance copilot's scope (margin / revenue / COGS / "
-            "FX / budget variance over akzo_finance). Try the SCM or Commercial space, or ask "
+            "FX / budget variance over the finance tables). Try the SCM or Commercial space, or ask "
             "about gross-margin variance for a product line and region."
         )
         return {**t2s, "answer": answer, "trace": _ask_trace(sql)}

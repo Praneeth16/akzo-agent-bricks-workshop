@@ -3,7 +3,7 @@
 Paste this into Databricks Genie code or your ai-dev-kit coding assistant.
 
 ```text
-We are a hackathon team building Track 07: Supply Chain Control Tower Copilot in Vocareum.
+We are a hackathon team building Track 07: Supply Chain Control Tower Copilot on Databricks Free Edition (or in Vocareum, if that is your assigned lab environment).
 
 Use these values:
 - catalog: <TEAM_CATALOG>
@@ -20,7 +20,7 @@ Use ai-dev-kit skills in this order:
 Build the first runnable loop:
 "Why did OTIF for Paints EMEA drop in May 2026, and what should the planner do?"
 
-Provided SCM tables in <TEAM_CATALOG>.akzo_scm: otif, inventory, lanes, service_levels.
+Provided SCM tables in <TEAM_CATALOG>.<your-personal-schema>: otif, inventory, lanes, service_levels.
 The narrative lane is Rotterdam-NL->EMEA-DACH.
 
 Create:

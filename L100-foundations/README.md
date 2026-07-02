@@ -69,9 +69,9 @@ Every query is driven from Python through `spark.sql(...)` with the catalog and 
 
 Nothing in this tier is tied to one workspace. Set these before you run, all from your own workspace.
 
-1. **Catalog.** Leave the `catalog` widget blank to use your current catalog (`current_catalog()`), or type your workshop catalog name. Run the shared `../data/` loader once first so the `akzo_*` schemas and tables exist.
+1. **Catalog.** Leave the `catalog` widget blank to use your current catalog (`current_catalog()`), or type your workshop catalog name. Run the shared `../data/` loader once first so the tables exist flat in your personal schema (no `CREATE SCHEMA` needed).
 2. **Model endpoint.** Set the `llm_endpoint` widget to a Foundation Model endpoint you can query (for example `databricks-claude-opus-4-8` or `databricks-llama-4-maverick`).
-3. **Genie space (the no-code lab).** Create your Genie space in the UI: **New → Genie space**, attach the `akzo_finance` / `akzo_scm` / `akzo_commercial` tables, and ground it with the instructions from `../genie/`. The no-code lab works in the space directly. You can also create the spaces from code with `../genie/create_genie_spaces.py`, which prints the ids. Keep each space's id (the last URL segment of `/genie/rooms/<space_id>`) — you paste it into the widgets at L200 (the supervisor).
+3. **Genie space (the no-code lab).** Create your Genie space in the UI: **New → Genie space**, attach the tables from your personal schema, and ground it with the instructions from `../genie/`. The no-code lab works in the space directly. You can also create the spaces from code with `../genie/create_genie_spaces.py`, which prints the ids. Keep each space's id (the last URL segment of `/genie/rooms/<space_id>`) — you paste it into the widgets at L200 (the supervisor).
 
 ---
 

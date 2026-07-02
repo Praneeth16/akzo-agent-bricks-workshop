@@ -28,7 +28,12 @@ CAT = os.environ.get("AKZO_CATALOG")
 WAREHOUSE = os.environ.get("DATABRICKS_WAREHOUSE_ID")
 if not CAT or not WAREHOUSE:
     raise SystemExit("Set AKZO_CATALOG and DATABRICKS_WAREHOUSE_ID before running.")
-FIN, SCM, COM = f"{CAT}.akzo_finance", f"{CAT}.akzo_scm", f"{CAT}.akzo_commercial"
+
+_SCHEMA = os.environ.get("AKZO_SCHEMA")
+if not _SCHEMA:
+    _me = WorkspaceClient().current_user.me().user_name
+    _SCHEMA = _me.split("@")[0].replace(".", "_").replace("-", "_")
+FIN = SCM = COM = f"{CAT}.{_SCHEMA}"
 
 
 def gid() -> str:

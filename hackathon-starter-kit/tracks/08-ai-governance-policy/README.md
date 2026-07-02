@@ -20,11 +20,12 @@ Build a governance agent that answers policy questions across models, prompts, t
 
 ## Data And Resources
 
-- **Team-built tables (in `akzo_gateway`):** model endpoints, tools, budgets, guardrail rules, audit events are not provided. Create them with `generate-synthetic-data`.
+- **Team-built tables (in your own personal schema):** model endpoints, tools, budgets, guardrail rules, audit events are not provided. Create them with `generate-synthetic-data`.
 - **Team-built documents:** AI policy, tool approval policy, data handling guidance. Generate and index for retrieval.
 - **Provided signal:** real AI Gateway logs and UC permissions from the workshop are the authoritative governance artifact; reference them.
 - **Genie spaces:** optional team-built governance space
 - **Vector Search:** index your generated policy documents
+- **Environment:** Free Edition ships Genie, Genie Code, and Agent Bricks natively — no Vocareum needed. Follow `../../../SETUP.md` steps 1-4 to provision.
 
 ## Agent Bricks Build Path
 

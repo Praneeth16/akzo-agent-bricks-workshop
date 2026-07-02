@@ -42,7 +42,7 @@ def assert_read_only_select(sql: str, finance_schema: str) -> None:
       * the root is a SELECT / UNION / parenthesised SELECT (CTEs ending in SELECT are OK);
       * no write/DDL nodes anywhere in the tree;
       * every base table is in ``<schema>`` (the ``schema`` part of catalog.schema), so the
-        model cannot read outside akzo_finance.
+        model cannot read outside the finance schema.
     """
     try:
         statements = sqlglot.parse(sql, read="spark")

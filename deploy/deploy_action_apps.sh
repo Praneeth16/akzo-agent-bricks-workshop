@@ -4,10 +4,10 @@
 #
 # This script is idempotent + re-runnable. It:
 #   1. Creates akzo-action-center (NEW), captures its SP, applies the full grant recipe
-#      (UC read on akzo_* + warehouse CAN_USE + Lakebase Postgres role w/ DML+CREATE on
-#      schema akzo). The app reads/writes akzo.actions/action_events and calls the L3
-#      executor (http_request via the akzo_external_systems UC connection), so it needs
-#      the warehouse + Lakebase + UC read grants.
+#      (UC read on your personal schema + warehouse CAN_USE + Lakebase Postgres role w/
+#      DML+CREATE on schema akzo). The app reads/writes akzo.actions/action_events and
+#      calls the L3 executor (http_request via the akzo_external_systems UC connection),
+#      so it needs the warehouse + Lakebase + UC read grants.
 #   2. Redeploys the 3 deepened apps (akzo-supervisor / akzo-finance-copilot /
 #      akzo-quote-agent) — they gained the Actions panel + action_plane + authz/CAS/
 #      idempotency fixes. Their SPs already hold grants; we re-confirm DML on schema akzo
@@ -17,15 +17,15 @@
 #      L200-capabilities/ + apps/_shared to the workspace paths the job + notebook import expects.
 #
 #   DATABRICKS_CONFIG_PROFILE=<your-profile> WORKSPACE_USER=<you@example.com> \
-#   DATABRICKS_WAREHOUSE_ID=<id> AKZO_CATALOG=<catalog> LAKEBASE_INSTANCE=<instance> \
-#   ./deploy/deploy_action_apps.sh
+#   DATABRICKS_WAREHOUSE_ID=<id> AKZO_CATALOG=<catalog> AKZO_SCHEMA=<your-personal-schema> \
+#   LAKEBASE_INSTANCE=<instance> ./deploy/deploy_action_apps.sh
 set -euo pipefail
 
 PROFILE="${DATABRICKS_CONFIG_PROFILE:-<your-profile>}"
 WORKSPACE_USER="${WORKSPACE_USER:-<you@example.com>}"
 WAREHOUSE_ID="${DATABRICKS_WAREHOUSE_ID:-<your-warehouse-id>}"
 CATALOG="${AKZO_CATALOG:-<catalog>}"
-SCHEMAS=(akzo_finance akzo_scm akzo_commercial akzo_docs akzo_ops akzo_gateway)
+SCHEMA="${AKZO_SCHEMA:?set AKZO_SCHEMA to your personal schema}"
 LAKEBASE_INSTANCE="${LAKEBASE_INSTANCE:-<your-lakebase-instance>}"
 CONNECTION_NAME="akzo_external_systems"   # governed UC HTTP connection (executor path)
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -66,10 +66,8 @@ grant_sp() {   # $1=SP client_id : full UC + warehouse + Lakebase recipe (idempo
   local sp="$1"
   echo "    UC grants for $sp"
   runsql "GRANT USE CATALOG ON CATALOG \`$CATALOG\` TO \`$sp\`"
-  for s in "${SCHEMAS[@]}"; do
-    runsql "GRANT USE SCHEMA ON SCHEMA \`$CATALOG\`.\`$s\` TO \`$sp\`"
-    runsql "GRANT SELECT ON SCHEMA \`$CATALOG\`.\`$s\` TO \`$sp\`"
-  done
+  runsql "GRANT USE SCHEMA ON SCHEMA \`$CATALOG\`.\`$SCHEMA\` TO \`$sp\`"
+  runsql "GRANT SELECT ON SCHEMA \`$CATALOG\`.\`$SCHEMA\` TO \`$sp\`"
   echo "    warehouse CAN_USE for $sp"
   local acl
   acl=$(python3 -c "import json,sys;print(json.dumps({'access_control_list':[{'service_principal_name':sys.argv[1],'permission_level':'CAN_USE'}]}))" "$sp")

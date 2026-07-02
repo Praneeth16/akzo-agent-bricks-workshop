@@ -55,7 +55,7 @@ Every rung travels the **same governed plane**, and that is the whole point:
 
 ### Step 3 — L4 Autonomous closed-loop (replay 03_autonomous_loop) — ~90 sec
 10. Open notebook **`03_autonomous_loop.py`** (already run). *Say: "At the top of the ladder, the agent acts on its own — but only within policy."*
-11. **DETECT:** point at the output — the loop queried `akzo_scm.otif` and found **`Rotterdam-NL->EMEA-DACH` at ~88.9% OTIF in May 2026** (below the 90% threshold), with **DEC-1000 / DEC-1004 stocked out**.
+11. **DETECT:** point at the output — the loop queried the `otif` table and found **`Rotterdam-NL->EMEA-DACH` at ~88.9% OTIF in May 2026** (below the 90% threshold), with **DEC-1000 / DEC-1004 stocked out**.
 12. **PATH A (auto-execute):** an in-policy `scm_reorder` (≤ €100k cap) → **auto-approved by `autonomous-loop` (no human)** → `execute()` raised a **PO on the mock ERP** → real `external_ref` (`PO-####`) + a receipt in `external_system_log`. *Say: "In-policy, so it acted on its own — and logged everything."*
 13. **PATH B (escalate):** the over-cap reorder (**€205k > €100k cap**) → `evaluate()` breach → **escalated to a human gate, NO external system called, no PO raised**. *Say: "This is the moment that lets you sign off on autonomy. The instant it would breach policy, it stops and hands it to a human. Human-on-the-loop, not in-the-loop."*
 

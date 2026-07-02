@@ -20,14 +20,15 @@ Build a supervisor that routes a user question to the correct domain Genie space
 
 ## Data And Resources
 
-- **Tables:** `akzo_finance`, `akzo_scm`, `akzo_commercial`
+- **Tables:** flat in your personal schema
 - **Documents:** optional policy or product docs for citations
 - **Genie spaces:** Finance, SCM, Commercial
 - **Vector Search:** optional for cross-domain policy context
+- **Environment:** Free Edition ships Genie, Genie Code, and Agent Bricks natively — no Vocareum needed. Follow `../../../SETUP.md` steps 1-4 to provision.
 
 ## Agent Bricks Build Path
 
-1. Start from the L300 supervisor pattern in `../../WORKSHOP_MASTER_PLAN.md`.
+1. Start from the supervisor pattern in `../../../apps/supervisor/README.md` and `../../../L200-capabilities/01_governed_supervisor.py`.
 2. Register the three Genie spaces as sub-agents or callable tools.
 3. Write routing instructions with domain boundaries and examples.
 4. Add an ambiguity rule: ask a clarifying question or state the assumption.

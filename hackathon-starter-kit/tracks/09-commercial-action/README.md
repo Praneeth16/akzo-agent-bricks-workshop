@@ -20,10 +20,11 @@ Build an assistant that summarizes account performance, identifies a risk or opp
 
 ## Data And Resources
 
-- **Provided tables (`<catalog>.akzo_commercial`):** `accounts`, `sales_actuals` (revenue, margin), `churn_signals`, `pipeline`
+- **Provided tables (`<catalog>.<your-personal-schema>`):** `accounts`, `sales_actuals` (revenue, margin), `churn_signals`, `pipeline`
 - **Documents:** none provided; account notes or playbooks are team-supplied
 - **Genie spaces:** Akzo Commercial
 - **Vector Search:** optional playbook retrieval
+- **Environment:** Free Edition ships Genie, Genie Code, and Agent Bricks natively — no Vocareum needed. Follow `../../../SETUP.md` steps 1-4 to provision.
 
 ## Agent Bricks Build Path
 

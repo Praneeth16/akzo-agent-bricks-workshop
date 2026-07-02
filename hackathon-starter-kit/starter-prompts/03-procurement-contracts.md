@@ -3,7 +3,7 @@
 Paste this into Databricks Genie code or your ai-dev-kit coding assistant.
 
 ```text
-We are a hackathon team building Track 03: Procurement Contract Intelligence in Vocareum.
+We are a hackathon team building Track 03: Procurement Contract Intelligence on Databricks Free Edition (or in Vocareum, if that is your assigned lab environment).
 
 Use these values:
 - catalog: <TEAM_CATALOG>
@@ -17,7 +17,7 @@ Use ai-dev-kit skills in this order:
 3. add-mcp-tool for a read-only clause standard lookup
 4. deploy after extraction eval passes
 
-Provided documents: 6 supplier contracts in /Volumes/<TEAM_CATALOG>/akzo_docs/raw/contracts/,
+Provided documents: 6 supplier contracts in /Volumes/<TEAM_CATALOG>/<your-personal-schema>/docs_raw/contracts/,
 with ground-truth fields in data/output/docs/README.md. Score extraction against that table.
 
 Build the first runnable loop for one supplier contract. Use ai_parse_document and ai_extract to produce a clause table.

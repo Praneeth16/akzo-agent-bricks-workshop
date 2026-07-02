@@ -18,10 +18,11 @@
 # MAGIC ```
 # MAGIC
 # MAGIC ### Prerequisites
-# MAGIC - The Chapter 1 finance data loaded (`<catalog>.akzo_finance`), a chat model + an independent judge
-# MAGIC   model endpoint. PART B's UC chargeback is self-contained; the live-gateway inspect/tweak is guarded
-# MAGIC   so the notebook runs green even where that specific gateway endpoint is absent.
-# MAGIC - Permission to create tables in `<catalog>.akzo_ops` / `<catalog>.akzo_gateway`.
+# MAGIC - The Chapter 1 finance data loaded flat in your one personal schema (`<catalog>.<schema>`), a chat
+# MAGIC   model + an independent judge model endpoint. PART B's UC chargeback is self-contained; the
+# MAGIC   live-gateway inspect/tweak is guarded so the notebook runs green even where that specific gateway
+# MAGIC   endpoint is absent.
+# MAGIC - Permission to create tables in that schema. No `CREATE SCHEMA` needed.
 # MAGIC
 # MAGIC ### How to run (~20 min)
 # MAGIC Top-to-bottom. The widgets set your catalog and the agent/judge/gateway endpoints.
@@ -42,9 +43,6 @@ dbutils.widgets.text("judge_endpoint", "databricks-gpt-5-5", "Independent judge"
 dbutils.widgets.text("gateway_endpoint", "<your-ai-gateway-endpoint>", "AI Gateway endpoint (PART B)")
 
 CATALOG = dbutils.widgets.get("catalog") or spark.sql("SELECT current_catalog()").first()[0]
-FIN = f"{CATALOG}.akzo_finance"
-OPS = f"{CATALOG}.akzo_ops"
-GW = f"{CATALOG}.akzo_gateway"
 AGENT_ENDPOINT = dbutils.widgets.get("agent_endpoint")
 JUDGE_ENDPOINT = dbutils.widgets.get("judge_endpoint")
 GATEWAY_ENDPOINT = dbutils.widgets.get("gateway_endpoint")
@@ -53,9 +51,16 @@ RUN_TAG = "ch4_finance_golden"
 import json, re, uuid
 from datetime import datetime, timezone
 
+SCHEMA = spark.sql("SELECT current_user() AS user").first()["user"].split("@")[0].replace(".", "_").replace("-", "_")
+if not re.fullmatch(r"[A-Za-z0-9_]+", CATALOG):
+    raise ValueError(f"Unsafe catalog name: {CATALOG!r}. Use only letters, digits, and underscore.")
+if not re.fullmatch(r"[A-Za-z0-9_]+", SCHEMA):
+    raise ValueError(f"Unsafe schema name: {SCHEMA!r}.")
+FIN = f"{CATALOG}.{SCHEMA}"
+OPS = f"{CATALOG}.{SCHEMA}"
+GW = f"{CATALOG}.{SCHEMA}"
+
 spark.sql(f"USE CATALOG {CATALOG}")
-spark.sql(f"CREATE SCHEMA IF NOT EXISTS {OPS}")
-spark.sql(f"CREATE SCHEMA IF NOT EXISTS {GW}")
 print("Finance:", FIN, "| Ops:", OPS, "| Gateway logs:", GW)
 print("Agent:", AGENT_ENDPOINT, "| Judge:", JUDGE_ENDPOINT, "| Gateway endpoint:", GATEWAY_ENDPOINT)
 
@@ -385,7 +390,7 @@ except Exception as e:
 # MAGIC %md
 # MAGIC ## SEE — preseeded payload logs in Unity Catalog
 # MAGIC
-# MAGIC Real gateway logs lag ~1h (Beta), so we preseed `akzo_gateway.payload_logs` with realistic
+# MAGIC Real gateway logs lag ~1h (Beta), so we preseed a `payload_logs` table in your schema with realistic
 # MAGIC request/response/usage/cost rows across AkzoNobel user-groups. The schema mirrors the real AI
 # MAGIC Gateway payload table plus a few enrichment columns (`user_group`, token counts, `cost_usd`) so the
 # MAGIC chargeback view works without parsing JSON live.

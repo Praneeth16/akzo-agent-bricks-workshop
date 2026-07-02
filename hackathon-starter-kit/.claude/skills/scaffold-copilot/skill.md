@@ -1,6 +1,6 @@
 ---
 name: scaffold-copilot
-description: Create the first runnable hackathon copilot loop for a selected track in Vocareum and Databricks.
+description: Create the first runnable hackathon copilot loop for a selected track on Databricks (Free Edition or Vocareum).
 ---
 
 # scaffold-copilot
@@ -34,7 +34,7 @@ Return:
 - Files or notebook cells to create
 - Agent instructions to paste into Agent Bricks
 - Sample prompts for the demo path
-- Verification steps the team can run in Vocareum
+- Verification steps the team can run in Databricks Free Edition (or Vocareum, if that is the team's lab environment)
 
 ## Guardrails
 

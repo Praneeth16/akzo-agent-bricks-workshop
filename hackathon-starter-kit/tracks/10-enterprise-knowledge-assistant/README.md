@@ -20,14 +20,15 @@ Build a Knowledge Assistant over the synthetic policy, SOP, safety, and contract
 
 ## Data And Resources
 
-- **Documents (provided):** 8 safety data sheets and 6 supplier contracts in `/Volumes/<catalog>/akzo_docs/raw/`
+- **Documents (provided):** 8 safety data sheets and 6 supplier contracts in `/Volumes/<catalog>/<your-personal-schema>/docs_raw/`
 - **Team-added documents:** SOPs and policies are not provided; add and re-index them if your demo needs them
 - **Genie spaces:** optional for structured follow-up questions
-- **Vector Search:** endpoint `akzo_workshop_vs`, index `akzo_docs.chunks_idx`
+- **Vector Search:** endpoint `akzo_workshop_vs`, index `<your-personal-schema>.chunks_idx`
+- **Environment:** Free Edition ships Genie, Genie Code, and Agent Bricks natively — no Vocareum needed. Follow `../../../SETUP.md` steps 1-4 to provision.
 
 ## Agent Bricks Build Path
 
-1. Start from `../../L100-foundations/01_agent_bricks_types.md`.
+1. Start from `../../../L100-foundations/01_agent_bricks_types.md`.
 2. Point a Knowledge Assistant at the Vector Search index.
 3. Add instructions for citations and "not found" behavior.
 4. Add metadata filters for domain, region, or document type if available.

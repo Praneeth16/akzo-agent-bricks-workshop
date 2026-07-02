@@ -20,19 +20,20 @@ Build a contract assistant that parses supplier contracts, extracts key terms, c
 
 ## Data And Resources
 
-- **Documents (provided):** 6 supplier contracts in `/Volumes/<catalog>/akzo_docs/raw/contracts/`, with ground-truth extraction fields in `../../data/output/docs/README.md`
-- **Provided tables:** none for contracts; `<catalog>.akzo_finance.products` gives spend context if needed
+- **Documents (provided):** 6 supplier contracts in `/Volumes/<catalog>/<your-personal-schema>/docs_raw/contracts/`, with ground-truth extraction fields in `../../../data/output/docs/README.md`
+- **Provided tables:** none for contracts; `<your-personal-schema>.products` gives spend context if needed
 - **Team-built tables:** optional supplier or purchase-order table via `generate-synthetic-data`
 - **Genie spaces:** optional Akzo Finance for spend context
-- **Vector Search:** `akzo_docs.chunks_idx`
+- **Vector Search:** `<your-personal-schema>.chunks_idx`
+- **Environment:** Free Edition ships Genie, Genie Code, and Agent Bricks natively — no Vocareum needed. Follow `../../../SETUP.md` steps 1-4 to provision.
 
 ## Agent Bricks Build Path
 
-1. Start from `../../L100-foundations/00_sql_ai_functions.ipynb`.
+1. Start from `../../../L100-foundations/00_sql_ai_functions.ipynb`.
 2. Parse a sample contract with `ai_parse_document`.
 3. Extract the real contract fields with `ai_extract`: `supplier_name`, `category`, `annual_spend_eur`, `payment_terms_net_days`, `price_escalation_clause`, `termination_notice_days`, plus liability cap and governing law.
 4. Flag deviations: the demo contracts include non-standard payment terms (Net 90/120) on spend over EUR 1M; score against the ground-truth table.
-5. Evaluate extracted fields against `../../data/output/docs/README.md`.
+5. Evaluate extracted fields against `../../../data/output/docs/README.md`.
 
 ## MCP, Tools, And Action Hooks
 
@@ -43,7 +44,7 @@ Build a contract assistant that parses supplier contracts, extracts key terms, c
 
 ## Evaluation And Governance
 
-- **Eval set:** the 6 provided contracts with expected field values from `../../data/output/docs/README.md`.
+- **Eval set:** the 6 provided contracts with expected field values from `../../../data/output/docs/README.md`.
 - **Judges:** extraction completeness, citation quality, risk-label correctness.
 - **Governance:** document access through UC volume and citations for every flagged clause.
 - **Failure behavior:** mark missing clauses as not found instead of inventing terms.

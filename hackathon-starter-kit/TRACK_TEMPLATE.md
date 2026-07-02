@@ -6,7 +6,7 @@ Use this structure for every hackathon track. Keep the track focused enough that
 
 ## Use Case And Target User
 
-- **Use case:** `<rank and name from USECASES.md>`
+- **Use case:** `<rank and name — see the Track Catalog tables in ../README.md>`
 - **Primary users:** `<roles>`
 - **Business question:** `<the painful decision or workflow this agent improves>`
 - **Success signal:** `<what gets faster, safer, or better>`
@@ -22,16 +22,6 @@ Build a working Agent Bricks demo that:
 3. Shows evidence, citations, or SQL/tool traces.
 4. Includes at least one quality or governance check.
 5. Ends with a clear user-facing result.
-
----
-
-## Vocareum And Team Setup
-
-- **Team catalog:** `<assigned Vocareum catalog>`
-- **SQL warehouse:** `<assigned or discovered warehouse>`
-- **Workspace URL:** `<Databricks workspace URL>`
-- **Team roles:** product lead, data lead, agent lead, governance lead
-- **Genie code starting mode:** first runnable notebook or agent scaffold, then iterate
 
 ---
 
@@ -56,7 +46,7 @@ List the resources the team should use, and mark each as provided or team-built:
 - **Genie spaces:** `<Akzo Finance | Akzo SCM | Akzo Commercial | new space>`
 - **Vector Search:** `<endpoint and index if needed>`
 
-If a resource is not in the shared `../data/` setup, use the `generate-synthetic-data` skill to create it in `akzo_ops` or `akzo_gateway`.
+If a resource is not in the shared `../data/` setup, use the `generate-synthetic-data` skill to create it in your own personal schema. For team setup and the ai-dev-kit skill order, see the README's "Team Working Model" and "Genie Code Prompting Rules" sections.
 
 ---
 
@@ -68,17 +58,6 @@ If a resource is not in the shared `../data/` setup, use the `generate-synthetic
 4. Add the track-specific instructions, examples, and guardrails.
 5. Add one tool or MCP call if the agent needs external context.
 6. Run the sample prompts and save traces for the demo.
-
----
-
-## Relevant ai-dev-kit Skills
-
-- `scaffold-copilot`: create the first runnable agent or notebook loop.
-- `add-genie-space`: generate or update Genie space instructions and sample questions.
-- `add-mcp-tool`: add one governed tool call.
-- `add-connector`: add action-plane proposal and approval behavior.
-- `generate-synthetic-data`: create any table or document the shared setup does not provide.
-- `deploy`: package the demo for Databricks Apps or a notebook handoff.
 
 ---
 

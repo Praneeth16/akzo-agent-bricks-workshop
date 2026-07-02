@@ -1,22 +1,22 @@
 -- Register the ONE read-only Unity Catalog function the L100 agent consumes through the
--- managed UC-functions MCP server: {host}/api/2.0/mcp/functions/{catalog}/akzo_finance.
+-- managed UC-functions MCP server: {host}/api/2.0/mcp/functions/{catalog}/{schema}.
 --
--- Run this once in a SQL editor / notebook against the catalog that holds your coatings
--- data, substituting :catalog (defaults to current_catalog() if you remove the USE line).
--- The agent matches the MCP tool by the function suffix `coatings_data_lookup`, so the
--- catalog stays portable.
+-- Run this once in a SQL editor / notebook against your personal schema (labs that
+-- restrict CREATE SCHEMA provision one flat schema per user; substitute :catalog, defaults
+-- to current_catalog() if you remove the USE CATALOG line). The agent matches the MCP tool
+-- by the function suffix `coatings_data_lookup`, so the catalog/schema stay portable.
 --
 -- This function is READ-ONLY: it uses ai_query to turn a question into a grounded answer
--- over the akzo_finance tables. It performs no writes. Unity Catalog governs EXECUTE on the
+-- over the finance tables. It performs no writes. Unity Catalog governs EXECUTE on the
 -- function and SELECT on the underlying tables, so the agent's identity is governed end to
 -- end — there is no client-side SQL to police on the managed-MCP path.
 
 -- USE CATALOG ${catalog};   -- optional; otherwise it lands in current_catalog()
-USE SCHEMA akzo_finance;
+USE SCHEMA <your-personal-schema>;
 
 CREATE OR REPLACE FUNCTION coatings_data_lookup(question STRING)
 RETURNS STRING
-COMMENT 'Read-only lookup over AkzoNobel coatings finance data (gross margin, price, FX, cost, product performance) in the akzo_finance schema. Answers a natural-language question grounded in products and margin_actuals. No writes.'
+COMMENT 'Read-only lookup over AkzoNobel coatings finance data (gross margin, price, FX, cost, product performance) in your personal schema. Answers a natural-language question grounded in products and margin_actuals. No writes.'
 RETURN
   SELECT ai_query(
     secret('akzo', 'llm_endpoint'),  -- or hardcode your endpoint name here, e.g. 'databricks-meta-llama-3-3-70b-instruct'

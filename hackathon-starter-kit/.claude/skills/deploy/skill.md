@@ -40,7 +40,7 @@ Return:
 
 ## Guardrails
 
-- Do not deploy before the demo path runs once in Vocareum.
+- Do not deploy before the demo path runs once in your Databricks workspace (Free Edition or Vocareum).
 - Do not hide failing evals; list known gaps in the runbook.
 - Keep secrets out of committed files and prompts.
 

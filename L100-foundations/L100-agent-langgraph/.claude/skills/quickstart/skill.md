@@ -46,7 +46,7 @@ Updates `databricks.yml`: sets `experiment_id` in the app's experiment resource.
 The agent config resolves from the environment:
 - `AKZO_CATALOG` — optional; falls back to `current_catalog()` (your assigned lab catalog on
   Vocareum). No silent `main` fallback — if neither resolves, the agent fails fast.
-- `AKZO_SCHEMA` — optional, defaults to `akzo_finance`.
+- `AKZO_SCHEMA` — required, your personal schema holding the finance tables.
 - `LLM_ENDPOINT` — **required** (no default), so the agent never silently calls a model you
   did not choose. Set it in `.env` or `app.yaml`, e.g. `databricks-meta-llama-3-3-70b-instruct`.
 

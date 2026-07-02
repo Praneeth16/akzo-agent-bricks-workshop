@@ -48,8 +48,9 @@ dbutils.library.restartPython()
 # MAGIC
 # MAGIC ### Prerequisites
 # MAGIC Run Chapter 2 first (it seeds `action_policies` and creates the mock app + UC connection). The SCM
-# MAGIC source tables (`akzo_scm.otif`, `akzo_scm.inventory`) must be loaded. This notebook re-creates the
-# MAGIC connection with a fresh token and re-seeds the one policy it needs, so it also runs standalone.
+# MAGIC source tables (`otif`, `inventory`) must be loaded, flat in your one personal schema. This notebook
+# MAGIC re-creates the connection with a fresh token and re-seeds the one policy it needs, so it also runs
+# MAGIC standalone.
 
 # COMMAND ----------
 
@@ -72,8 +73,15 @@ dbutils.widgets.text("llm_endpoint", "databricks-claude-opus-4-8", "Decision LLM
 # run identity is not authorized for the app SSO gate.
 dbutils.widgets.text("bearer_token", "", "App bearer token (optional override)")
 
+import re
+
 CATALOG = dbutils.widgets.get("catalog") or spark.sql("SELECT current_catalog()").first()[0]
-SCM = f"{CATALOG}.akzo_scm"
+SCHEMA = spark.sql("SELECT current_user() AS user").first()["user"].split("@")[0].replace(".", "_").replace("-", "_")
+if not re.fullmatch(r"[A-Za-z0-9_]+", CATALOG):
+    raise ValueError(f"Unsafe catalog name: {CATALOG!r}. Use only letters, digits, and underscore.")
+if not re.fullmatch(r"[A-Za-z0-9_]+", SCHEMA):
+    raise ValueError(f"Unsafe schema name: {SCHEMA!r}.")
+SCM = f"{CATALOG}.{SCHEMA}"
 INSTANCE_NAME = dbutils.widgets.get("lakebase_instance")
 PG_SCHEMA = dbutils.widgets.get("pg_schema")
 MOCK_APP_URL = dbutils.widgets.get("mock_app_url").rstrip("/")
@@ -357,7 +365,7 @@ breached = [r.asDict() for r in spark.sql(DETECT_SQL).collect()]
 print(f"DETECT — lanes below {OTIF_THRESHOLD}% OTIF in the latest breached month: {len(breached)}")
 for r in breached:
     print(f"  [!] {r['lane']:28s} {r['region']:10s} {r['month']}  OTIF={r['otif_pct']}%  orders={r['orders']}")
-assert breached, "expected the seeded Rotterdam OTIF breach — is akzo_scm.otif populated?"
+assert breached, "expected the seeded Rotterdam OTIF breach — is your schema's otif table populated?"
 TARGET = breached[0]
 ORIGIN_PLANT = TARGET["lane"].split("->")[0]
 print(f"\nTarget lane -> {TARGET['lane']}  ({TARGET['otif_pct']}% OTIF, {TARGET['month']})")
@@ -611,7 +619,7 @@ for chk in tv["checks"]:
 # MAGIC ## RETURN — autonomy, bounded by policy, audited end to end
 # MAGIC
 # MAGIC **Verified end to end:**
-# MAGIC - **DETECT** — `akzo_scm.otif` → `Rotterdam-NL->EMEA-DACH` below 90% in the latest breached month
+# MAGIC - **DETECT** — your schema's `otif` table → `Rotterdam-NL->EMEA-DACH` below 90% in the latest breached month
 # MAGIC   (~88.9%, May 2026), DEC-1000/DEC-1004 stocked out.
 # MAGIC - **DECIDE** — the chat model proposed a governed `scm_reorder` with a spend the guardrails check.
 # MAGIC - **PATH A** — in-policy → auto-approved by `autonomous-loop` (no human) → `execute()` raised a PO on

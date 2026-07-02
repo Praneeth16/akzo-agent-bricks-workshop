@@ -7,7 +7,7 @@ should I do?"* This app answers it two ways, both grounded in governed Unity Cat
 1. **Variance analysis** — pick a product line / region / from-period / to-period and the app
    computes a quantified **price / volume / FX / cost** bridge for the gross-margin-% change off
    governed numbers (`margin_actuals` + `cost_drivers` + `fx_rates`, certified `gross_margin_pct`
-   rule from the metric view `akzo_finance.mv_gross_margin`). An LLM reasoning step turns the
+   rule from the metric view `<schema>.mv_gross_margin`). An LLM reasoning step turns the
    bridge into a controller-ready **variance narrative + one recommended action**. The UI renders a
    waterfall-style bridge, a driver table, the narrative, and the action.
 2. **Ask a question** — free-text NL → governed SQL (the **Genie-space pattern**: `genie/finance_space.md`
@@ -79,7 +79,7 @@ databricks apps deploy finance-copilot --source-code-path /Workspace/Users/<you>
 `app.yaml` runs `uvicorn main:app --app-dir backend` on `$DATABRICKS_APP_PORT` and sets the
 warehouse / chat endpoint / Lakebase env. The app service principal needs: `CAN USE` on warehouse
 `<your-warehouse-id>`, `CAN QUERY` on `databricks-claude-opus-4-8`, SELECT on
-`<catalog>.akzo_finance.*`, and a Postgres role on the `<your-lakebase-instance>`
+`<catalog>.<schema>.*`, and a Postgres role on the `<your-lakebase-instance>`
 Lakebase instance for the `akzo` schema.
 
 ## Verified

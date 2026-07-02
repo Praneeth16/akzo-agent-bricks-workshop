@@ -7,8 +7,9 @@ guessing:
     AKZO_CATALOG    Unity Catalog with the coatings data. If unset, falls back to the
                     workspace's current_catalog(). If neither resolves -> error (no 'main'
                     fallback, which would silently point at the wrong data).
-    AKZO_SCHEMA     Schema with the finance tables. Defaults to "akzo_finance" (the
-                    workshop-provisioned schema name; override if yours differs).
+    AKZO_SCHEMA     Schema with the finance tables. No default — set it to your
+                    workspace's personal schema (workshops that restrict CREATE SCHEMA
+                    provision one flat schema per user; there is no fixed name to guess).
     LLM_ENDPOINT    Chat model serving endpoint. REQUIRED — there is no default, so the
                     agent never silently calls a model you did not choose. Set it in .env
                     or app.yaml (e.g. databricks-meta-llama-3-3-70b-instruct).
@@ -19,8 +20,6 @@ import logging
 import os
 import re
 from typing import Optional
-
-DEFAULT_SCHEMA = "akzo_finance"
 
 _IDENT = re.compile(r"[A-Za-z0-9_]+")
 _ENDPOINT = re.compile(r"[A-Za-z0-9_.-]+")
@@ -57,8 +56,14 @@ def get_catalog() -> str:
 
 
 def get_schema_name() -> str:
-    """Return the bare finance schema name (no catalog)."""
-    return _validate("schema", os.environ.get("AKZO_SCHEMA", DEFAULT_SCHEMA), _IDENT)
+    """Return the bare finance schema name (no catalog). REQUIRED — no default."""
+    schema = os.environ.get("AKZO_SCHEMA")
+    if not schema:
+        raise RuntimeError(
+            "AKZO_SCHEMA is not set. Set it in your environment (.env or app.yaml) to "
+            "your personal schema holding the finance tables."
+        )
+    return _validate("schema", schema, _IDENT)
 
 
 def get_schema() -> str:

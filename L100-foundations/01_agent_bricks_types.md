@@ -47,15 +47,15 @@ How to read this ladder:
 
 ## Prerequisites
 
-Run the shared data setup first (`../data/load_to_uc.py`). It provisions the **tables and the document volume** below into the Unity Catalog you choose. On a lab environment such as Vocareum that is your assigned catalog, so set the `catalog` widget in the notebooks to match. Shown here as `<catalog>`:
+Run the shared data setup first (`../data/load_to_uc.py`). It provisions the **tables and the document volume** below, flat inside your one personal schema (most lab workspaces, e.g. Vocareum, only grant that one pre-provisioned schema per user — no `CREATE SCHEMA` needed). Shown here as `<catalog>.<schema>`:
 
 | Resource | Location | Created by |
 |---|---|---|
-| Finance tables | `akzo_finance` (products, margin_actuals, margin_budget, fx_rates, cost_drivers) | `../data/load_to_uc.py` |
-| Supply chain tables | `akzo_scm` (otif, inventory, lanes, service_levels) | `../data/load_to_uc.py` |
-| Commercial tables | `akzo_commercial` (accounts, pipeline, sales_actuals, churn_signals) | `../data/load_to_uc.py` |
-| Document volume | `/Volumes/<catalog>/akzo_docs/raw` (sds, contracts) | `../data/load_to_uc.py` |
-| Vector index | `<catalog>.akzo_docs.chunks_idx` on endpoint `akzo_workshop_vs` | `../L200-capabilities/05_document_intelligence.py` (run before Section 2) |
+| Finance tables | `<catalog>.<schema>` (products, margin_actuals, margin_budget, fx_rates, cost_drivers) | `../data/load_to_uc.py` |
+| Supply chain tables | `<catalog>.<schema>` (otif, inventory, lanes, service_levels) | `../data/load_to_uc.py` |
+| Commercial tables | `<catalog>.<schema>` (accounts, pipeline, sales_actuals, churn_signals) | `../data/load_to_uc.py` |
+| Document volume | `/Volumes/<catalog>/<schema>/docs_raw` (sds, contracts) | `../data/load_to_uc.py` |
+| Vector index | `<catalog>.<schema>.chunks_idx` on endpoint `akzo_workshop_vs` | `../L200-capabilities/05_document_intelligence.py` (run before Section 2) |
 
 > The vector index is **not** part of `data/load_to_uc.py` — it is built in L200 chapter 5. Run that notebook first if you want to do the Knowledge Assistant (Section 2) end to end. Genie spaces are created separately too (`../genie/`).
 
@@ -68,7 +68,7 @@ Run the shared data setup first (`../data/load_to_uc.py`). It provisions the **t
 **How it works.** Genie does not guess against raw column names. You ground it with three things: the **tables** in scope, an **instructions** block (the grain, the units, which column is the certified metric), and **example NL→SQL pairs** (sample/trusted questions). On each question Genie retrieves that grounding, generates a Spark SQL query, runs it on your warehouse under your identity (so Unity Catalog row filters apply), and returns both the SQL and the result table. The more precise the instructions and examples, the more reliably it picks the right columns — that grounding is exactly what `../genie/*_space.md` pre-load for the three workshop domains.
 
 1. Open **Genie** from the left navigation, then **New**.
-2. Add tables from `akzo_finance`: start with `margin_actuals`, `products`, and `fx_rates`.
+2. Add tables from your schema: start with `margin_actuals`, `products`, and `fx_rates`.
 3. Name the space `Finance Controlling`.
 4. In the instructions, paste a short primer: the grain is one row per SKU, region, and month, amounts are in euros, and gross margin percent is `gross_margin_pct`.
 5. Ask: *Which product line had the lowest gross margin percent in EMEA last quarter?*
@@ -84,7 +84,7 @@ Run the shared data setup first (`../data/load_to_uc.py`). It provisions the **t
 **How it works (RAG).** This is retrieval-augmented generation. The documents are chunked and embedded into a **vector index** (built in L200 chapter 5 — run it first). On each question the assistant embeds the question, retrieves the most similar chunks from the index, and passes them to the chat model as grounding — so the answer comes from *your* documents, not the model's memory. The **citation** back to the source chunk is the proof the answer is grounded, not invented. This is the one type that needs a Vector Search endpoint.
 
 1. In the Create new Agent dialog, choose **Knowledge Assistant**.
-2. Point it at the vector index `<catalog>.akzo_docs.chunks_idx` on endpoint `akzo_workshop_vs`.
+2. Point it at the vector index `<catalog>.<schema>.chunks_idx` on endpoint `akzo_workshop_vs`.
 3. Give it a name like `Coatings Document Assistant` and a short description: it answers questions about safety data sheets and supplier contracts.
 4. Ask: *What is the flash point and the main hazard listed on the safety data sheet for the Interpon powder coatings?*
 
@@ -114,7 +114,7 @@ Run the shared data setup first (`../data/load_to_uc.py`). It provisions the **t
 **How it works.** A raw PDF is just pixels and layout to a database. Parsing reconstructs its structure: it returns the document as ordered elements (headings, paragraphs, tables) so downstream steps can index or query it. This is almost always **step one** of a document pipeline — you parse the PDF, then chunk + embed the result for a Knowledge Assistant, or feed specific sections to Information Extraction. Parse → then extract or retrieve.
 
 1. In the Create new Agent dialog, choose **Document Parsing**.
-2. Point it at one PDF in `/Volumes/<catalog>/akzo_docs/raw/sds`.
+2. Point it at one PDF in `/Volumes/<catalog>/<schema>/docs_raw/sds`.
 3. Run it.
 
 **Checkpoint:** the PDF comes back as structured elements, including the section headers and the product identification table. This is the UI version of `ai_parse_document`, and it is the first step of any document pipeline that feeds a Knowledge Assistant.
@@ -129,7 +129,7 @@ Run the shared data setup first (`../data/load_to_uc.py`). It provisions the **t
 
 1. In the Create new Agent dialog, choose **Text Classification**.
 2. Define labels that fit a coatings business, for example `automotive`, `marine`, `architectural`, `industrial`, and `aerospace`.
-3. Feed it account names from `akzo_commercial.accounts`, or sample inbound emails.
+3. Feed it account names from your `accounts` table, or sample inbound emails.
 4. Run it.
 
 **Checkpoint:** each input gets a label. This is the UI version of `ai_classify`, and it is the core of the ticket and email triage hackathon track.
@@ -165,14 +165,14 @@ Clicking is fine for learning. In a real project you create these resources from
 [`../genie/create_genie_spaces.py`](../genie/create_genie_spaces.py) creates the three domain Genie spaces with the Genie Spaces API. Each space is grounded with table descriptions, an instruction block, example SQL, and sample questions (the configs live in `../genie/*_space.md`). It is idempotent and writes the space ids to `../genie/space_ids.json`.
 
 ```bash
-AKZO_CATALOG=<catalog> DATABRICKS_WAREHOUSE_ID=<id> python3 ../genie/create_genie_spaces.py
+AKZO_CATALOG=<catalog> AKZO_SCHEMA=<schema> python3 ../genie/create_genie_spaces.py
 ```
 
 Paste each printed id into the L200 supervisor widgets, or use the space directly in the UI. Full walkthrough: [`../genie/README.md`](../genie/README.md).
 
 ### Knowledge Assistant backbone from code
 
-The document **vector index** a Knowledge Assistant reads is built in [`../L200-capabilities/05_document_intelligence.py`](../L200-capabilities/05_document_intelligence.py): it parses the PDFs (`ai_parse_document`), chunks + embeds them, and creates the Vector Search index on endpoint `akzo_workshop_vs`. Run that notebook once (it needs Vector Search enabled), then point a Knowledge Assistant at the resulting `<catalog>.akzo_docs.chunks_idx`.
+The document **vector index** a Knowledge Assistant reads is built in [`../L200-capabilities/05_document_intelligence.py`](../L200-capabilities/05_document_intelligence.py): it parses the PDFs (`ai_parse_document`), chunks + embeds them, and creates the Vector Search index on endpoint `akzo_workshop_vs`. Run that notebook once (it needs Vector Search enabled), then point a Knowledge Assistant at the resulting `<catalog>.<schema>.chunks_idx`.
 
 **Checkpoint:** you created the Genie spaces from code and know where the Knowledge Assistant's vector index comes from. This is the repeatable pattern the L300 supervisor builds on.
 

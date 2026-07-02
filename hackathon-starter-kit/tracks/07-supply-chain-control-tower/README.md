@@ -20,10 +20,11 @@ Build an SCM assistant that answers one OTIF or inventory exception question, id
 
 ## Data And Resources
 
-- **Provided tables (`<catalog>.akzo_scm`):** `otif`, `inventory`, `lanes`, `service_levels`
+- **Provided tables (`<catalog>.<your-personal-schema>`):** `otif`, `inventory`, `lanes`, `service_levels`
 - **Documents:** none provided for SCM; SOPs are team-supplied if needed
 - **Genie spaces:** Akzo SCM
 - **Vector Search:** not needed for this track
+- **Environment:** Free Edition ships Genie, Genie Code, and Agent Bricks natively — no Vocareum needed. Follow `../../../SETUP.md` steps 1-4 to provision.
 
 ## Agent Bricks Build Path
 

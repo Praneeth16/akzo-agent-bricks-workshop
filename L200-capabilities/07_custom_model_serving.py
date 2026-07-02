@@ -69,24 +69,28 @@ dbutils.library.restartPython()
 # COMMAND ----------
 
 dbutils.widgets.text("catalog", "", "Unity Catalog (blank = current_catalog())")
-dbutils.widgets.text("uc_model_name", "", "UC model name (blank = <catalog>.akzo_ops.akzo_custom_model)")
+dbutils.widgets.text("uc_model_name", "", "UC model name (blank = <catalog>.<schema>.akzo_custom_model)")
 dbutils.widgets.text("serving_endpoint_name", "akzo-custom-model", "Serving endpoint name")
 dbutils.widgets.dropdown("create_endpoint", "false", ["true", "false"], "Create a serving endpoint (uses compute)")
 dbutils.widgets.dropdown("workload_type", "CPU", ["CPU", "GPU_SMALL", "GPU_MEDIUM"], "Workload type (GPU = cost)")
 
+import mlflow, re
+from databricks.sdk import WorkspaceClient
+
 CATALOG = dbutils.widgets.get("catalog") or spark.sql("SELECT current_catalog()").first()[0]
-OPS = f"{CATALOG}.akzo_ops"
-UC_MODEL_NAME = dbutils.widgets.get("uc_model_name") or f"{CATALOG}.akzo_ops.akzo_custom_model"
+SCHEMA = spark.sql("SELECT current_user() AS user").first()["user"].split("@")[0].replace(".", "_").replace("-", "_")
+if not re.fullmatch(r"[A-Za-z0-9_]+", CATALOG):
+    raise ValueError(f"Unsafe catalog name: {CATALOG!r}. Use only letters, digits, and underscore.")
+if not re.fullmatch(r"[A-Za-z0-9_]+", SCHEMA):
+    raise ValueError(f"Unsafe schema name: {SCHEMA!r}.")
+OPS = f"{CATALOG}.{SCHEMA}"
+UC_MODEL_NAME = dbutils.widgets.get("uc_model_name") or f"{CATALOG}.{SCHEMA}.akzo_custom_model"
 ENDPOINT_NAME = dbutils.widgets.get("serving_endpoint_name")
 CREATE_ENDPOINT = dbutils.widgets.get("create_endpoint") == "true"
 WORKLOAD_TYPE = dbutils.widgets.get("workload_type")
 
-import mlflow
-from databricks.sdk import WorkspaceClient
-
 w = WorkspaceClient()
 spark.sql(f"USE CATALOG {CATALOG}")
-spark.sql(f"CREATE SCHEMA IF NOT EXISTS {OPS}")
 mlflow.set_registry_uri("databricks-uc")
 print("UC model:", UC_MODEL_NAME, "| endpoint:", ENDPOINT_NAME)
 print("create_endpoint:", CREATE_ENDPOINT, "| workload_type:", WORKLOAD_TYPE)

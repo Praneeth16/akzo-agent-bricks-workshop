@@ -44,7 +44,8 @@ dbutils.library.restartPython()
 # MAGIC **same governed catalog**.
 # MAGIC
 # MAGIC ### Prerequisites
-# MAGIC - The 14 PDFs in the volume `/Volumes/<catalog>/akzo_docs/raw/{sds,contracts}/*.pdf`.
+# MAGIC - The 14 PDFs in the volume `/Volumes/<catalog>/<schema>/docs_raw/{sds,contracts}/*.pdf` (your one
+# MAGIC   personal schema — no `CREATE SCHEMA` needed).
 # MAGIC - A Qwen embedding endpoint, a chat model, and permission to create a Vector Search endpoint/index.
 # MAGIC
 # MAGIC ### How to run (~15 min)
@@ -65,17 +66,22 @@ dbutils.widgets.text("embed_endpoint", "databricks-qwen3-embedding-0-6b", "Qwen 
 dbutils.widgets.text("chat_endpoint", "databricks-claude-opus-4-8", "RAG chat model")
 dbutils.widgets.text("vs_endpoint", "akzo_workshop_vs", "Vector Search endpoint")
 
+import re
+
 CATALOG = dbutils.widgets.get("catalog") or spark.sql("SELECT current_catalog()").first()[0]
-SCHEMA = "akzo_docs"
+SCHEMA = spark.sql("SELECT current_user() AS user").first()["user"].split("@")[0].replace(".", "_").replace("-", "_")
+if not re.fullmatch(r"[A-Za-z0-9_]+", CATALOG):
+    raise ValueError(f"Unsafe catalog name: {CATALOG!r}. Use only letters, digits, and underscore.")
+if not re.fullmatch(r"[A-Za-z0-9_]+", SCHEMA):
+    raise ValueError(f"Unsafe schema name: {SCHEMA!r}.")
 DOCS = f"{CATALOG}.{SCHEMA}"
-VOLUME_GLOB = f"/Volumes/{CATALOG}/{SCHEMA}/raw/*/*.pdf"
+VOLUME_GLOB = f"/Volumes/{CATALOG}/{SCHEMA}/docs_raw/*/*.pdf"
 EMBED_ENDPOINT = dbutils.widgets.get("embed_endpoint")
 CHAT_ENDPOINT = dbutils.widgets.get("chat_endpoint")
 VS_ENDPOINT = dbutils.widgets.get("vs_endpoint")
 VS_INDEX = f"{DOCS}.chunks_idx"
 
 spark.sql(f"USE CATALOG {CATALOG}")
-spark.sql(f"CREATE SCHEMA IF NOT EXISTS {DOCS}")
 print("Docs schema:", DOCS, "| Embed:", EMBED_ENDPOINT, "| Chat:", CHAT_ENDPOINT)
 print("VS endpoint:", VS_ENDPOINT, "| VS index:", VS_INDEX)
 print("Source PDFs:", VOLUME_GLOB)

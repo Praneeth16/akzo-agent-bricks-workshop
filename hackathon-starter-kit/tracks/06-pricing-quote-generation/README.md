@@ -20,17 +20,18 @@ Build a quote agent that reads an inbound request, extracts quote parameters, ca
 
 ## Data And Resources
 
-- **Provided tables:** `<catalog>.akzo_finance.products` (`list_price_eur`, `standard_cost_eur`) for price and margin floor; `<catalog>.akzo_commercial.accounts` and `sales_actuals` for customer context
-- **Team-built tables (in `akzo_ops`):** price lists, margin bands, and quote history are not provided. Create them with `generate-synthetic-data` if your demo needs them.
+- **Provided tables:** `<your-personal-schema>.products` (`list_price_eur`, `standard_cost_eur`) for price and margin floor; `<catalog>.<your-personal-schema>.accounts` and `sales_actuals` for customer context
+- **Team-built tables (in your own personal schema):** price lists, margin bands, and quote history are not provided. Create them with `generate-synthetic-data` if your demo needs them.
 - **Documents:** team-supplied inbound request emails and a terms template
 - **Genie spaces:** Akzo Commercial
 - **Vector Search:** optional quote template retrieval
+- **Environment:** Free Edition ships Genie, Genie Code, and Agent Bricks natively — no Vocareum needed. Follow `../../../SETUP.md` steps 1-4 to provision.
 
 ## Agent Bricks Build Path
 
-1. Start from `../../L100-foundations/01_agent_bricks_types.md` for extraction/classification.
+1. Start from `../../../L100-foundations/01_agent_bricks_types.md` for extraction/classification.
 2. Extract customer, product, volume, region, requested date, and terms.
-3. Look up price and cost from `akzo_finance.products`, or a generated price list.
+3. Look up price and cost from `<your-personal-schema>.products`, or a generated price list.
 4. Apply a margin floor from `standard_cost_eur` and discount guardrails.
 5. Draft a quote action that requires human approval.
 

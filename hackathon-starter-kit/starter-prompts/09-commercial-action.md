@@ -3,7 +3,7 @@
 Paste this into Databricks Genie code or your ai-dev-kit coding assistant.
 
 ```text
-We are a hackathon team building Track 09: Commercial Action Assistant in Vocareum.
+We are a hackathon team building Track 09: Commercial Action Assistant on Databricks Free Edition (or in Vocareum, if that is your assigned lab environment).
 
 Use these values:
 - catalog: <TEAM_CATALOG>
@@ -20,7 +20,7 @@ Use ai-dev-kit skills in this order:
 Build the first runnable loop:
 "Which Paints EMEA accounts are at churn risk in June 2026, why, and what should the account manager do?"
 
-Provided Commercial tables in <TEAM_CATALOG>.akzo_commercial: accounts, pipeline, sales_actuals, churn_signals.
+Provided Commercial tables in <TEAM_CATALOG>.<your-personal-schema>: accounts, pipeline, sales_actuals, churn_signals.
 The at-risk accounts are ACC0001, ACC0002, ACC0003.
 
 Create:

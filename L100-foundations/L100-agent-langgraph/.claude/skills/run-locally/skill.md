@@ -21,7 +21,7 @@ managed UC-functions MCP server. Register it once in the workspace with
 
 For local iteration without a live managed-MCP server, set `AKZO_LOCAL_TOOL=1` in `.env` to run
 an in-process Spark fallback of the same lookup. The fallback validates model-generated SQL with
-a real read-only guard (single SELECT only, table refs confined to `akzo_finance`).
+a real read-only guard (single SELECT only, table refs confined to your configured schema).
 
 ## Server Options
 
@@ -67,7 +67,7 @@ and code errors early.
 | **Authentication errors** | Verify `.env`; re-run the **quickstart** skill |
 | **Module not found** | `uv sync` to install dependencies |
 | **MLflow experiment not found** | Ensure `MLFLOW_TRACKING_URI` is `databricks://<profile-name>` in `.env` |
-| **Tool returns no rows / SQL error** | Confirm the `akzo_finance` tables exist in your catalog (run the L100 data setup); set `AKZO_CATALOG` if the data lives in another catalog |
+| **Tool returns no rows / SQL error** | Confirm the finance tables exist in your schema (run the L100 data setup); set `AKZO_CATALOG` if the data lives in another catalog |
 | **`coatings_data_lookup` tool not found** | Register the UC function: run `scripts/register_uc_function.sql` in the workspace. Managed MCP is Public Preview — for local-only dev set `AKZO_LOCAL_TOOL=1` to use the in-process fallback |
 | **`LLM_ENDPOINT is not set`** | Set `LLM_ENDPOINT` in `.env` (required, no default) |
 
@@ -85,7 +85,7 @@ AkzoLangGraphAgent (ResponsesAgent)
   ▼
 create_react_agent(ChatDatabricks, [coatings_data_lookup])
   │
-  └── coatings_data_lookup ──► managed UC-functions MCP server over akzo_finance (default, governed)
+  └── coatings_data_lookup ──► managed UC-functions MCP server over your personal schema (default, governed)
                                AKZO_LOCAL_TOOL=1 → in-process Spark fallback with read-only SQL guard
 ```
 

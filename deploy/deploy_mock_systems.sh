@@ -7,15 +7,15 @@
 # ACTIVE/SUCCEEDED). Single app, no frontend (pure API). Idempotent + re-runnable.
 #
 #   DATABRICKS_CONFIG_PROFILE=<your-profile> WORKSPACE_USER=<you@example.com> \
-#   DATABRICKS_WAREHOUSE_ID=<id> AKZO_CATALOG=<catalog> LAKEBASE_INSTANCE=<instance> \
-#   ./deploy/deploy_mock_systems.sh
+#   DATABRICKS_WAREHOUSE_ID=<id> AKZO_CATALOG=<catalog> AKZO_SCHEMA=<your-personal-schema> \
+#   LAKEBASE_INSTANCE=<instance> ./deploy/deploy_mock_systems.sh
 set -euo pipefail
 
 PROFILE="${DATABRICKS_CONFIG_PROFILE:-<your-profile>}"
 WORKSPACE_USER="${WORKSPACE_USER:-<you@example.com>}"
 WAREHOUSE_ID="${DATABRICKS_WAREHOUSE_ID:-<your-warehouse-id>}"
 CATALOG="${AKZO_CATALOG:-<catalog>}"
-SCHEMAS=(akzo_finance akzo_scm akzo_commercial akzo_docs akzo_ops akzo_gateway)
+SCHEMA="${AKZO_SCHEMA:?set AKZO_SCHEMA to your personal schema}"
 LAKEBASE_INSTANCE="${LAKEBASE_INSTANCE:-<your-lakebase-instance>}"
 APP_DIR="mock-systems"
 APP_NAME="akzo-mock-systems"
@@ -47,10 +47,8 @@ runsql() {
     | python3 -c "import sys,json;d=json.load(sys.stdin);s=(d.get('status') or {});print('      ',s.get('state'), (s.get('error') or {}).get('message',''))"
 }
 runsql "GRANT USE CATALOG ON CATALOG \`$CATALOG\` TO \`$SP\`"
-for s in "${SCHEMAS[@]}"; do
-  runsql "GRANT USE SCHEMA ON SCHEMA \`$CATALOG\`.\`$s\` TO \`$SP\`"
-  runsql "GRANT SELECT ON SCHEMA \`$CATALOG\`.\`$s\` TO \`$SP\`"
-done
+runsql "GRANT USE SCHEMA ON SCHEMA \`$CATALOG\`.\`$SCHEMA\` TO \`$SP\`"
+runsql "GRANT SELECT ON SCHEMA \`$CATALOG\`.\`$SCHEMA\` TO \`$SP\`"
 
 echo "==> 3b. Warehouse CAN_USE (PATCH permissions; additive)"
 WH_ACL=$(python3 -c "import json,sys;print(json.dumps({'access_control_list':[{'service_principal_name':sys.argv[1],'permission_level':'CAN_USE'}]}))" "$SP")

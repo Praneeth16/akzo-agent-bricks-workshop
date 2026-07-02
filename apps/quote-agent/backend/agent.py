@@ -10,14 +10,16 @@ frontend's "How this works" panel can show exactly what happened.
 from __future__ import annotations
 
 import json
+import os
 import re
 
 import databricks_client as dbx
 import lakebase as lb
 from action_plane import ActionPlane, evaluate, execute
 
-CATALOG = "<catalog>"
-FINANCE = f"{CATALOG}.akzo_finance"
+CATALOG = os.environ.get("AKZO_CATALOG", "<catalog>")
+SCHEMA = os.environ.get("AKZO_SCHEMA", "<schema>")
+FINANCE = f"{CATALOG}.{SCHEMA}"
 
 # Guardrail: flag a draft for escalation if its discount exceeds this, or if its
 # post-discount margin % falls below this floor.

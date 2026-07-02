@@ -3,7 +3,7 @@
 Paste this into Databricks Genie code or your ai-dev-kit coding assistant.
 
 ```text
-We are a hackathon team building Track 05: Forecast Planner Copilot on MMF in Vocareum.
+We are a hackathon team building Track 05: Forecast Planner Copilot on MMF on Databricks Free Edition (or in Vocareum, if that is your assigned lab environment).
 
 Use these values:
 - catalog: <TEAM_CATALOG>
@@ -11,12 +11,12 @@ Use these values:
 - workspace_url: <WORKSPACE_URL>
 - track_readme: hackathon-starter-kit/tracks/05-forecast-planner-mmf/README.md
 
-Provided SCM tables in <TEAM_CATALOG>.akzo_scm: otif, inventory, lanes, service_levels.
+Provided SCM tables in <TEAM_CATALOG>.<your-personal-schema>: otif, inventory, lanes, service_levels.
 There is no demand-history or forecast-version table; build a series from these or generate one.
 
 Use ai-dev-kit skills in this order:
 1. scaffold-copilot
-2. generate-synthetic-data for a demand-history and forecast-version table in akzo_ops (or derive a series from akzo_scm)
+2. generate-synthetic-data for a demand-history and forecast-version table in your own personal schema (or derive a series from the SCM tables)
 3. add-mcp-tool for forecast version lookup
 4. add-connector only for a propose-only override action
 5. deploy after the forecast comparison runs
@@ -25,7 +25,7 @@ Build the first runnable loop:
 "Why did the forecast increase for a product-region, and should the planner override it?"
 
 Create:
-- a monthly series from akzo_scm.service_levels or otif, or a generated demand table
+- a monthly series from <your-personal-schema>.service_levels or otif, or a generated demand table
 - notebook cells using ai_forecast for a baseline series
 - forecast version comparison logic
 - driver summary using the series, inventory, OTIF, and any generated exogenous signals

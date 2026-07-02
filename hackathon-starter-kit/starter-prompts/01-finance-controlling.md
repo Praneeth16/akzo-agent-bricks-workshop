@@ -3,7 +3,7 @@
 Paste this into Databricks Genie code or your ai-dev-kit coding assistant.
 
 ```text
-We are a hackathon team building Track 01: Finance Controlling Copilot in Vocareum.
+We are a hackathon team building Track 01: Finance Controlling Copilot on Databricks Free Edition (or in Vocareum, if that is your assigned lab environment).
 
 Use these values:
 - catalog: <TEAM_CATALOG>
@@ -20,7 +20,7 @@ Use ai-dev-kit skills in this order:
 Build the first runnable loop, not the whole product. Create a finance Genie or notebook scaffold that answers:
 "Why did EMEA decorative paints margin fall versus plan last month?"
 
-Use the Akzo Finance Genie space and the provided tables in <TEAM_CATALOG>.akzo_finance
+Use the Akzo Finance Genie space and the provided tables in <TEAM_CATALOG>.<your-personal-schema>
 (products, margin_actuals, margin_budget, fx_rates, cost_drivers). Generate:
 - Genie instructions for variance, margin, cost, price, volume, mix, and FX analysis
 - 5 sample finance questions

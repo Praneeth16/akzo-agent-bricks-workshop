@@ -15,6 +15,10 @@ command:
 env:
   - name: DATABRICKS_WAREHOUSE_ID
     value: "<your-warehouse-id>"
+  - name: AKZO_CATALOG
+    value: "<your-catalog>"
+  - name: AKZO_SCHEMA
+    value: "<your-personal-schema>"
   - name: LAKEBASE_INSTANCE
     value: "<your-lakebase-instance>"
   - name: LAKEBASE_DBNAME

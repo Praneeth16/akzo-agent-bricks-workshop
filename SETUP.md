@@ -88,8 +88,8 @@ Commercial. Two ways to create them:
   ```
   It creates all three, seeds them with the prebuilt configs, and writes the ids to
   `genie/space_ids.json`.
-- **By hand in the UI:** New → Genie space, attach the `akzo_finance` / `akzo_scm` /
-  `akzo_commercial` tables, paste the instructions from `genie/<domain>_space.md`.
+- **By hand in the UI:** New → Genie space, attach the tables from your personal schema,
+  paste the instructions from `genie/<domain>_space.md`.
 
 Either way, you then copy each **space id** into the notebook widgets (`finance_space_id`,
 `scm_space_id`, `commercial_space_id`) or the app's env vars. The id is the last URL segment of

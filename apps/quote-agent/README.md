@@ -5,8 +5,8 @@ AkzoNobel Agent Bricks workshop, showcase #2. The densest single agent demo: it
 
 1. **Parse** an inbound RFQ with `ai_extract` (governed, on the SQL warehouse) and
    resolve the free-text product to a real `products` SKU.
-2. **Price** it: list price + standard cost from `akzo_finance.products`, recent
-   realized margin from `akzo_finance.margin_actuals` (governed Unity Catalog reads).
+2. **Price** it: list price + standard cost from `<schema>.products`, recent
+   realized margin from `<schema>.margin_actuals` (governed Unity Catalog reads).
 3. **Draft** a quote — line items, discount, total, post-discount margin — and run a
    **guardrail** (flags discount > 15% or margin < 25%).
 4. **Write** the quote to **Lakebase** (`akzo.quotes`, status `pending`) plus a
@@ -77,7 +77,7 @@ databricks apps deploy quote-agent --source-code-path /Workspace/Users/<you>/quo
 `app.yaml` runs `uvicorn main:app --app-dir backend` on `$DATABRICKS_APP_PORT` and sets
 the warehouse / chat endpoint / Lakebase env. The app service principal needs: `CAN USE`
 on warehouse `<your-warehouse-id>`, `CAN QUERY` on `databricks-claude-opus-4-8`, SELECT on
-`<catalog>.akzo_finance.*`, and a Postgres role on the
+`<catalog>.<schema>.*`, and a Postgres role on the
 `<your-lakebase-instance>` Lakebase instance for the `akzo` schema.
 
 ## Verified

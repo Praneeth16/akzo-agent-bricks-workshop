@@ -59,9 +59,10 @@ dbutils.library.restartPython()
 # MAGIC
 # MAGIC ### Prerequisites
 # MAGIC - A **serverless** SQL warehouse / cluster, and access to a chat model serving endpoint.
-# MAGIC - The synthetic data loaded into `<catalog>.akzo_finance / akzo_scm / akzo_commercial`
-# MAGIC   (run `data/load_to_uc.py` once first — see the repo `data/` README).
-# MAGIC - Permission to `CREATE SCHEMA/VIEW/FUNCTION` and `ALTER TABLE ... SET ROW FILTER` in the catalog.
+# MAGIC - The synthetic data loaded flat into your one personal schema, `<catalog>.<schema>`
+# MAGIC   (run `data/load_to_uc.py` once first — see the repo `data/` README). No `CREATE SCHEMA`
+# MAGIC   needed — most lab workspaces only grant one pre-provisioned schema per user.
+# MAGIC - Permission to `CREATE VIEW/FUNCTION` and `ALTER TABLE ... SET ROW FILTER` in that schema.
 # MAGIC
 # MAGIC ### How to run (~25 min)
 # MAGIC Top-to-bottom, cell by cell. The two widgets at the top let you point this at **your own** catalog
@@ -73,7 +74,7 @@ dbutils.library.restartPython()
 # MAGIC %md
 # MAGIC ## Setup — parameters
 # MAGIC
-# MAGIC Widgets make the notebook portable: `catalog` (where the `akzo_*` schemas live), `llm_endpoint` (the
+# MAGIC Widgets make the notebook portable: `catalog` (where your personal schema lives), `llm_endpoint` (the
 # MAGIC router/fuser model), and the three **Genie space ids**. When a domain's space id is set, that leg
 # MAGIC calls the **real Genie space** via the Genie Conversation API (Genie generates + runs the governed
 # MAGIC SQL); when blank, it falls back to the in-code `ai_query` reproduction so the notebook still runs
@@ -83,7 +84,9 @@ dbutils.library.restartPython()
 
 # COMMAND ----------
 
-dbutils.widgets.text("catalog", "", "Unity Catalog (blank = current_catalog())")
+import re
+
+dbutils.widgets.text("catalog", "dbacademy", "Unity Catalog")
 dbutils.widgets.text("llm_endpoint", "databricks-claude-opus-4-8", "Router/fuser model endpoint")
 # Paste your Genie space ids from the UI (open each space; the id is the last URL segment
 # of /genie/rooms/<space_id>), or run genie/create_genie_spaces.py to create them.
@@ -95,10 +98,18 @@ dbutils.widgets.text("commercial_space_id", "", "Commercial Genie space id")
 CATALOG = dbutils.widgets.get("catalog") or spark.sql("SELECT current_catalog()").first()[0]
 LLM_ENDPOINT = dbutils.widgets.get("llm_endpoint")   # e.g. databricks-claude-opus-4-8 / databricks-gpt-5-5
 
-FIN = f"{CATALOG}.akzo_finance"
-SCM = f"{CATALOG}.akzo_scm"
-COM = f"{CATALOG}.akzo_commercial"
-OPS = f"{CATALOG}.akzo_ops"
+# Most lab workspaces (e.g. vocareum) grant only one pre-provisioned personal schema per
+# user — no CREATE SCHEMA on the catalog. Derive it from current_user() like the loader does.
+SCHEMA = spark.sql("SELECT current_user() AS user").first()["user"].split("@")[0].replace(".", "_").replace("-", "_")
+if not re.fullmatch(r"[A-Za-z0-9_]+", CATALOG):
+    raise ValueError(f"Unsafe catalog name: {CATALOG!r}. Use only letters, digits, and underscore.")
+if not re.fullmatch(r"[A-Za-z0-9_]+", SCHEMA):
+    raise ValueError(f"Unsafe schema name: {SCHEMA!r}.")
+
+FIN = f"{CATALOG}.{SCHEMA}"
+SCM = f"{CATALOG}.{SCHEMA}"
+COM = f"{CATALOG}.{SCHEMA}"
+OPS = f"{CATALOG}.{SCHEMA}"
 
 # Per-domain Genie space ids (empty string -> that leg uses the ai_query fallback).
 LEG_SPACE_IDS = {
@@ -133,10 +144,7 @@ def genie_leg(space_id: str, question: str) -> dict:
         return {"sql": f"(Genie call failed: {str(e)[:160]})", "rows": [], "error": str(e)[:300]}
 
 print("Catalog     :", CATALOG)
-print("Finance     :", FIN)
-print("SCM         :", SCM)
-print("Commercial  :", COM)
-print("Ops (RLS)   :", OPS)
+print("Schema      :", SCHEMA)
 print("LLM endpoint:", LLM_ENDPOINT)
 
 # COMMAND ----------
@@ -575,7 +583,6 @@ print(reason(REASONING_PROMPT))
 
 # COMMAND ----------
 
-spark.sql(f"CREATE SCHEMA IF NOT EXISTS {OPS}")
 me = spark.sql("SELECT current_user() AS u").first()["u"]
 print("You are:", me)
 
@@ -890,9 +897,9 @@ Format:
 # MAGIC
 # MAGIC | Leg | text2SQL over | Reasoning produces | Verified anchor |
 # MAGIC |---|---|---|---|
-# MAGIC | **Finance** (A) | `akzo_finance` | variance decomposition + action | GM 39.6%→30.7% (−8.9pp) |
-# MAGIC | **SCM** (C) | `akzo_scm` | root cause + intervention | Rotterdam OTIF 96%→88.9% May |
-# MAGIC | **Commercial** (C) | `akzo_commercial` | signals + next-best-action | ACC0001/2/3 churn >0.7 |
+# MAGIC | **Finance** (A) | your schema (`margin_actuals`, `products`) | variance decomposition + action | GM 39.6%→30.7% (−8.9pp) |
+# MAGIC | **SCM** (C) | your schema (`otif`, `inventory`) | root cause + intervention | Rotterdam OTIF 96%→88.9% May |
+# MAGIC | **Commercial** (C) | your schema (`accounts`, `churn_signals`) | signals + next-best-action | ACC0001/2/3 churn >0.7 |
 # MAGIC
 # MAGIC One story: the EMEA margin shock (finance) has a supply cause (SCM) and a customer consequence
 # MAGIC (commercial). That is exactly the cross-domain question the supervisor fuses next.

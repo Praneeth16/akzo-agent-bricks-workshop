@@ -22,11 +22,11 @@ You demo from a workspace that is **already fully provisioned and verified green
 
 | Check | Command / action | Pass looks like |
 |---|---|---|
-| Catalog + warehouse set | `echo $AKZO_CATALOG $DATABRICKS_WAREHOUSE_ID` | both non-empty |
-| Data loaded | open `akzo_finance.margin_actuals` in Catalog Explorer | 13 tables across `akzo_finance/scm/commercial` exist |
+| Catalog + schema set | `echo $AKZO_CATALOG $AKZO_SCHEMA $DATABRICKS_WAREHOUSE_ID` | all non-empty |
+| Data loaded | open `<schema>.margin_actuals` in Catalog Explorer | 13 tables flat in your personal schema exist |
 | FM endpoint queryable | run cell 4 of `00_sql_ai_functions` (the `OK` probe) | returns `OK` |
 | Genie spaces live | open `genie/space_ids.json`, click the Finance space | space opens, tables attached |
-| Vector index built | Catalog Explorer → `akzo_docs.chunks_idx` | index = ONLINE (needed for Knowledge Assistant live) |
+| Vector index built | Catalog Explorer → `<schema>.chunks_idx` | index = ONLINE (needed for Knowledge Assistant live) |
 | Lakebase up | Compute → Database instances | one instance AVAILABLE |
 | Mock systems app | open the app URL | health page loads (needed for the afternoon action demo) |
 | Finished agent open | supervisor app / `quote-agent` in a browser tab | loads, ready for the cold-open |
@@ -176,13 +176,13 @@ Map each type to the SQL function from the last block. "Same atom, managed wrapp
 Time is tight — **build Genie + one Function type end to end; narrate the others.** Attendees build *their own* Genie space alongside you (it's fast and needs only the loaded tables). The Function types (extract/parse/classify) also work the moment their data load finished — encourage them to point-and-build one while you narrate.
 
 **1. Genie Space (build it — this is the keystone).**
-- New → Genie space, attach `akzo_finance` → `margin_actuals`, `products`, `fx_rates`. Name it `Finance Controlling`.
+- New → Genie space, attach `margin_actuals`, `products`, `fx_rates` from your personal schema. Name it `Finance Controlling`.
 - Paste the grounding primer (grain = SKU×region×month, EUR, certified metric `gross_margin_pct`).
 - Ask the golden question: *"Which product line had the lowest gross margin percent in EMEA last quarter?"*
 - **Show the generated SQL**, not just the answer. "Genie writes SQL, runs it on the warehouse **under your identity** — so row filters apply. This becomes the Finance domain of the supervisor you saw at 9am."
 
 **2. Knowledge Assistant (you build it on the reference workspace; attendees' own may still be indexing).**
-- New → Agent → Knowledge Assistant, point at `<catalog>.akzo_docs.chunks_idx`.
+- New → Agent → Knowledge Assistant, point at `<catalog>.<schema>.chunks_idx`.
 - Ask: *"What is the flash point and the main hazard on the SDS for the Interpon powder coatings?"*
 - **Click the citation.** "The citation is the proof the answer is grounded in *your* document, not the model's memory. That's RAG."
 - **Attendees:** their `chunks_idx` is only ready if they kicked off `05_document_intelligence` at the start of this block (the relay). Most won't have it yet — that's fine, they watch yours and build their own KA after lunch when the index is ONLINE. Don't stall the room waiting on indexes.
@@ -294,7 +294,7 @@ Three notebooks back to back. Tightest L100 block — keep momentum.
 
 ### Beat 1 — Governed reads under your identity (`01`, Parts A–B) ≈20 min
 - Frame: "This morning's Genie ran under your identity. Now see *why that matters*. We put a **row filter** on the finance data and ask the same question as two different people."
-- Run Part A (the finance domain agent: text2SQL + reasoning over `akzo_finance`). Watch the *Generated SQL*; compare to the `# Expect` comment.
+- Run Part A (the finance domain agent: text2SQL + reasoning over the finance tables). Watch the *Generated SQL*; compare to the `# Expect` comment.
 - Run Part B (**OBO + UC row-level security**): same question, different rows per user. "This is the governance plane for **reads**. On-behalf-of auth + row filters — the model never sees rows the user can't."
 - Land it: "**This is the Foundry gap we keep naming.** A Foundry agent reaching your data through a connector authenticates as the *connector*, not the *user*. Here the agent inherits the asking user's row-level permissions. That's what lets a controller trust one shared agent across regions."
 
@@ -397,7 +397,7 @@ Three quick beats. **Lighter than the action block** — show the shape, the dep
 - **"Can we use our own data, not the synthetic coatings data?"** → "Tomorrow, keep it synthetic so the narrative lands and judging is fair. After the workshop, the same patterns drop onto your real UC catalog — that's the point of nothing being hardcoded."
 - **"Can we build the agent in Foundry and just deploy here?"** → "If your team's fastest path is to author in a framework you know, do it — wrap it in `ResponsesAgent` and it gets the governed serving/eval/trace plane. The judging cares about the governed, end-to-end result, not the IDE."
 - **"How far should we get tomorrow?"** → "One governed data source, one tool or MCP call, one eval set, and — if the use case acts — one approval gate. Thin and working beats broad and broken."
-- **"What if our track needs data the setup didn't ship?"** → "Tracks 04, 05, 06, 08 build some data themselves — use the `generate-synthetic-data` skill into `akzo_ops` or `akzo_gateway`."
+- **"What if our track needs data the setup didn't ship?"** → "Tracks 04, 05, 06, 08 build some data themselves — use the `generate-synthetic-data` skill into your own personal schema."
 
 ### Close Day 1
 "Today we peeled the whole game. Tomorrow you build your slice of it and demo something deployed, traced, and governed. Pick your track tonight, sleep on the demo story, come in scoped."

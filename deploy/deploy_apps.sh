@@ -7,8 +7,8 @@
 # current source. Configure with environment variables, then run from the repo root:
 #
 #   DATABRICKS_CONFIG_PROFILE=<your-profile> WORKSPACE_USER=<you@example.com> \
-#   DATABRICKS_WAREHOUSE_ID=<id> AKZO_CATALOG=<catalog> LAKEBASE_INSTANCE=<instance> \
-#   ./deploy/deploy_apps.sh
+#   DATABRICKS_WAREHOUSE_ID=<id> AKZO_CATALOG=<catalog> AKZO_SCHEMA=<your-personal-schema> \
+#   LAKEBASE_INSTANCE=<instance> ./deploy/deploy_apps.sh
 #
 # Requires: databricks CLI v0.298+, python3 with psycopg[binary] + databricks-sdk,
 # node 26 (only if you need to rebuild a frontend; prebuilt dist/ is committed).
@@ -19,7 +19,7 @@ WORKSPACE_USER="${WORKSPACE_USER:-<you@example.com>}"
 WAREHOUSE_ID="${DATABRICKS_WAREHOUSE_ID:-<your-warehouse-id>}"
 CHAT_ENDPOINT="${DATABRICKS_CHAT_ENDPOINT:-databricks-claude-opus-4-8}"  # FOUNDATION_MODEL_API (pay-per-token)
 CATALOG="${AKZO_CATALOG:-<catalog>}"
-SCHEMAS=(akzo_finance akzo_scm akzo_commercial akzo_docs akzo_ops akzo_gateway)
+SCHEMA="${AKZO_SCHEMA:?set AKZO_SCHEMA to your personal schema}"
 LAKEBASE_INSTANCE="${LAKEBASE_INSTANCE:-<your-lakebase-instance>}"
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
@@ -67,10 +67,8 @@ for name in "${APPS[@]}"; do
   sp="${SP_CLIENT_ID[$name]}"
   echo "    $name ($sp)"
   runsql "GRANT USE CATALOG ON CATALOG \`$CATALOG\` TO \`$sp\`"
-  for s in "${SCHEMAS[@]}"; do
-    runsql "GRANT USE SCHEMA ON SCHEMA \`$CATALOG\`.\`$s\` TO \`$sp\`"
-    runsql "GRANT SELECT ON SCHEMA \`$CATALOG\`.\`$s\` TO \`$sp\`"
-  done
+  runsql "GRANT USE SCHEMA ON SCHEMA \`$CATALOG\`.\`$SCHEMA\` TO \`$sp\`"
+  runsql "GRANT SELECT ON SCHEMA \`$CATALOG\`.\`$SCHEMA\` TO \`$sp\`"
 done
 
 echo "==> 3b. Warehouse CAN_USE (PATCH permissions; additive)"
